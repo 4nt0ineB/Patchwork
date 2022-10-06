@@ -1,0 +1,64 @@
+---- Rappel: Patchwork se joue à deux ----
+
+### [Mise en place]
+- Les joueurs commencent la partie avec 5 boutons.
+- Ils se déplacent à tour de rôle sur un plateau central (TrackBoard).
+et auront à placer des patchs (Patch) sur une grille individuelle (QuiltBoard)
+
+- Placer le plateau central au milieu de la table.
+- Placer les pions sur la case de départ du plateau central. Le joueur ayant le plus récemment utilisé une aiguille à coudre commence.
+- Placer les patchs en cercle autour du plateau central.
+- Localiser la plus petite tuile (1x2) et placer le pion neutre entre celui-ci et la tuile suivante en sens horaire.
+- Mettre en évidence la tuile spéciale de côté
+- Placer les patchs spéciaux sur les endroits indiqués sur le plateau.
+
+
+### [Ordre de jeu]
+Les tours ne sont pas alternés, c'est le joueur le plus en retard qui joue.
+si deux joueurs sont sur la même case c'est le pion du joueur du dessus qui joue.
+
+### [Déroulement d'un tour]
+Le joueur choisi entre avancer jusqu'à la case devant le prochain joueur et récupérer un montant de boutons équivalent au nombre de cases parcourues,
+ou bien choisir et placer un patch sur sa grille. Dans ce dernier cas le joueur doit:
+
+- Choisir un patch parmi les trois suivants le pion neutre (en sens horaire)
+- Déplacer le pion neutre après le patch choisi.
+- Payer le nombre de boutons indiqué sur celui-ci.
+- Placer le patch sur la grille. Les patchs ne doivent pas être superposés, mais peuvent être tournées dans tous les sens.
+- Avancer sur le plateau central du nombre indiqué sur le patch.
+  Si le pion arrive sur une case déjà occupée, placer le pion au dessus du pion qui l'occupe.
+
+### [Patch spéciaux et Rémunération boutons]
+Certaines case du plateau permettent d'obtenir des bonus. A chaque fois qu'un joueur arriver ou passe cette case il doit effectuer l'action correspondante.
+
+Patch speciaux: Prendre ce patch (1x1) et le placer immédiatement sur sa grille personnelle
+Rémunération de boutons: Le joueur reçoit le montant de boutons proportionnellement au patch sur la grille personnelle.
+
+
+### [Tuile spéciale]
+Le premier joueur à remplire un carré 7x7 sur sa grille reçoit l'unique tuile spéciale, valant 7 points.
+
+
+### [Fin de partie]
+- La partie est terminée quand tous les jetons atteigne la dernière case.
+- Le joueur ayant le plus grand nombre de boutons gagne. 
+- Chaque espace vide sur la grille individuelle retire deux points au score du joueur. 
+
+
+
+### [Contenu du jeu]
+- Un plateau central
+- 2 grilles (1 par joueur)
+- 1 pion neutre
+- deux pions de joueur
+- 5 patchs spéciaux
+- 1 tuile spéciale
+- 32 tuiles "1 bouton"
+  12 tuiles "5 boutons"
+  5  tuiles "10 boutons
+  1  tuile "20 buttons"
+
+
+[Extension Patchwork : Automa]
+24 cartes d'extension
+possibilité de jouer seul contre un adversaire artificiel
