@@ -1,0 +1,114 @@
+---- Rappel: Patchwork se joue à deux ----
+
+### [Mise en place]
+- Les joueurs commencent la partie avec 5 boutons.
+- Ils se déplacent à tour de rôle sur un plateau central (TrackBoard).
+et auront à placer des patchs (Patch) sur une grille individuelle (QuiltBoard)
+
+- Placer le plateau central au milieu de la table.
+- Placer les pions sur la case de départ du plateau central. Le joueur ayant le plus récemment utilisé une aiguille à coudre commence.
+- Placer les patchs en cercle autour du plateau central.
+- Localiser la plus petite tuile (1x2) et placer le pion neutre entre celui-ci et la tuile suivante en sens horaire.
+- Mettre en évidence la tuile spéciale de côté
+- Placer les patchs spéciaux sur les endroits indiqués sur le plateau.
+
+
+### [Ordre de jeu]
+Les tours ne sont pas alternés, c'est le joueur le plus en retard qui joue.
+si deux joueurs sont sur la même case c'est le pion du joueur du dessus qui joue.
+
+### [Déroulement d'un tour]
+Le joueur choisi entre avancer jusqu'à la case devant le prochain joueur et récupérer un montant de boutons équivalent au nombre de cases parcourues,
+ou bien choisir et placer un patch sur sa grille. Dans ce dernier cas le joueur doit:
+
+- Choisir un patch parmi les trois suivants le pion neutre (en sens horaire)
+- Déplacer le pion neutre après le patch choisi.
+- Payer le nombre de boutons indiqué sur celui-ci.
+- Placer le patch sur la grille. Les patchs ne doivent pas être superposés, mais peuvent être tournées dans tous les sens.
+- Avancer sur le plateau central du nombre indiqué sur le patch.
+  Si le pion arrive sur une case déjà occupée, placer le pion au dessus du pion qui l'occupe.
+
+### [Patch spéciaux et Rémunération boutons]
+Certaines case du plateau permettent d'obtenir des bonus. A chaque fois qu'un joueur arriver ou passe cette case il doit effectuer l'action correspondante.
+
+Patch speciaux: Prendre ce patch (1x1) et le placer immédiatement sur sa grille personnelle
+Rémunération de boutons: Le joueur reçoit le montant de boutons proportionnellement au patch sur la grille personnelle.
+
+
+### [Tuile spéciale]
+Le premier joueur à remplire un carré 7x7 sur sa grille reçoit l'unique tuile spéciale, valant 7 points.
+
+
+### [Fin de partie]
+- La partie est terminée quand tous les jetons atteigne la dernière case.
+- Le joueur ayant le plus grand nombre de boutons gagne. 
+- Chaque espace vide sur la grille individuelle retire deux points au score du joueur. 
+
+
+
+### [Contenu du jeu]
+- Un plateau central
+- 2 grilles (1 par joueur)
+- 1 pion neutre
+- deux pions de joueur
+- 5 patchs spéciaux
+- 1 tuile spéciale
+- 32 tuiles "1 bouton"
+  12 tuiles "5 boutons"
+  5  tuiles "10 boutons
+  1  tuile "20 buttons"
+
+
+[Extension Patchwork : Automa]
+possibilité de jouer seul contre un adversaire artificiel
+24 cartes d'extension:
+	12 cartes sans bouton sur le dos = normal deck
+	12 cartes avec boutons sur le dos = tactical deck 
+
+[Mise en place]
+Choisir quel deck utiliser
+Mélanger les 12 cartes
+Les placer face cachée, jeter deux cartes et les placer dans une défausse.
+Choisir la difficulté avec laquel affronter Automa:
+	i intern	1 case d'avance
+	ii apprentice	9 	
+	iii fellow	12
+	iv master	15
+	v legend	18
+
+Le joueur est toujours le premier à commencer
+[Déroulement]
+/Joueur
+Le joueur joue normalement
+/Automa
+Le patch d'Automa est déterminé par une carte du deck
+Automa ne dépense pas de boutons pour les patchs
+Automa reçoit une rémunération de boutons proportionnelement au règles spéciales
+Automa ne place pas de pachs sur une grille mais une pile des patch sans boutons et une autre pile avec boutons.
+Le score d'automa est basé sur le niveau de difficulté
+
+Quand c'est le tour d'automa, révéler une carte du deck. Si avec le montant de boutons de la carte Automa peut:
+	Acheter aucun patch des trois patchs:
+		Automa avance, ne reçoit pas de boutons pour cette avance, mais peut recevoir des boutons des cases spéciales de rémunération 
+	Acheter un seul des trois patchs:
+		Prendre le patch et le placer dans la pile correspondante d'Automa. Effectuer l'action de dessus.
+	Acheter plus qu'un des trois patchs:
+		Considérer les filtres de la cartes et choisir le patch en conséquence. Effectuer l'action de dessus.
+		
+Placer la carte dans la défausse.
+
+Quand Automa passe une rémunération de boutons: c'est le nombre indiqué en bas a droite de la carte courante qui est pris en compte.		
+Quand le deck est vide: mélanger la défausse et refaire une pile.
+Tuile spéciale 7x7: Automa obtien la tuile si le bouton choisi en début de partie (diffuculté) est dépassé, à moins que le joueur l'ai déjà remporté en complétant un carré 7x7 sur sa grille.
+
+[fin de partie]
+Calculer le score comme d'habitude
+Diffuculté : 
+	i: Pas de points additionnel
+	ii: 1 point par bouton
+	iii: ii + 1 point par patch avec boutons
+	iv: ii + 1 point pour chaque boutons sur chaque patch
+	v: iii + 1 point pour chaque boutons sur chaque patch
+	
+Le joueur gagne s'il a plus de points qu'Automa
+		
