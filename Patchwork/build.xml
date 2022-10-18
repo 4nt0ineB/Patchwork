@@ -20,7 +20,7 @@
 	<target name="jar" depends="compile">
 		<jar destfile="Patchwork.jar" basedir="${classes}">
 			<manifest>
-				<attribute name="Main-Class" value="Main"/>
+				<attribute name="Main-Class" value="controller.PatchworkController"/>
 			</manifest>
 		</jar>
 	</target>
