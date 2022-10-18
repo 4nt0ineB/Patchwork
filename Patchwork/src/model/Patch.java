@@ -1,6 +1,8 @@
 package model;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -85,7 +87,7 @@ public class Patch {
    * Decrement by one the absolute coordinates along y axis
    */
   public void moveUp() {
-    absoluteOrigin = absoluteOrigin.add(new Coordinates(-1, 0));
+    absoluteOrigin = absoluteOrigin.sub(new Coordinates(1, 0));
   }
   
   /**
@@ -99,7 +101,7 @@ public class Patch {
    * Decrement by one the absolute coordinates along x axis
    */
   public void moveLeft() {
-    absoluteOrigin = absoluteOrigin.add(new Coordinates(0, -1));
+    absoluteOrigin = absoluteOrigin.sub(new Coordinates(0, 1));
   }
   
   /**
@@ -128,9 +130,10 @@ public class Patch {
    */
   public boolean overlap(Patch patch) {
     Objects.requireNonNull(patch, "Can't test overlapping on null");
-    for(var cell: rotations.get(currentRotation)) {
-      for(var ocell: patch.rotations.get(patch.currentRotation)) {
-        if(cell.add(absoluteOrigin).equals(ocell.add(patch.absoluteOrigin))) {
+    var patchCells = patch.absolutePositions();
+    for(var cell: absolutePositions()) {
+      for(var ocell: patchCells) {
+        if(cell.equals(ocell)) {
           return true;
         }
       }
@@ -139,7 +142,9 @@ public class Patch {
   }
   
   /**
-   * check if the patch fits in a defined rectangle<br>
+   * check if the absolute coordinates of the 
+   * patch fits in a defined rectangle<br>
+   * 
    * [0;width[<br>
    * [0;height[
    * 
@@ -151,15 +156,54 @@ public class Patch {
     if(width < 1 || height < 1) {
       throw new IllegalArgumentException("The rectangle dimensions must be at least of 1x1");
     }
+    var topleft = new Coordinates(0, 0);
+    var lowerright = new Coordinates(height, width);
     for(var cell: rotations.get(currentRotation)) {
       var absPos = cell.add(absoluteOrigin);
-      if(absPos.x() < 0 || absPos.x() >= width 
-          || absPos.y() < 0 || absPos.y() >= height
-          ) {
+      if(!absPos.inRectangle(topleft, lowerright)) {
         return false;
       }
     }
     return true;
+  }
+  
+  /**
+   * Check if cells form a square
+   * @param cells
+   * @return
+   */
+  private boolean isSquare(Set<Coordinates> cells) {
+    var side = Math.sqrt(cells.size());
+    if(side * side != cells.size()) {
+      // number of cells could not form a square
+      return false;
+    }
+    // the vector with which the square must expand from origin to form expected square
+    var vector = farthestCoordinates(cells).mul(new Coordinates(((int) side) - 1, ((int) side) - 1));
+    var rOrigin = new Coordinates(0, 0);
+    // Check if all coordinates are in the expected square
+    for(var c: cells) {
+      if(!c.inRectangle(vector, rOrigin)) {
+        return false;
+      }
+    }
+    return true;
+  }
+  
+  /**
+   * Return the farthest coordinates to origin (0,0)
+   * @param cells
+   * @return
+   */
+  private Coordinates farthestCoordinates(Set<Coordinates> cells) {
+    var farthest = new Coordinates(0, 0);
+    var rOrigin = new Coordinates(0, 0);
+    for(var c: cells) {
+      if(c.distance(rOrigin) > farthest.distance(rOrigin)){
+        farthest = c;
+      }
+    }
+    return farthest;
   }
   
   /**
@@ -171,6 +215,10 @@ public class Patch {
   private List<Set<Coordinates>> allRotations(Set<Coordinates> cells) {
     var rotationsList = new ArrayList<Set<Coordinates>>();
     rotationsList.add(cells);
+    // if square, no rotations
+    if(isSquare(cells)) {
+      return rotationsList;
+    }
     for(var i = 1; i < 4; i++) {
       var r = rotate(rotationsList.get(i - 1), RRMATRIX);
       if(!rotationsList.contains(r)) {
@@ -221,6 +269,10 @@ public class Patch {
         + ", b: " + buttons + ") "
         + "AbsOrigin: " + absoluteOrigin
         ;
+  }
+
+  public int price() {
+    return price;
   }
   
   

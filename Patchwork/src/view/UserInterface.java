@@ -1,11 +1,12 @@
 package view;
 
+import model.GameBoard;
 import model.Patch;
 
 public interface UserInterface {
   
   void movePatch(Patch patch);
-  void draw();
+  void draw(GameBoard gameBoard);
   void clear();
   Action choice();
   

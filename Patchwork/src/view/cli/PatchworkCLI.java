@@ -1,12 +1,10 @@
 package view.cli;
 
-import java.util.Objects;
 import java.util.Scanner;
-import java.util.stream.Stream;
 
-import javax.xml.transform.stream.StreamSource;
-
+import model.GameBoard;
 import model.Patch;
+import model.Player;
 import view.Action;
 import view.UserInterface;
 
@@ -28,8 +26,13 @@ public class PatchworkCLI implements UserInterface {
   private static Scanner scanner = new Scanner(System.in);
 
   @Override
-  public void draw() {
+  public void draw(GameBoard gb) {
     System.out.println(Color.ANSI_GREEN + "Hey");
+    
+  }
+  
+  public void drawPlayer(Player player) {
+    
   }
 
   @Override

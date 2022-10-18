@@ -27,7 +27,7 @@ public class QuiltBoard {
   public boolean addPatch(Patch patch) {
     Objects.requireNonNull(patch, "can't add null obj as a patch");
     // fits ?
-    if(!patch.fits(width, height)) {
+    if(!patch.fits(width-1, height-1)) {
       return false;
     }
     // Overlap ?
