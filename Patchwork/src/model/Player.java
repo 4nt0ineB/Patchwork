@@ -46,11 +46,15 @@ public class Player {
    * @return true or false
    */
   public boolean buyPatch(Patch patch) {
-    if(patch.price() <= buttons && quilt.addPatch(patch)) {
+    if(canBuyPatch(patch) && quilt.add(patch)) {
       buttons -= patch.price();
       return true;
     }
     return false;
+  }
+  
+  public boolean canBuyPatch(Patch patch) {
+    return patch.price() <= buttons;
   }
   
   @Override
@@ -71,7 +75,22 @@ public class Player {
     return position;
   }
   
+  public int buttons() {
+    return buttons;
+  }
+  
+  public String name() {
+    return name;
+  }
+  
+  public QuiltBoard quilt() {
+    return quilt;
+  }
+  
   public void move(int n) {
+    if(position + n < 0) {
+      throw new IllegalArgumentException("The player can't be at a negative position");
+    }
     position += n;
   }
   

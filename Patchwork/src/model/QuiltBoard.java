@@ -24,8 +24,12 @@ public class QuiltBoard {
    * @return false if the given patch exceeds the borders or overlap a patch
    * already on the Quilt, else true
    */
-  public boolean addPatch(Patch patch) {
+  public boolean add(Patch patch) {
     Objects.requireNonNull(patch, "can't add null obj as a patch");
+    return canAdd(patch) && patches.add(patch);
+  }
+  
+  public boolean canAdd(Patch patch) {
     // fits ?
     if(!patch.fits(width-1, height-1)) {
       return false;
@@ -36,10 +40,32 @@ public class QuiltBoard {
         return false;
       }
     }
-    return patches.add(patch);
+    return true;
   }
   
-
+  public boolean occupied(Coordinates coordinates) {
+    for(var patch: patches) {
+      if(patch.absolutePositions().contains(coordinates)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  public Set<Patch> patches(){
+    return Set.copyOf(patches);
+  }
+  
+  public int width() {
+    return width;
+  }
+  
+  public int height() {
+    return height;
+  }
+  
+  
+  
   /**
    * Count the number of empty spaces on the Quilt
    * @return

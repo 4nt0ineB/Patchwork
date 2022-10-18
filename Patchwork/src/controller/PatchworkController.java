@@ -17,22 +17,33 @@ public class PatchworkController {
   
   private static void patchwork(UserInterface ui, GameBoard gameBoard) {
     var action = Action.QUIT;
+    ui.drawSplashScreen();
+    // @Todo split turn-menu/place-patch logic
     do {
       ui.draw(gameBoard);
-      action = ui.getPlayerActionForTurn();
+      action = ui.getPlayerActionForTurn(gameBoard);
       switch(action) {
-        case PICK_PATCH -> {
-         System.out.println("Pick a patch !");
+        case TAKE_PATCH -> {
+          var patches = gameBoard.nextPatches();
+          ui.letPlayerSelectPatch(patches);
+          // chose patch
+//          ui.letPlayerTryPatch(gameBoard);
+          gameBoard.nextTurn();
         }
+        case ADVANCE -> {
+          gameBoard.currentPlayerAdvance();
+          gameBoard.nextTurn();
+         }
         default -> {}
       }
       ui.clear();
-    }while(action != Action.QUIT);
+    } while(action != Action.QUIT);
     ui.close();
   }
 
   public static void main(String[] args) {
     // Basic version
+    // turn this into config files
     var patch1 = new Patch(1, 4, 3
         , List.of(
           new Coordinates(0, 0),
@@ -56,31 +67,10 @@ public class PatchworkController {
     patches.addAll(Collections.nCopies(20, patch2));
     var player1 = new Player("Player 1", 0, 0, new QuiltBoard(9, 9));
     var player2 = new Player("Player 2", 0, 0, new QuiltBoard(9, 9));
+    player2.quilt().add(patch2);
     var gameBoard = new GameBoard(53, patches, List.of(player1, player2));
     //
     patchwork(new PatchworkCLI(), gameBoard);
   }
-
+  
 }
-
-
-
-
-
-//var pCoordinates = List.of(
-//new Coordinates(-1, 0),
-//new Coordinates(0, 0),
-//new Coordinates(-1, 1),
-//new Coordinates(1, 0)
-//);
-//var patch = new Patch(2, 6, 4, pCoordinates, new Coordinates(0,0));
-//var p2Coordinates = List.of(
-//new Coordinates(0, -1),
-//new Coordinates(0, 0),
-//new Coordinates(0, 1),
-//new Coordinates(1, 1)
-//);
-//var patch2 = new Patch(2, 6, 4, p2Coordinates, new Coordinates(0, 0));
-//System.out.println(patch);
-//System.out.println(patch2);
-//System.out.println(patch.equals(patch2));

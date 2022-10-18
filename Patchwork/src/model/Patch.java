@@ -260,6 +260,10 @@ public class Patch {
         && rotations.contains(o.rotations.get(o.currentRotation))
         ;
   }
+  
+  public void absoluteMoveTo(Coordinates coordinates) {
+    absoluteOrigin = coordinates;
+  }
 
   @Override
   public String toString() {

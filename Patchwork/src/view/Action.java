@@ -1,7 +1,10 @@
 package view;
 
 public enum Action {
-  MOVE,
-  PICK_PATCH,
-  QUIT
+  ADVANCE,
+  TAKE_PATCH,
+  RAGE_QUIT,
+  QUIT,
+  PLACE_PATCH,
+  DONT_PLACE_PATCH
 }
