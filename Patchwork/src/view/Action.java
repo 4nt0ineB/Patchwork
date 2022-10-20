@@ -6,5 +6,6 @@ public enum Action {
   RAGE_QUIT,
   QUIT,
   PLACE_PATCH,
-  DONT_PLACE_PATCH
+  DONT_PLACE_PATCH, 
+  ERROR
 }

@@ -1,5 +1,6 @@
 package view.cli;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
@@ -14,6 +15,13 @@ import view.UserInterface;
 public class PatchworkCLI implements UserInterface {
   
   private static Scanner scanner = new Scanner(System.in);
+  private static HashMap<String, Action> actionBinding = new HashMap<>();
+  
+  public void init() {
+    actionBinding.put("a", Action.ADVANCE);
+    actionBinding.put("b", Action.TAKE_PATCH);
+    actionBinding.put("q", Action.QUIT);
+  }
   
   @Override
   public void draw(GameBoard gb) {
@@ -75,7 +83,7 @@ public class PatchworkCLI implements UserInterface {
   }
   
   @Override
-  public int letPlayerSelectPatch(List<Patch> patches) {
+  public int tryAndBuyPatch(GameBoard gb) {
     Objects.requireNonNull(patches, "Can't select over null");
     if(patches.size() == 0) {
       throw new IllegalArgumentException("The player has no patch to select");
@@ -122,7 +130,7 @@ public class PatchworkCLI implements UserInterface {
   
   @Override
   public Action getPlayerActionForTurn(GameBoard gb) {
-    Action action = Action.QUIT;
+    Action action = Action.ERROR;
     boolean validInput = true;
     do {
       System.out.println(Color.ANSI_ORANGE + "[Action]" + Color.ANSI_RESET);
@@ -134,23 +142,16 @@ public class PatchworkCLI implements UserInterface {
               (q) Ragequit
               """);
       System.out.print("Choice ? : ");
-      var line = scanner.nextLine();
-      // get first char
-      var c = ' ';
-      if(line.length() == 1) {
-       c = line.charAt(0);
-      }
-      // check if option is valid
-      if(c == 'c' && gb.currentPlayerCanAdvance()){
-        action = Action.ADVANCE;
-      }else if(c == 'b') {
-        action = Action.TAKE_PATCH;
-      }else if(c == 'q') {
-        action = Action.QUIT;
-      }else {
+      var input = scanner.nextLine();
+      action = actionBinding.getOrDefault(input, Action.ERROR);
+      if(
+          (action.equals(Action.ADVANCE) && !gb.currentPlayerCanAdvance())
+          || action.equals(Action.ERROR)
+          ){
         System.out.println("Wrong choice.");
         validInput = false;
       }
+      
     }while(!validInput);
     return action;
   }

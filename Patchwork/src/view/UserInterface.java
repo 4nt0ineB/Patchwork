@@ -18,12 +18,13 @@ public interface UserInterface {
    */
   void close();
   Action getPlayerActionForTurn(GameBoard gb);
-  Action letPlayerTryPatch(GameBoard gb);
   
   /**
-   * Interface to let the player select a patch
-   * @param patches
-   * @return the index of the selected patch
+   * 
+   * @param gb
+   * @return
    */
-  int letPlayerSelectPatch(List<Patch> patches);
+  boolean tryAndBuyPatch(GameBoard gb);
+  
+  void init();
 }

@@ -17,6 +17,7 @@ public class PatchworkController {
   
   private static void patchwork(UserInterface ui, GameBoard gameBoard) {
     var action = Action.QUIT;
+    ui.init();
     ui.drawSplashScreen();
     // @Todo split turn-menu/place-patch logic
     do {
@@ -25,9 +26,10 @@ public class PatchworkController {
       switch(action) {
         case TAKE_PATCH -> {
           var patches = gameBoard.nextPatches();
-          ui.letPlayerSelectPatch(patches);
+          var patchIndex = ui.letPlayerSelectPatch(patches);
+          ui.tryAndBuyPatch(gameBoard);
           // chose patch
-//          ui.letPlayerTryPatch(gameBoard);
+//        ui.letPlayerTryPatch(gameBoard);
           gameBoard.nextTurn();
         }
         case ADVANCE -> {
