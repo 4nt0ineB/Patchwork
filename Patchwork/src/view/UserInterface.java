@@ -17,7 +17,7 @@ public interface UserInterface {
    * Close the interface
    */
   void close();
-  Action getPlayerActionForTurn(GameBoard gb);
+  Action getPlayerActionForTurn(GameBoard gb, List<Action> options);
   
   /**
    * 

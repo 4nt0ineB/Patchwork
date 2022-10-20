@@ -16,20 +16,30 @@ import view.cli.PatchworkCLI;
 public class PatchworkController {
   
   private static void patchwork(UserInterface ui, GameBoard gameBoard) {
+    
+    
+    
     var action = Action.QUIT;
     ui.init();
     ui.drawSplashScreen();
     // @Todo split turn-menu/place-patch logic
     do {
       ui.draw(gameBoard);
-      action = ui.getPlayerActionForTurn(gameBoard);
+      // @Todo ui receive available options
+      var options = new ArrayList<Action>();
+      if(gameBoard.currentPlayerCanAdvance()) {
+        options.add(Action.ADVANCE);
+      }
+      if(gameBoard.currentPlayerCanChosePatch()) {
+        options.add(Action.TAKE_PATCH);
+      }
+      options.add(Action.QUIT);
+      action = ui.getPlayerActionForTurn(gameBoard, options);
       switch(action) {
         case TAKE_PATCH -> {
-          var patches = gameBoard.nextPatches();
-          var patchIndex = ui.letPlayerSelectPatch(patches);
-          ui.tryAndBuyPatch(gameBoard);
-          // chose patch
-//        ui.letPlayerTryPatch(gameBoard);
+          // try a patch, if can't place it on quilt, or doesn't find how to place it, null is returned
+          var patch = ui.tryAndBuyPatch(gameBoard);
+          
           gameBoard.nextTurn();
         }
         case ADVANCE -> {

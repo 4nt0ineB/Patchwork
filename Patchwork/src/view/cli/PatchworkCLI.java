@@ -129,29 +129,32 @@ public class PatchworkCLI implements UserInterface {
   }
   
   @Override
-  public Action getPlayerActionForTurn(GameBoard gb) {
+  public Action getPlayerActionForTurn(GameBoard gb, List<Action> options) {
     Action action = Action.ERROR;
-    boolean validInput = true;
+    boolean validInput = false;
+    var builder = new StringBuilder();
     do {
-      System.out.println(Color.ANSI_ORANGE + "[Action]" + Color.ANSI_RESET);
-      if(gb.currentPlayerCanAdvance()) {
-        System.out.println("(a) Advance");
-      }
-      System.out.print("""
-              (b) Take and place a patch
-              (q) Ragequit
-              """);
-      System.out.print("Choice ? : ");
+      builder.append(Color.ANSI_ORANGE)
+      .append(" [Actions] ")
+      .append(Color.ANSI_RESET)
+      .append("\n");
+      options.stream().forEach(op -> 
+        builder
+        .append("(").append(op.bind()).append(") ")
+        .append(op.description())
+        .append("\n")
+      );
+      builder.append("Choice ? :");
+      System.out.println(builder);
       var input = scanner.nextLine();
       action = actionBinding.getOrDefault(input, Action.ERROR);
-      if(
-          (action.equals(Action.ADVANCE) && !gb.currentPlayerCanAdvance())
-          || action.equals(Action.ERROR)
-          ){
-        System.out.println("Wrong choice.");
-        validInput = false;
+      for(var op: options) {
+        if(op.bind().equals(input)) {
+          action = op;
+          validInput = true;
+        }
       }
-      
+      builder.setLength(0);
     }while(!validInput);
     return action;
   }
