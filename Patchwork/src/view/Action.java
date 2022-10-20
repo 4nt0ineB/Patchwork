@@ -5,8 +5,14 @@ import java.util.Objects;
 public enum Action {
   ADVANCE("a", "Advance"),
   TAKE_PATCH("b", "Take and place a patch"),
-  QUIT("c", "Ragequit"),
-  ERROR("err", "Just die");
+  QUIT("q", "Ragequit"),
+  DEFAULT("default", "default"),
+  UP("z", "up"),
+  DOWN("e", "down"),
+  RIGHT("r", "right"),
+  LEFT("a", "left"),
+  ROTATE_RIGHT("t", "rotate right"),
+  ROTATE_LEFT("y", "rotate left");
   
   private final String bind;
   private final String description;
@@ -24,6 +30,11 @@ public enum Action {
   
   public String description() {
     return description;
+  }
+  
+  @Override
+  public String toString() {
+    return "[" + bind + "] " + description ;
   }
   
 }

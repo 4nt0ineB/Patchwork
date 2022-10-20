@@ -16,16 +16,12 @@ import view.cli.PatchworkCLI;
 public class PatchworkController {
   
   private static void patchwork(UserInterface ui, GameBoard gameBoard) {
-    
-    
-    
-    var action = Action.QUIT;
-    ui.init();
+    var action = Action.DEFAULT;
+    ui.clear();
     ui.drawSplashScreen();
     // @Todo split turn-menu/place-patch logic
     do {
       ui.draw(gameBoard);
-      // @Todo ui receive available options
       var options = new ArrayList<Action>();
       if(gameBoard.currentPlayerCanAdvance()) {
         options.add(Action.ADVANCE);
@@ -35,12 +31,43 @@ public class PatchworkController {
       }
       options.add(Action.QUIT);
       action = ui.getPlayerActionForTurn(gameBoard, options);
+      ui.clear();
       switch(action) {
         case TAKE_PATCH -> {
-          // try a patch, if can't place it on quilt, or doesn't find how to place it, null is returned
-          var patch = ui.tryAndBuyPatch(gameBoard);
-          
-          gameBoard.nextTurn();
+          ui.selectPatch(gameBoard);
+          options.clear();
+          options.addAll(List.of(
+              Action.UP, 
+              Action.DOWN,
+              Action.RIGHT,
+              Action.LEFT,
+              Action.ROTATE_LEFT,
+              Action.ROTATE_RIGHT,
+              Action.QUIT
+              ));
+          var quilt = gameBoard.currentPlayer().quilt().clone();
+          var patch = gameBoard.selectedPatch();
+          patch.absoluteMoveTo(new Coordinates(quilt.width()/2, quilt.height()/2));
+//          System.out.println(patch);
+          do {
+            ui.clear();
+            ui.drawDummyQuilt(quilt, patch);
+            action = ui.getPlayerActionForTurn(gameBoard, options);
+            switch(action){
+              case UP -> patch.moveUp();
+              case DOWN -> patch.moveDown();
+              case RIGHT -> patch.moveRight();
+              case LEFT -> patch.moveLeft();
+              case ROTATE_LEFT -> patch.rotateLeft();
+              case ROTATE_RIGHT -> patch.rotateRight();
+              default -> {}
+            }
+            System.out.println(action);
+//            System.out.println(patch);
+          }while(action != Action.QUIT);
+//          gameBoard.nextTurn();
+          gameBoard.unselectPatch();
+          action = Action.DEFAULT;
         }
         case ADVANCE -> {
           gameBoard.currentPlayerAdvance();

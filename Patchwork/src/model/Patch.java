@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-public class Patch {
+import view.cli.CLIDisplayable;
+
+public class Patch implements CLIDisplayable {
   
   private static final Coordinates[] RLMATRIX = { new Coordinates(0, -1), new Coordinates(1, 0) };
   private static final Coordinates[] RRMATRIX = { new Coordinates(0, 1), new Coordinates(-1, 0) };
@@ -66,7 +68,7 @@ public class Patch {
   /**
    * 90° left rotation
    */
-  public Patch Left() {
+  public Patch rotateLeft() {
     currentRotation = (currentRotation - 1) % rotations.size();
     rotations.get(currentRotation);
     return this;
@@ -173,19 +175,14 @@ public class Patch {
   private boolean isSquare(Set<Coordinates> cells) {
     var side = Math.sqrt(cells.size());
     if(side * side != cells.size()) {
-      // number of cells could not form a square
+      // number of cells cannot form a square
       return false;
     }
-    // the vector with which the square must expand from origin to form expected square
+    // the vector with which the square must expand from origin to form the expected square
     var vector = farthestCoordinates(cells).mul(new Coordinates(((int) side) - 1, ((int) side) - 1));
     var rOrigin = new Coordinates(0, 0);
     // Check if all coordinates are in the expected square
-    for(var c: cells) {
-      if(!c.inRectangle(vector, rOrigin)) {
-        return false;
-      }
-    }
-    return true;
+    return cells.stream().allMatch(cell -> cell.inRectangle(vector, rOrigin) == true);
   }
   
   /**
@@ -213,14 +210,16 @@ public class Patch {
   private List<Set<Coordinates>> allRotations(Set<Coordinates> cells) {
     var rotationsList = new ArrayList<Set<Coordinates>>();
     rotationsList.add(cells);
-    // if square, no rotations
     if(isSquare(cells)) {
+      // if square, no rotations
       return rotationsList;
     }
+    // 3 rotations left
+    var prevRotation = cells;
     for(var i = 1; i < 4; i++) {
-      var r = rotate(rotationsList.get(i - 1), RRMATRIX);
-      if(!rotationsList.contains(r)) {
-        rotationsList.add(r);
+      var rotation = rotate(prevRotation, RRMATRIX);
+      if(!rotationsList.contains(rotation)) {
+        rotationsList.add(rotation);
       }
     }
     return rotationsList;
@@ -275,6 +274,30 @@ public class Patch {
 
   public int price() {
     return price;
+  }
+
+  @Override
+  public void drawOnCLI() {
+    // we use a quilt board to deal with absolute coordinates
+    var quilt = new QuiltBoard(2, 2);
+    // while the patch doesn't fit in we expand the quilt
+    // and replace the origin of the patch at the center
+    while(!quilt.add(this)) {
+      absoluteMoveTo(new Coordinates(quilt.height() / 2, quilt.width() / 2));
+      quilt = new QuiltBoard(quilt.height() + 1, quilt.width() + 1);
+    }
+    // draw the patch
+    var sb = new StringBuilder();
+    for(var y = 0; y < quilt.height(); y++) {
+      sb.append("   ");
+      for(var x = 0; x < quilt.width(); x++) {
+        if(quilt.occupied(new Coordinates(y, x))) {
+          sb.append("x");
+        }
+      }
+      sb.append("\n");
+    }
+    System.out.println(sb);
   }
   
   

@@ -6,14 +6,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-public class GameBoard {
+import view.cli.CLIDisplayable;
+import view.cli.Color;
+
+public class GameBoard implements CLIDisplayable {
+  // Max number of patches the player can choose from
   private final static int NEXTPATCHES = 3;
-  // max possible moves allowed
+  // Number of squares on the board
   private final int size;
+  // The bank
   private int buttons;
   private int neutralTokenPos;
   private final ArrayList<Patch> patches;
   private Player currentPlayer;
+  private int selectedPatch = -1;
   // all the players 
   private final List<Player> unindexedPlayers;
   //the players indexed by position
@@ -132,7 +138,7 @@ public class GameBoard {
   private boolean changePlayerPosition(Player player, int newPosition) {
     Objects.requireNonNull(player, "Player can't be null");
     if(newPosition < 0 || newPosition > size) {
-      throw new IllegalArgumentException("The new position can't exceed bounderies (0 <= newp: " + newPosition + "<= " + size);
+      throw new IllegalArgumentException("The new position can't exceed boundaries (0 <= newp: " + newPosition + "<= " + size);
     }
     players.get(player.position()).remove(player);
     var playersAtNewPos = players.get(newPosition);
@@ -143,25 +149,30 @@ public class GameBoard {
     // @Todo check if newposition of player exceed size
     player.move(newPosition - player.position());
     return true;
-//    for(var playersAtPos: players.values()) {
-//      if(playersAtPos != null && playersAtPos.remove(player)) {
-//        var playersAtNewPos = players.get(newPosition);
-//        if(playersAtNewPos == null) {
-//          players.put(newPosition, new ArrayList<>());
-//        }
-//        players.get(newPosition).add(player);
-//        player.move(newPosition - player.position());
-//        return true;
-//      }
-//    }
-//    return false;
   }
   
+  public void selectPatch(int index) {
+    if(index < 0 || index >= patches.size()) {
+      throw new IllegalArgumentException("Wrong index");
+    }
+    selectedPatch = neutralTokenPos + index;
+  }
+  
+  public Patch selectedPatch() {
+    return patches.get(selectedPatch);
+  }
+  
+  public void unselectPatch() {
+    selectedPatch = -1;
+  }
+  
+  /**
+   * @Todo probably not do that
+   * @return
+   */
   public List<Player> players(){
     return unindexedPlayers;
   }
-  
-  
   
   public Player currentPlayer() {
     return currentPlayer;
@@ -180,7 +191,9 @@ public class GameBoard {
   }
   
   /**
-   * Return the next patch after index modulo the number of patches
+   * Return the next patch after index 
+   * by using modulo on the number of patches
+   * (loop trough patches)
    * @param index
    * @return the patch or null
    */
@@ -190,7 +203,6 @@ public class GameBoard {
     }
     return patches.get(index % patches.size());
   }
-  
   
   /**
    * Return index of the smallest patch in a list
@@ -209,6 +221,17 @@ public class GameBoard {
       }
     }
     return smallest;
+  }
+
+  @Override
+  public void drawOnCLI() {
+    for(var player: players()) {
+      if(player == currentPlayer) {
+        System.out.println(Color.ANSI_GREEN);
+      }
+      player.drawOnCLI();
+      System.out.println(Color.ANSI_RESET);
+    }
   }
   
 }

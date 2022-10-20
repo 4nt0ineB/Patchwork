@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Set;
 
-public class QuiltBoard {
+import view.cli.CLIDisplayable;
+import view.cli.Color;
+
+public class QuiltBoard implements CLIDisplayable {
   private final int width;
   private final int height;
   private final ArrayList<Patch> patches;
@@ -43,8 +46,15 @@ public class QuiltBoard {
     return true;
   }
   
+  /**
+   * Test if given coordinates is occupied 
+   * by a cell of a patch on the quilt
+   * @param coordinates
+   * @return
+   */
   public boolean occupied(Coordinates coordinates) {
     for(var patch: patches) {
+      // @Todo delegate ?!
       if(patch.absolutePositions().contains(coordinates)) {
         return true;
       }
@@ -64,14 +74,50 @@ public class QuiltBoard {
     return height;
   }
   
-  
-  
   /**
    * Count the number of empty spaces on the Quilt
    * @return
    */
   public int countEmptySpaces() {
     return (width * height) - patches.stream().mapToInt(patch -> patch.countCells()).sum();
+  }
+
+  @Override
+  public void drawOnCLI() {
+    var builder = new StringBuilder();
+    // top
+    builder.append("┌");
+    for(var i = 0; i < width; i++) {
+      builder.append("─");
+    }
+    builder.append("┐\n");
+    // body
+    for(var y = 0; y < height; y++) {
+      builder.append("|");
+      for(var x = 0; x < width; x++) {
+        if(occupied(new Coordinates(y, x))) {
+          builder.append(Color.ANSI_CYAN_BACKGROUND)
+            .append("x")
+            .append(Color.ANSI_RESET);
+        }else {
+          builder.append(" ");
+        }
+      }
+      builder.append("|\n");
+    }
+    // bottom
+    builder.append("└");
+    for(var i = 0; i < width; i++) {
+      builder.append("─");
+    }
+    builder.append("┘");
+    System.out.println(builder);
+  }
+  
+  public QuiltBoard clone() {
+    var quilt = new QuiltBoard(width, height);
+    patches.stream().forEach(patch -> quilt.add(patch));
+    return quilt;
   }
   
 }

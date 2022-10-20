@@ -4,12 +4,13 @@ import java.util.List;
 
 import model.GameBoard;
 import model.Patch;
+import model.QuiltBoard;
 
 public interface UserInterface {
   
   void drawSplashScreen();
   void movePatch(Patch patch);
-  void draw(GameBoard gameBoard);
+  void draw(GameBoard gb);
   void clear();
   Action choice();
   
@@ -18,13 +19,7 @@ public interface UserInterface {
    */
   void close();
   Action getPlayerActionForTurn(GameBoard gb, List<Action> options);
-  
-  /**
-   * 
-   * @param gb
-   * @return
-   */
-  boolean tryAndBuyPatch(GameBoard gb);
-  
-  void init();
+  void selectPatch(GameBoard gb);
+  void drawDummyQuilt(QuiltBoard quilt, Patch patch);
+
 }

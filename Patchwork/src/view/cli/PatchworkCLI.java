@@ -1,8 +1,6 @@
 package view.cli;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 import java.util.Scanner;
 
 import model.Coordinates;
@@ -14,145 +12,120 @@ import view.UserInterface;
 
 public class PatchworkCLI implements UserInterface {
   
-  private static Scanner scanner = new Scanner(System.in);
-  private static HashMap<String, Action> actionBinding = new HashMap<>();
-  
-  public void init() {
-    actionBinding.put("a", Action.ADVANCE);
-    actionBinding.put("b", Action.TAKE_PATCH);
-    actionBinding.put("q", Action.QUIT);
-  }
+  private static final Scanner scanner = new Scanner(System.in);
   
   @Override
   public void draw(GameBoard gb) {
-    var sb = new StringBuilder();
-    for(var player: gb.players()) {
-      if(player == gb.currentPlayer()) {
-        sb.append(Color.ANSI_GREEN);
-      }
-      sb.append("[").append(player.name()).append("]");
-      sb.append(Color.ANSI_RESET);
-      sb.append(" Pos :").append(player.position());
-      sb.append(", Buttons :").append(player.buttons()).append("\n");
-    }
-    System.out.println(sb);
+    gb.drawOnCLI();
   }
   
   @Override
   public void clear() {
     System.out.print("\033[H\033[2J");
-    // System.out.flush();
+    System.out.flush();
   }
 
   @Override
   public Action choice() {
     return Action.QUIT;
   }
-
-  private void drawQuilt(QuiltBoard quilt) {
-    var w = quilt.width();
-    var h = quilt.height();
-    var sb = new StringBuilder();
-    // top
-    sb.append("┌");
-    for(var i = 0; i < w; i++) {
-      sb.append("─");
-    }
-    sb.append("┐\n");
-    // body
-    for(var y = 0; y < h; y++) {
-      sb.append("|");
-      for(var x = 0; x < w; x++) {
-        if(quilt.occupied(new Coordinates(y, x))) {
-          sb.append(Color.ANSI_CYAN_BACKGROUND)
-          .append("x")
-          .append(Color.ANSI_RESET);
-        }else {
-          sb.append(" ");
-        }
-      }
-      sb.append("|\n");
-    }
-    // bottom
-    sb.append("└");
-    for(var i = 0; i < w; i++) {
-      sb.append("─");
-    }
-    sb.append("┘");
-    System.out.println(sb);
-  }
   
   @Override
-  public int tryAndBuyPatch(GameBoard gb) {
-    Objects.requireNonNull(patches, "Can't select over null");
-    if(patches.size() == 0) {
-      throw new IllegalArgumentException("The player has no patch to select");
-    }
-    for(var i = 0; i < patches.size(); i++) {
+  public void selectPatch(GameBoard gb) {
+    var i = 0;
+    var input = -1;
+    for(var patch: gb.nextPatches()) {
+      i++;
       System.out.println(i + ". ");
-      drawPatch(patches.get(0));
+      patch.drawOnCLI();
     }
-    
-    return 0;
-  }
-  
-  public void drawPatch(Patch patch) {
-    // we use a quilt board to deal with absolute coordinates
-    var quilt = new QuiltBoard(2, 2);
-    while(!quilt.add(patch)) {
-      patch.absoluteMoveTo(new Coordinates(quilt.height() / 2, quilt.width() / 2));
-      quilt = new QuiltBoard(quilt.height() + 1, quilt.width() + 1);
-    }
-    // draw the patch
-    var sb = new StringBuilder();
-    for(var y = 0; y < quilt.height(); y++) {
-      sb.append("   ");
-      for(var x = 0; x < quilt.width(); x++) {
-        if(quilt.occupied(new Coordinates(y, x))) {
-          sb.append("x");
-        }
-      }
-      sb.append("\n");
-    }
-    System.out.println(sb);
-  }
-  
-  @Override
-  public Action letPlayerTryPatch(GameBoard gb) {
-  System.out.println(Color.ANSI_GREEN +
-      "[" + gb.currentPlayer().name() + "]"
-      + Color.ANSI_RESET
-      );
-  drawQuilt(gb.currentPlayer().quilt());
-    
-    return Action.DONT_PLACE_PATCH;
-  }
-  
-  @Override
-  public Action getPlayerActionForTurn(GameBoard gb, List<Action> options) {
-    Action action = Action.ERROR;
     boolean validInput = false;
     var builder = new StringBuilder();
     do {
       builder.append(Color.ANSI_ORANGE)
-      .append(" [Actions] ")
+      .append("Choose between [1");
+      if(i > 0) {
+        builder.append("..")
+        .append(i);
+      }
+      builder.append("] : ")
+      .append(Color.ANSI_RESET);
+      System.out.print(builder);
+      input = Integer.valueOf(scanner.nextLine());
+      if(input > 0 && input <= i) {
+        validInput = true;
+      }
+      builder.setLength(0);
+    }while(!validInput);
+    gb.selectPatch(input);
+  }
+  
+  public void drawDummyQuilt(QuiltBoard quilt, Patch patch) {
+    var builder = new StringBuilder();
+    // top
+    builder.append("┌");
+    for(var i = 0; i < quilt.width(); i++) {
+      builder.append("─");
+    }
+    builder.append("┐\n");
+    // body
+    for(var y = 0; y < quilt.height(); y++) {
+      builder.append("|");
+      for(var x = 0; x < quilt.width(); x++) {
+        if(quilt.occupied(new Coordinates(y, x))) {
+          if(patch.absolutePositions().contains(new Coordinates(y, x))){
+            builder.append(Color.ANSI_RED_BACKGROUND)
+            .append("o")
+            .append(Color.ANSI_RESET);
+          }else {
+            builder.append(Color.ANSI_CYAN_BACKGROUND)
+            .append("x")
+            .append(Color.ANSI_RESET);
+          }
+        }else {
+          if(patch.absolutePositions().contains(new Coordinates(y, x))) {
+            builder.append(Color.ANSI_YELLOW);
+          }
+          builder.append(" ")
+          .append(Color.ANSI_RESET);
+        }
+      }
+      builder.append("|\n");
+    }
+    // bottom
+    builder.append("└");
+    for(var i = 0; i < quilt.width(); i++) {
+      builder.append("─");
+    }
+    builder.append("┘");
+    System.out.println(builder);
+  }
+  
+  @Override
+  public Action getPlayerActionForTurn(GameBoard gb, List<Action> options) {
+    Action action = Action.DEFAULT;
+    boolean validInput = false;
+    var builder = new StringBuilder();
+    do {
+      builder
+      .append(Color.ANSI_ORANGE)
+      .append("[Actions] ")
       .append(Color.ANSI_RESET)
       .append("\n");
-      options.stream().forEach(op -> 
-        builder
-        .append("(").append(op.bind()).append(") ")
-        .append(op.description())
-        .append("\n")
-      );
-      builder.append("Choice ? :");
-      System.out.println(builder);
+      options.stream().forEach(option -> 
+        builder.append(option).append("\n"));
+      builder.append("\nChoice ? : ");
+      System.out.print(builder);
       var input = scanner.nextLine();
-      action = actionBinding.getOrDefault(input, Action.ERROR);
       for(var op: options) {
         if(op.bind().equals(input)) {
           action = op;
           validInput = true;
+          break;
         }
+      }
+      if(validInput == false) {
+        System.out.println("Wrong choice");
       }
       builder.setLength(0);
     }while(!validInput);

@@ -2,7 +2,9 @@ package model;
 
 import java.util.Objects;
 
-public class Player {
+import view.cli.CLIDisplayable;
+
+public class Player implements CLIDisplayable {
   private final String name;
   private int buttons;
   // private final List<SpecialTile> tiles;
@@ -96,7 +98,12 @@ public class Player {
   
   @Override
   public String toString() {
-    return "Player [name=" + name + ", buttons=" + buttons + ", position=" + position + "]";
+    return "[" + name + "] buttons:" + buttons + ", position:" + position + "]";
+  }
+
+  @Override
+  public void drawOnCLI() {
+    System.out.println(this);
   }
   
   
