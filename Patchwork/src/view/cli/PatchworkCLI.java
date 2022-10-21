@@ -69,25 +69,28 @@ public class PatchworkCLI implements UserInterface {
     }
     builder.append("┐\n");
     // body
+    System.out.println(patch.absolutePositions().contains(new Coordinates(5, 5)));
     for(var y = 0; y < quilt.height(); y++) {
       builder.append("|");
       for(var x = 0; x < quilt.width(); x++) {
         if(quilt.occupied(new Coordinates(y, x))) {
           if(patch.absolutePositions().contains(new Coordinates(y, x))){
             builder.append(Color.ANSI_RED_BACKGROUND)
-            .append("o")
+            .append("░")
             .append(Color.ANSI_RESET);
           }else {
             builder.append(Color.ANSI_CYAN_BACKGROUND)
-            .append("x")
+            .append("▒")
             .append(Color.ANSI_RESET);
           }
         }else {
           if(patch.absolutePositions().contains(new Coordinates(y, x))) {
-            builder.append(Color.ANSI_YELLOW);
+            builder.append(Color.ANSI_YELLOW_BACKGROUND)
+            .append("▓");
+          }else {
+            builder.append(" ");
           }
-          builder.append(" ")
-          .append(Color.ANSI_RESET);
+          builder.append(Color.ANSI_RESET);
         }
       }
       builder.append("|\n");

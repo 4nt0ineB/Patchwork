@@ -47,8 +47,10 @@ public class PatchworkController {
               ));
           var quilt = gameBoard.currentPlayer().quilt().clone();
           var patch = gameBoard.selectedPatch();
+          quilt.drawOnCLI();
+          System.out.println(quilt.patches().size());
           patch.absoluteMoveTo(new Coordinates(quilt.width()/2, quilt.height()/2));
-//          System.out.println(patch);
+          System.out.println(patch);
           do {
             ui.clear();
             ui.drawDummyQuilt(quilt, patch);
@@ -62,8 +64,6 @@ public class PatchworkController {
               case ROTATE_RIGHT -> patch.rotateRight();
               default -> {}
             }
-            System.out.println(action);
-//            System.out.println(patch);
           }while(action != Action.QUIT);
 //          gameBoard.nextTurn();
           gameBoard.unselectPatch();
@@ -94,10 +94,14 @@ public class PatchworkController {
         );
     var patch2 = new Patch(0, 2, 2
         , List.of(
+//          new Coordinates(0, 0),
+//          new Coordinates(0, 1),
+//          new Coordinates(1, 0),
+//          new Coordinates(1, 1)
           new Coordinates(0, 0),
-          new Coordinates(0, 1),
-          new Coordinates(1, 0),
-          new Coordinates(1, 1)
+          new Coordinates(-1, 0),
+          new Coordinates(-1, 1),
+          new Coordinates(1, 0)
           )
         , new Coordinates(0, 0)
         );

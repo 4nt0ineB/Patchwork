@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import view.cli.CLIDisplayable;
 
@@ -69,7 +70,7 @@ public class Patch implements CLIDisplayable {
    * 90° left rotation
    */
   public Patch rotateLeft() {
-    currentRotation = (currentRotation - 1) % rotations.size();
+    currentRotation = Math.floorMod(currentRotation - 1, rotations.size());
     rotations.get(currentRotation);
     return this;
   }
@@ -180,9 +181,21 @@ public class Patch implements CLIDisplayable {
     }
     // the vector with which the square must expand from origin to form the expected square
     var vector = farthestCoordinates(cells).mul(new Coordinates(((int) side) - 1, ((int) side) - 1));
-    var rOrigin = new Coordinates(0, 0);
+    var origin = new Coordinates(0, 0);
+    var c1 = origin;
+    var c2 = vector;
+    // set proper direction to test presence
+    if(vector.x() < origin.x()) {
+      c1 = vector;
+      c2 = origin;
+    }
     // Check if all coordinates are in the expected square
-    return cells.stream().allMatch(cell -> cell.inRectangle(vector, rOrigin) == true);
+    for(var cell: cells) {
+      if(!cell.inRectangle(c1, c2)) {
+        return false;
+      }
+    }
+    return true;
   }
   
   /**
