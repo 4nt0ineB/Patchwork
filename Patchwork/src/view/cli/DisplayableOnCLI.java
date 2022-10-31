@@ -1,5 +1,5 @@
 package view.cli;
 
-public interface CLIDisplayable {
+public interface DisplayableOnCLI {
   void drawOnCLI();
 }

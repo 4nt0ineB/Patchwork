@@ -2,42 +2,30 @@ package model;
 
 import java.util.Objects;
 
-import view.cli.CLIDisplayable;
+import view.cli.DisplayableOnCLI;
 
-public class Player implements CLIDisplayable {
+public class Player implements DisplayableOnCLI {
   private final String name;
   private int buttons;
   // private final List<SpecialTile> tiles;
-  private int position;
   private final QuiltBoard quilt;
   
   
-  public Player(String name, int buttons, int position, QuiltBoard quilt) {
+  public Player(String name, int buttons, QuiltBoard quilt) {
     Objects.requireNonNull(name, "The player must have a name");
     if(buttons < 0) {
       throw new IllegalArgumentException("The player can't have debts at start-up");
     }
-    if(position < 0) {
-      throw new IllegalArgumentException("The player can't go lower than the first square of the BoardGame");
-    }
     this.name = name;
     this.buttons = buttons;
-    this.position = position;
     this.quilt = quilt;
   }
   
-  /**
-   * Update the amount of player buttons.
-   * @param amount can be negative but shall not 
-   * @return true if player buttons don't go below 0, 
-   * else false (the number of buttons remain unchanged)
-   */
-  public boolean updateButtons(int amount) {
-    if(buttons + amount < 0) {
-      return false;
+  public void buttonIncome(int amount) {
+    if(amount < 0) {
+      throw new IllegalArgumentException("A button income can't be negative");
     }
     buttons += amount;
-    return true;
   }
   
   /**
@@ -47,34 +35,31 @@ public class Player implements CLIDisplayable {
    * @param patch
    * @return true or false
    */
-  public boolean buyPatch(Patch patch) {
-    if(canBuyPatch(patch) && quilt.add(patch)) {
-      buttons -= patch.price();
-      return true;
+  public boolean buyAndPlacePatch(Patch patch) {
+    Objects.requireNonNull(patch, "The patch can't be null");
+    if(!canBuyPatch(patch) || !quilt.canAdd(patch)) {
+      return false;
     }
-    return false;
+    buttons -= patch.price();
+    return true;
   }
   
   public boolean canBuyPatch(Patch patch) {
+    Objects.requireNonNull(patch, "The patch can't be null");
     return patch.price() <= buttons;
   }
   
   @Override
   public int hashCode() {
-    return Objects.hash(buttons, name, position);
+    return Objects.hash(buttons, name);
   }
   
   @Override
   public boolean equals(Object obj) {
     return obj instanceof Player o
         && buttons == o.buttons
-        && position == o.position
         && name.equals(name)
         ;
-  }
-  
-  public int position() {
-    return position;
   }
   
   public int buttons() {
@@ -89,16 +74,9 @@ public class Player implements CLIDisplayable {
     return quilt;
   }
   
-  public void move(int n) {
-    if(position + n < 0) {
-      throw new IllegalArgumentException("The player can't be at a negative position");
-    }
-    position += n;
-  }
-  
   @Override
   public String toString() {
-    return "[" + name + "] buttons:" + buttons + ", position:" + position + "]";
+    return "[" + name + "] buttons:" + buttons;
   }
 
   @Override

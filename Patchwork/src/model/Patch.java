@@ -7,9 +7,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 
-import view.cli.CLIDisplayable;
+import view.cli.DisplayableOnCLI;
 
-public class Patch implements CLIDisplayable {
+public class Patch implements DisplayableOnCLI {
   
   private static final Coordinates[] RLMATRIX = { new Coordinates(0, -1), new Coordinates(1, 0) };
   private static final Coordinates[] RRMATRIX = { new Coordinates(0, 1), new Coordinates(-1, 0) };
@@ -17,12 +17,12 @@ public class Patch implements CLIDisplayable {
   // buttons in case of income
   private final int buttons; 
   // number of move to execute for the player if the patch is placed on his quilt
-  private final int move; 
+  private final int moves; 
   // the price of the patch
   private final int price;
   // Absolute origin on the QuiltBoard associated to the relative origin of the patch (0,0)
   private Coordinates absoluteOrigin;
-  // Index of the current state of rotation
+  // Index of the current  of rotation
   private int currentRotation;
   // All unique possible rotations for the patch
   private final List<Set<Coordinates>> rotations;
@@ -44,12 +44,12 @@ public class Patch implements CLIDisplayable {
    * </pre>
    * might be given as [(0, -1), (0, 0), (1, 0)].
    */
-  public Patch(int buttons, int move, int price, List<Coordinates> coordinates, Coordinates absoluteOrigin) {
+  public Patch(int buttons, int moves, int price, List<Coordinates> coordinates, Coordinates absoluteOrigin) {
     if(buttons < 0) {
       throw new IllegalArgumentException("Buttons can't be negative");
     }
-    if(move < 0) {
-      throw new IllegalArgumentException("Move can't be negative");
+    if(moves < 0) {
+      throw new IllegalArgumentException("Moves can't be negative");
     }
     if(price < 0) {
       throw new IllegalArgumentException("The price can't be negative");
@@ -59,7 +59,7 @@ public class Patch implements CLIDisplayable {
       throw new IllegalArgumentException("The patch must be at least one pair of coordinates");
     }
     this.buttons = buttons;
-    this.move = move;
+    this.moves = moves;
     this.price = price;
     this.absoluteOrigin = absoluteOrigin;
     currentRotation = 0;
@@ -131,15 +131,22 @@ public class Patch implements CLIDisplayable {
    */
   public boolean overlap(Patch patch) {
     Objects.requireNonNull(patch, "Can't test overlapping on null");
-    var patchCells = patch.absolutePositions();
-    for(var cell: absolutePositions()) {
-      for(var ocell: patchCells) {
-        if(cell.equals(ocell)) {
-          return true;
-        }
+    for(var cell: patch.absolutePositions()) {
+      if(meets(cell)) {
+        return true;
       }
     }
     return false;
+  }
+  
+  /**
+   * Check if any cell of the patch 
+   * is at a given pair of coordinates
+   * @param coordinates
+   * @return
+   */
+  public boolean meets(Coordinates coordinates) {
+    return absolutePositions().contains(coordinates);
   }
   
   /**
@@ -230,10 +237,11 @@ public class Patch implements CLIDisplayable {
     // 3 rotations left
     var prevRotation = cells;
     for(var i = 1; i < 4; i++) {
-      var rotation = rotate(prevRotation, RRMATRIX);
+      var rotation = rotate(prevRotation, RLMATRIX);
       if(!rotationsList.contains(rotation)) {
         rotationsList.add(rotation);
       }
+      prevRotation = rotation;
     }
     return rotationsList;
   }
@@ -258,17 +266,21 @@ public class Patch implements CLIDisplayable {
   
   @Override
   public int hashCode() {
-    return Objects.hash(buttons, move, price, rotations);
+    return Objects.hash(buttons, moves, price, rotations);
   }
   
   @Override
   public boolean equals(Object obj) {
     return obj instanceof Patch o
         && buttons == o.buttons
-        && move == o.move
+        && moves == o.moves
         && price == o.price
         && rotations.contains(o.rotations.get(o.currentRotation))
         ;
+  }
+  
+  public int moves() {
+    return moves;
   }
   
   public void absoluteMoveTo(Coordinates coordinates) {
@@ -279,7 +291,7 @@ public class Patch implements CLIDisplayable {
   public String toString() {
     return rotations.get(currentRotation) 
         + " (p: "+ price 
-        + ", m: " + move 
+        + ", m: " + moves 
         + ", b: " + buttons + ") "
         + "AbsOrigin: " + absoluteOrigin
         ;
@@ -293,14 +305,22 @@ public class Patch implements CLIDisplayable {
   public void drawOnCLI() {
     // we use a quilt board to deal with absolute coordinates
     var quilt = new QuiltBoard(2, 2);
-    // while the patch doesn't fit in we expand the quilt
-    // and replace the origin of the patch at the center
+    // While the patch doesn't fit in, we expand the quilt
+    // and replace the origin of the patch at the center of the quilt
     while(!quilt.add(this)) {
       absoluteMoveTo(new Coordinates(quilt.height() / 2, quilt.width() / 2));
       quilt = new QuiltBoard(quilt.height() + 1, quilt.width() + 1);
     }
     // draw the patch
     var sb = new StringBuilder();
+    sb
+    .append("[Price: ")
+    .append(price)
+    .append(" Buttons: ")
+    .append(buttons)
+    .append(" Moves: ")
+    .append(moves)
+    .append("]\n");
     for(var y = 0; y < quilt.height(); y++) {
       sb.append("   ");
       for(var x = 0; x < quilt.width(); x++) {
@@ -310,7 +330,28 @@ public class Patch implements CLIDisplayable {
       }
       sb.append("\n");
     }
+    
     System.out.println(sb);
+  }
+  
+  /**
+   * Return index of the smallest patch in a list
+   * @Todo can be improved !
+   * @param patches
+   * @return index or -1
+   */
+  public static int minPatch(List<Patch> patches) {
+    Objects.requireNonNull(patches, "Can't find smallest in null obj");
+    if(patches.size() == 0) {
+      return -1;
+    }
+    var smallest = 0;
+    for(var i = 1; i < patches.size(); i++) {
+      if(patches.get(i).countCells() < patches.get(0).countCells()) {
+        smallest = i;
+      }
+    }
+    return smallest;
   }
   
   

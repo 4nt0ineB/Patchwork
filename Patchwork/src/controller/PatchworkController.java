@@ -2,6 +2,7 @@ package controller;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 import model.Coordinates;
@@ -19,10 +20,9 @@ public class PatchworkController {
     var action = Action.DEFAULT;
     ui.clear();
     ui.drawSplashScreen();
-    // @Todo split turn-menu/place-patch logic
     do {
       ui.draw(gameBoard);
-      var options = new ArrayList<Action>();
+      var options = new LinkedHashSet<Action>();
       if(gameBoard.currentPlayerCanAdvance()) {
         options.add(Action.ADVANCE);
       }
@@ -34,40 +34,8 @@ public class PatchworkController {
       ui.clear();
       switch(action) {
         case TAKE_PATCH -> {
-          ui.selectPatch(gameBoard);
-          options.clear();
-          options.addAll(List.of(
-              Action.UP, 
-              Action.DOWN,
-              Action.RIGHT,
-              Action.LEFT,
-              Action.ROTATE_LEFT,
-              Action.ROTATE_RIGHT,
-              Action.QUIT
-              ));
-          var quilt = gameBoard.currentPlayer().quilt().clone();
-          var patch = gameBoard.selectedPatch();
-          quilt.drawOnCLI();
-          System.out.println(quilt.patches().size());
-          patch.absoluteMoveTo(new Coordinates(quilt.width()/2, quilt.height()/2));
-          System.out.println(patch);
-          do {
-            ui.clear();
-            ui.drawDummyQuilt(quilt, patch);
-            action = ui.getPlayerActionForTurn(gameBoard, options);
-            switch(action){
-              case UP -> patch.moveUp();
-              case DOWN -> patch.moveDown();
-              case RIGHT -> patch.moveRight();
-              case LEFT -> patch.moveLeft();
-              case ROTATE_LEFT -> patch.rotateLeft();
-              case ROTATE_RIGHT -> patch.rotateRight();
-              default -> {}
-            }
-          }while(action != Action.QUIT);
-//          gameBoard.nextTurn();
-          gameBoard.unselectPatch();
-          action = Action.DEFAULT;
+          patchworkHandlePatch(ui, gameBoard);
+          gameBoard.nextTurn();
         }
         case ADVANCE -> {
           gameBoard.currentPlayerAdvance();
@@ -78,6 +46,50 @@ public class PatchworkController {
       ui.clear();
     } while(action != Action.QUIT);
     ui.close();
+  }
+  
+  private static void patchworkHandlePatch(UserInterface ui, GameBoard gameBoard) {
+    // A list of actions
+    var action = Action.DEFAULT;
+    var options = new LinkedHashSet<Action>();
+    ui.selectPatch(gameBoard);
+    options.clear();
+    options.addAll(List.of(
+        Action.UP, 
+        Action.DOWN,
+        Action.RIGHT,
+        Action.LEFT,
+        Action.ROTATE_LEFT,
+        Action.ROTATE_RIGHT,
+        Action.QUIT
+        ));
+    // We use a dummy quilt to play with the patch
+    var quilt = gameBoard.currentPlayer().quilt();
+    var patch = gameBoard.selectedPatch();
+    patch.absoluteMoveTo(new Coordinates(quilt.width()/2, quilt.height()/2));
+    do {
+      ui.clear();
+      ui.drawDummyQuilt(quilt, patch);
+      if(quilt.canAdd(patch)) {
+        options.add(Action.PLACE);
+      }else {
+        options.remove(Action.PLACE);
+      }
+      action = ui.getPlayerActionForTurn(gameBoard, options);
+      switch(action){
+        case UP -> patch.moveUp();
+        case DOWN -> patch.moveDown();
+        case RIGHT -> patch.moveRight();
+        case LEFT -> patch.moveLeft();
+        case ROTATE_LEFT -> patch.rotateLeft();
+        case ROTATE_RIGHT -> patch.rotateRight();
+        case PLACE -> {
+          gameBoard.playSelectedPatch();
+          action = Action.QUIT;
+        }
+        default -> {}
+      }
+    }while(action != Action.QUIT);
   }
 
   public static void main(String[] args) {
@@ -108,10 +120,11 @@ public class PatchworkController {
     var patches = new ArrayList<Patch>();
     patches.addAll(Collections.nCopies(20, patch1));
     patches.addAll(Collections.nCopies(20, patch2));
-    var player1 = new Player("Player 1", 0, 0, new QuiltBoard(9, 9));
-    var player2 = new Player("Player 2", 0, 0, new QuiltBoard(9, 9));
+    var player1 = new Player("Player 1", 0, new QuiltBoard(9, 9));
+    var player2 = new Player("Player 2", 0, new QuiltBoard(9, 9));
     player2.quilt().add(patch2);
-    var gameBoard = new GameBoard(53, patches, List.of(player1, player2));
+    var gameBoard = new GameBoard(patches, List.of(player1, player2));
+    
     //
     patchwork(new PatchworkCLI(), gameBoard);
   }

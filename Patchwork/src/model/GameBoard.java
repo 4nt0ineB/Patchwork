@@ -2,28 +2,31 @@ package model;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.SortedMap;
+import java.util.Stack;
+import java.util.TreeMap;
 
-import view.cli.CLIDisplayable;
 import view.cli.Color;
+import view.cli.DisplayableOnCLI;
 
-public class GameBoard implements CLIDisplayable {
+public class GameBoard implements DisplayableOnCLI {
   // Max number of patches the player can choose from
-  private final static int NEXTPATCHES = 3;
+  private final int nextPatches = 3;
   // Number of squares on the board
-  private final int size;
+  private final int size = 53;
   // The bank
   private int buttons;
   private int neutralTokenPos;
   private final ArrayList<Patch> patches;
-  private Player currentPlayer;
-  private int selectedPatch = -1;
-  // all the players 
-  private final List<Player> unindexedPlayers;
-  //the players indexed by position
-  private final HashMap<Integer, ArrayList<Player>> players;
+  
+  // Current player is always at the top of the stack
+  private int currentPlayerPos;
+  private int selectedPatch;
+  // Players indexed by position
+  private final SortedMap<Integer, Stack<Player>> players;
+  
   
   /**
    * GameBoard constructor
@@ -31,36 +34,35 @@ public class GameBoard implements CLIDisplayable {
    * @param patches the patches around the board at the beginning
    * @param players the players
    */
-  public GameBoard(int size, List<Patch> patches, List<Player> players) {
-    if(size < 1) {
-      throw new IllegalArgumentException("There must be at least one square on the board");
-    }
+  public GameBoard(List<Patch> patches, List<Player> players) {
     Objects.requireNonNull(patches, "List of patches can't be null");
-    Objects.requireNonNull(patches, "List of players can't be null");
+    Objects.requireNonNull(players, "List of players can't be null");
     if(patches.size() < 1) {
       throw new IllegalArgumentException("There must be at least 1 patches");
     }
     if(players.size() < 2) {
       throw new IllegalArgumentException("There must be at least 2 players");
     }
-    this.size = size;
+    buttons = 162;
     this.patches = new ArrayList<>(patches);
     Collections.shuffle(this.patches);
-    this.players = new HashMap<>();
-    var playersList = List.copyOf(players);
-    this.players.put(0, new ArrayList<>(playersList));
+    this.players = new TreeMap<>();
+    this.players.put(0, new Stack<Player>());
+    this.players.get(0).addAll(players);
     Collections.shuffle(this.players.get(0));
-    buttons = 162;
-    // randomly chosen first player
-    currentPlayer = this.players.get(0).get(0);
-    this.players.get(0).stream().forEach(p -> p.updateButtons(getButtons(5)));
-    unindexedPlayers = playersList;
-    neutralTokenPos = minPatch(this.patches);
-    // @Todo check min square size to fit each patch
+    currentPlayerPos = 0;
+    // delegate
+    this.players.get(0).stream().forEach(p -> p.buttonIncome(getButtons(5)));
+    neutralTokenPos = Patch.minPatch(this.patches);
+    // @Todo check min square size to fit each patch ?
+  }
+  
+  public Player currentPlayer() {
+    return players.get(currentPlayerPos).peek();
   }
   
   /**
-   * Substract amount of buttons from the game board buttons.
+   * Subtract amount of buttons from the game board buttons.
    * if it goes below 0, return the maximum.
    * @param 
    * @return the maximum amount possible for the amount asked
@@ -75,20 +77,47 @@ public class GameBoard implements CLIDisplayable {
   }
   
   public void currentPlayerAdvance() {
-    changePlayerPosition(currentPlayer, currentPlayer.position() + 1);
+    if(!currentPlayerCanAdvance()) {
+      return;
+    }
+    int newPosition = nextPositionWithPlayers(currentPlayerPos + 1) + 1;
+    int buttonIncome = newPosition - currentPlayerPos;
+    currentPlayerMove(newPosition);
+    currentPlayer().buttonIncome(buttonIncome);
   }
   
   /**
-   * The player can advance if he not reached the end
+   * Move the current player at the given position
+   * @param newPosition
+   */
+  private void currentPlayerMove(int newPosition) {
+    if(newPosition < 0 || newPosition > size) {
+      throw new IllegalArgumentException("The new position can't exceed boundaries (0 <= newp: " + newPosition + "<= " + size);
+    }
+    var player = players.get(currentPlayerPos).pop();
+    var playersAtPos = players.get(newPosition);
+    if(playersAtPos == null) {
+      players.put(newPosition, new Stack<>());
+    }
+    players.get(newPosition).add(player);
+    currentPlayerPos = newPosition;
+  }
+  
+  /**
+   * The player can advance if he has not reached the end
    * and if a player is ahead of him
    * @return true or false
    */
   public boolean currentPlayerCanAdvance() {
-    return currentPlayer.position() != size && nextPlayer(currentPlayer.position() + 1) != null;
+    return currentPlayerPos != size && nextPositionWithPlayers(currentPlayerPos + 1) != -1;
   }
   
   public boolean currentPlayerCanChosePatch() {
-    return nextPatches().stream().allMatch(patch -> currentPlayer.canBuyPatch(patch) == true);
+    var nextPatches = nextPatches();
+    if(nextPatches.isEmpty()) {
+      return false;
+    }
+    return nextPatches.stream().anyMatch(patch -> currentPlayer().canBuyPatch(patch) == true);
   }
   
   /**
@@ -96,69 +125,78 @@ public class GameBoard implements CLIDisplayable {
    * @return
    */
   public void nextTurn() {
-    currentPlayer = nextPlayer(0); // the most behind player
+    currentPlayerPos = nextPositionWithPlayers(0); // the most behind player
+    unselectPatch();
     if(!currentPlayerCanAdvance() 
         && !currentPlayerCanChosePatch()
         ){
-      throw new IllegalStateException("Unwanted game state. Player is stucked. "
-          + "Should be bad init settings for the game board");
+      throw new AssertionError("Unwanted game state. Player is stucked. "
+          + "Probably bad init settings for the game board");
     }
   }
   
   /**
-   * Return the first player to play from a given position
+   * Find the first next position where there are players
+   * from a given position
    * 
-   * @param pos;
-   * @return Player or null if no player found
+   * 
+   * @param pos Start position for searching 
+   * @return the position, or -1 if not players found
    */
-  public Player nextPlayer(int pos) {
+  private int nextPositionWithPlayers(int pos) {
     if(pos < 0 || pos > size) {
-      throw new IllegalArgumentException("Invalid position. 0 < [" + pos + "] <= +");
+      throw new IllegalArgumentException("Invalid position. 0 < [" + pos + "] <= " + size);
     }
-    var nextPlayer = players.get(0);
-    for(var kv: players.entrySet()) {
-      if(kv.getKey() < pos) {
-        continue;
-      }
-      var mostBehindPlayers = kv.getValue();
-      if(mostBehindPlayers != null && mostBehindPlayers.size() > 0) {
-        // the last added player (as indicated in the rules (the one on top))
-        return mostBehindPlayers.get(mostBehindPlayers.size() - 1);
+    for(var i = pos; i < size; i++) {
+      var playersAtPos = players.get(i);
+      if(playersAtPos != null && !playersAtPos.isEmpty()) {
+        return i;
       }
     }
-    return null;
+    return -1;
   }
   
   /**
-   * Change the current position of a players
-   * @param player
-   * @param newPosition
+   * Return a list of the next available patches
+   * for this turn
    * @return
    */
-  private boolean changePlayerPosition(Player player, int newPosition) {
-    Objects.requireNonNull(player, "Player can't be null");
-    if(newPosition < 0 || newPosition > size) {
-      throw new IllegalArgumentException("The new position can't exceed boundaries (0 <= newp: " + newPosition + "<= " + size);
+  public List<Patch> nextPatches(){
+    var nextPatchesForTurn = new ArrayList<Patch>();
+    // NEXTPATCHES *after* the token 
+    for(var i = 1; i <= nextPatches; i++) {
+      var patch = nextPatch(neutralTokenPos + i);
+      nextPatchesForTurn.add(patch);
     }
-    players.get(player.position()).remove(player);
-    var playersAtNewPos = players.get(newPosition);
-    if(playersAtNewPos == null) {
-      players.put(newPosition, new ArrayList<>());
-    }
-    players.get(newPosition).add(player);
-    // @Todo check if newposition of player exceed size
-    player.move(newPosition - player.position());
-    return true;
+    return nextPatchesForTurn;
   }
   
-  public void selectPatch(int index) {
-    if(index < 0 || index >= patches.size()) {
-      throw new IllegalArgumentException("Wrong index");
+  /**
+   * Select a patch among the next available
+   * @param patch
+   */
+  public void selectPatch(int i) {
+//    Objects.requireNonNull(patch, "The path can't be null");
+    var nextPatches = nextPatches();
+    if(nextPatches.isEmpty()) {
+      return;
     }
-    selectedPatch = neutralTokenPos + index;
+    if(i < 0 || i >= nextPatches.size()) {
+      throw new IllegalArgumentException("Given index does'nt exists for the nextPatches");
+    }
+    selectedPatch = neutralTokenPos + 1 + i;
+    //    for(var i = 0; i < nextPatches; i++) {
+//      // We want to compare pointers !
+//      if(nextPatch(neutralTokenPos + 1 + i) == patch) {
+//        selectedPatch = neutralTokenPos + 1 + i;
+//      }
+//    }
   }
   
   public Patch selectedPatch() {
+    if(selectedPatch == -1) {
+      throw new AssertionError("A patch should have been selected first");
+    }
     return patches.get(selectedPatch);
   }
   
@@ -166,28 +204,20 @@ public class GameBoard implements CLIDisplayable {
     selectedPatch = -1;
   }
   
-  /**
-   * @Todo probably not do that
-   * @return
-   */
-  public List<Player> players(){
-    return unindexedPlayers;
-  }
-  
-  public Player currentPlayer() {
-    return currentPlayer;
-  }
-  
-  /**
-   * Return a list of the next available patch
-   * @return
-   */
-  public List<Patch> nextPatches(){
-    var nexp = new ArrayList<Patch>();
-    for(var i = 0; i < NEXTPATCHES; i++) {
-      nexp.add(nextPatch(neutralTokenPos + i));
+  public boolean playSelectedPatch() {
+    if(!currentPlayer().buyAndPlacePatch(selectedPatch())){
+      return false;
     }
-    return List.copyOf(nexp);
+    // Moves
+    var newPosition = Math.min(size, currentPlayerPos + selectedPatch().moves());
+    currentPlayerMove(newPosition);
+    // Buttons
+    var patch = patches.remove(selectedPatch);
+    buttons += patch.price();
+    //
+    neutralTokenPos = selectedPatch % patches.size();
+    unselectPatch();
+    return true;
   }
   
   /**
@@ -197,41 +227,26 @@ public class GameBoard implements CLIDisplayable {
    * @param index
    * @return the patch or null
    */
-  public Patch nextPatch(int index) {
+  private Patch nextPatch(int index) {
     if(patches.size() == 0) {
       return null;
     }
     return patches.get(index % patches.size());
   }
   
-  /**
-   * Return index of the smallest patch in a list
-   * @param patches
-   * @return index or -1
-   */
-  public int minPatch(List<Patch> patches) {
-    Objects.requireNonNull(patches, "Can't find smallest in null obj");
-    if(patches.size() == 0) {
-      return -1;
-    }
-    var smallest = 0;
-    for(var i = 1; i < patches.size(); i++) {
-      if(patches.get(i).countCells() < patches.get(0).countCells()) {
-        smallest = i;
-      }
-    }
-    return smallest;
-  }
-
   @Override
   public void drawOnCLI() {
-    for(var player: players()) {
-      if(player == currentPlayer) {
-        System.out.println(Color.ANSI_GREEN);
+    for(var position: players.entrySet()) {
+      for(var player: position.getValue()) {
+        System.out.print("Position " + position.getKey() + "| ");
+        if(player == currentPlayer()) {
+          System.out.print(Color.ANSI_GREEN);
+        }
+        player.drawOnCLI();
+        System.out.print(Color.ANSI_RESET);
       }
-      player.drawOnCLI();
-      System.out.println(Color.ANSI_RESET);
     }
+    System.out.println();
   }
   
 }

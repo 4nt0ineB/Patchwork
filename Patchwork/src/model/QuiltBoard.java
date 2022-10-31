@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Set;
 
-import view.cli.CLIDisplayable;
+import view.cli.DisplayableOnCLI;
 import view.cli.Color;
 
-public class QuiltBoard implements CLIDisplayable {
+public class QuiltBoard implements DisplayableOnCLI {
   private final int width;
   private final int height;
   private final ArrayList<Patch> patches;

@@ -12,7 +12,8 @@ public enum Action {
   RIGHT("r", "right"),
   LEFT("a", "left"),
   ROTATE_RIGHT("t", "rotate right"),
-  ROTATE_LEFT("y", "rotate left");
+  ROTATE_LEFT("y", "rotate left"), 
+  PLACE("p", "Buy and place the patch");
   
   private final String bind;
   private final String description;
