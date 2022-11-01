@@ -2,5 +2,10 @@ package model;
 
 @FunctionalInterface
 public interface Effect {
-    void run(GameBoard gb);
+    /**
+     * run the effect on a GameBoard
+     * @param gb
+     * @return true if effect have been applied, else false
+     */
+    boolean run(GameBoard gb);
 }

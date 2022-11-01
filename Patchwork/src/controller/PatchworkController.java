@@ -2,6 +2,7 @@ package controller;
 
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import model.Coordinates;
 import model.GameBoard;
@@ -10,72 +11,73 @@ import view.UserInterface;
 import view.cli.PatchworkCLI;
 
 public class PatchworkController {
-  
-  private static void patchwork(UserInterface ui, GameBoard gameBoard) {
+
+  private static void patchwork(UserInterface ui, GameBoard board) {
     var action = Action.DEFAULT;
+    var patchActions = new LinkedHashSet<Action>();
+    patchActions.addAll(List.of(Action.UP, Action.DOWN, Action.RIGHT, Action.LEFT, Action.ROTATE_LEFT,
+        Action.ROTATE_RIGHT, Action.QUIT));
     ui.clear();
     ui.drawSplashScreen();
+    // -- Game loop
     do {
-      ui.draw(gameBoard);
+      ui.draw(board);
       var options = new LinkedHashSet<Action>();
-      if(gameBoard.currentPlayerCanAdvance()) {
+      if (board.currentPlayerCanAdvance()) {
         options.add(Action.ADVANCE);
       }
-      if(gameBoard.currentPlayerCanChosePatch()) {
+      if (board.currentPlayerCanChosePatch()) {
         options.add(Action.TAKE_PATCH);
       }
       options.add(Action.QUIT);
-      action = ui.getPlayerActionForTurn(gameBoard, options);
+      action = ui.getPlayerActionForTurn(board, options);
       ui.clear();
-      switch(action) {
+      switch (action) {
         case TAKE_PATCH -> {
-          ui.selectPatch(gameBoard);
-          patchworkHandlePatch(ui, gameBoard);
+          ui.selectPatch(board);
+          patchActions.add(Action.QUIT); // The player can stop dealing with this patch
+          if (manipulatePatch(ui, board, patchActions, board.selectedPatch()).equals(Action.PLACE)) {
+            if (board.playSelectedPatch()) {
+              board.nextTurn();
+            }
+          }
         }
         case ADVANCE -> {
-          gameBoard.currentPlayerAdvance();
-          
-         }
-        default -> {}
+          board.currentPlayerAdvance();
+          board.nextTurn();
+        }
+      default -> {
       }
+      }
+      // -- Earned Patches
       Patch earnedPatch = null;
-      while((earnedPatch = gameBoard.patchEarned()) != null) {
-        patchworkHandlePatch(ui, gameBoard);
+      patchActions.remove(Action.QUIT); // The player can't avoid placing given patches
+      while ((earnedPatch = board.patchEarned()) != null) {
+        manipulatePatch(ui, board, patchActions, earnedPatch);
+        board.placeEarnedPatch();
       }
-      gameBoard.nextTurn();
+      board.nextTurn();
       ui.clear();
-    } while(action != Action.QUIT);
+    } while (action != Action.QUIT);
     ui.close();
   }
-  
-  private static void patchworkHandlePatch(UserInterface ui, GameBoard gameBoard) {
+
+  private static Action manipulatePatch(UserInterface ui, GameBoard gameBoard, Set<Action> actions, Patch patch) {
     // A list of actions
     var action = Action.DEFAULT;
-    var options = new LinkedHashSet<Action>();
-    options.clear();
-    options.addAll(List.of(
-        Action.UP, 
-        Action.DOWN,
-        Action.RIGHT,
-        Action.LEFT,
-        Action.ROTATE_LEFT,
-        Action.ROTATE_RIGHT,
-        Action.QUIT
-        ));
     // We use a dummy quilt to play with the patch
     var quilt = gameBoard.currentPlayer().quilt();
-    var patch = gameBoard.selectedPatch();
-    patch.absoluteMoveTo(new Coordinates(quilt.width()/2, quilt.height()/2));
+    patch.absoluteMoveTo(new Coordinates(quilt.width() / 2, quilt.height() / 2));
     do {
       ui.clear();
       ui.drawDummyQuilt(quilt, patch);
-      if(quilt.canAdd(patch) && gameBoard.currentPlayer().canBuyPatch(patch)) {
-        options.add(Action.PLACE);
-      }else {
-        options.remove(Action.PLACE);
+      if (quilt.canAdd(patch) && gameBoard.currentPlayer().canBuyPatch(patch)) {
+        actions.add(Action.PLACE);
+      } else {
+        actions.remove(Action.PLACE);
       }
-      action = ui.getPlayerActionForTurn(gameBoard, options);
-      switch(action){
+      action = ui.getPlayerActionForTurn(gameBoard, actions);
+      switch (action) {
         case UP -> patch.moveUp();
         case DOWN -> patch.moveDown();
         case RIGHT -> patch.moveRight();
@@ -83,17 +85,16 @@ public class PatchworkController {
         case ROTATE_LEFT -> patch.rotateLeft();
         case ROTATE_RIGHT -> patch.rotateRight();
         case PLACE -> {
-          gameBoard.playSelectedPatch();
-          action = Action.QUIT;
+          return Action.PLACE;
         }
         default -> {}
       }
-    }while(action != Action.QUIT);
+    } while (action != Action.QUIT);
+    return action;
   }
 
   public static void main(String[] args) {
-    GameBoard.makeBoard();
-    //patchwork(new PatchworkCLI(), GameBoard.makeBoard());
+    patchwork(new PatchworkCLI(), GameBoard.makeBoard());
   }
-  
+
 }

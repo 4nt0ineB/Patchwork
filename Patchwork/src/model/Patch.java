@@ -21,7 +21,7 @@ public class Patch implements DisplayableOnCLI {
   // the price of the patch
   private final int price;
   // Absolute origin on the QuiltBoard associated to the relative origin of the patch (0,0)
-  private Coordinates absoluteOrigin;
+  private Coordinates absoluteOrigin = new Coordinates(0, 0);
   // Index of the current  of rotation
   private int currentRotation;
   // All unique possible rotations for the patch
@@ -44,7 +44,7 @@ public class Patch implements DisplayableOnCLI {
    * </pre>
    * might be given as [(0, -1), (0, 0), (1, 0)].
    */
-  public Patch(int buttons, int moves, int price, List<Coordinates> coordinates, Coordinates absoluteOrigin) {
+  public Patch(int buttons, int moves, int price, List<Coordinates> coordinates) {
     if(buttons < 0) {
       throw new IllegalArgumentException("Buttons can't be negative");
     }
@@ -61,9 +61,16 @@ public class Patch implements DisplayableOnCLI {
     this.buttons = buttons;
     this.moves = moves;
     this.price = price;
-    this.absoluteOrigin = absoluteOrigin;
     currentRotation = 0;
     this.rotations = allRotations(Set.copyOf(coordinates));
+  }
+  
+  public int moves() {
+    return moves;
+  }
+  
+  public int price() {
+    return price;
   }
   
   /**
@@ -269,18 +276,18 @@ public class Patch implements DisplayableOnCLI {
     return Objects.hash(buttons, moves, price, rotations);
   }
   
-  @Override
-  public boolean equals(Object obj) {
+  /**
+   * Test equality on fields
+   * @param obj
+   * @return
+   */
+  public boolean sameAs(Object obj) {
     return obj instanceof Patch o
         && buttons == o.buttons
         && moves == o.moves
         && price == o.price
         && rotations.contains(o.rotations.get(o.currentRotation))
         ;
-  }
-  
-  public int moves() {
-    return moves;
   }
   
   public void absoluteMoveTo(Coordinates coordinates) {
@@ -295,10 +302,6 @@ public class Patch implements DisplayableOnCLI {
         + ", b: " + buttons + ") "
         + "AbsOrigin: " + absoluteOrigin
         ;
-  }
-
-  public int price() {
-    return price;
   }
 
   @Override

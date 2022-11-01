@@ -35,7 +35,7 @@ public class PatchworkCLI implements UserInterface {
     var i = 0;
     var input = -1;
     // Draw choices
-    var patches = gb.nextPatches();
+    var patches = gb.neutralToken().availablePatches();
     for(var patch: patches) {
       i++;
       System.out.print(i + ". ");
@@ -56,7 +56,7 @@ public class PatchworkCLI implements UserInterface {
         validInput = true;
       }
     }while(!validInput);
-    gb.selectPatch(input - 1);
+    gb.selectPatch(patches.get(input - 1));
   }
   
   public void drawDummyQuilt(QuiltBoard quilt, Patch patch) {
