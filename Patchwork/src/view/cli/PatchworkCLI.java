@@ -3,11 +3,11 @@ package view.cli;
 import java.util.Scanner;
 import java.util.Set;
 
+import controller.Action;
 import model.Coordinates;
 import model.GameBoard;
 import model.Patch;
 import model.QuiltBoard;
-import view.Action;
 import view.UserInterface;
 
 public class PatchworkCLI implements UserInterface {

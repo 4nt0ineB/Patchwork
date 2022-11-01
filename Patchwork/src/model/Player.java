@@ -37,7 +37,7 @@ public class Player implements DisplayableOnCLI {
    */
   public boolean buyAndPlacePatch(Patch patch) {
     Objects.requireNonNull(patch, "The patch can't be null");
-    if(!canBuyPatch(patch) || !quilt.canAdd(patch)) {
+    if(!canBuyPatch(patch) || !quilt.add(patch)) {
       return false;
     }
     buttons -= patch.price();
@@ -81,7 +81,8 @@ public class Player implements DisplayableOnCLI {
 
   @Override
   public void drawOnCLI() {
-    System.out.println(this);
+    System.out.println("[" + name + "] buttons:" + buttons);
+    System.out.println(quilt.patches());
   }
   
   

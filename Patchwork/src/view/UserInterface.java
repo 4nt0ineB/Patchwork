@@ -2,6 +2,7 @@ package view;
 
 import java.util.Set;
 
+import controller.Action;
 import model.GameBoard;
 import model.Patch;
 import model.QuiltBoard;
