@@ -2,11 +2,14 @@ package model.event;
 
 import java.util.Objects;
 
-import model.Effect;
-import model.GameBoard;
+import model.gameboard.Effect;
+import model.gameboard.GameBoard;
+import view.cli.Color;
+import view.cli.DisplayableOnCLI;
+import view.cli.PatchworkCLI;
 
-public class Event {
-  
+public class Event implements DisplayableOnCLI {
+
   private final Effect effect;
   private final boolean oneUse;
   private boolean active = true;
@@ -46,6 +49,28 @@ public class Event {
   @Override
   public String toString() {
     return "oneUse: " + oneUse + ", active: " + active;
+  }
+
+  @Override
+  public void drawOnCLI(PatchworkCLI ui) {
+    var builder = ui.builder();
+    builder.append(switch (type) {
+      case BUTTON_INCOME -> {
+        yield Color.ANSI_BBLUE + "Button Income !\n";
+      }
+      case PATCH_INCOME -> {
+        yield Color.ANSI_YELLOW + "You've got a patch !\n";
+  
+      }
+      case SPECIAL_TILE -> {
+        yield Color.ANSI_PURPLE + "You've got a special tile !\n";
+      }
+      default -> {
+        yield "";
+      }
+    });
+    builder.append(Color.ANSI_RESET);
+    System.out.print(builder);
   }
 
 }

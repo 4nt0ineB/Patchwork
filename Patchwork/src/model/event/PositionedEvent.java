@@ -1,6 +1,6 @@
 package model.event;
 
-import model.Effect;
+import model.gameboard.Effect;
 
 public class PositionedEvent extends Event {
 

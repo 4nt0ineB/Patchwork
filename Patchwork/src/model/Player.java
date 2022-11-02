@@ -3,6 +3,7 @@ package model;
 import java.util.Objects;
 
 import view.cli.DisplayableOnCLI;
+import view.cli.PatchworkCLI;
 
 public class Player implements DisplayableOnCLI {
   private final String name;
@@ -76,9 +77,8 @@ public class Player implements DisplayableOnCLI {
   }
 
   @Override
-  public void drawOnCLI() {
-    System.out.println("[" + name + "] buttons:" + buttons);
-    System.out.println(quilt.patches());
+  public void drawOnCLI(PatchworkCLI ui) {
+    ui.builder().append(name + " - buttons [" + buttons + "]");
   }
 
 }

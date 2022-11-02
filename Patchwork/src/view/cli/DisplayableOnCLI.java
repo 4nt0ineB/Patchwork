@@ -1,5 +1,6 @@
 package view.cli;
 
 public interface DisplayableOnCLI {
-  void drawOnCLI();
+  void drawOnCLI(PatchworkCLI ui);
+  
 }

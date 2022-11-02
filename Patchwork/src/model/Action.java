@@ -1,10 +1,10 @@
-package controller;
+package model;
 
 import java.util.Objects;
 
 public enum Action {
   ADVANCE("a", "Advance"),
-  TAKE_PATCH("b", "Take and place a patch"),
+  SELECT_PATCH("b", "Take and place a patch"),
   QUIT("q", "Ragequit"),
   DEFAULT("default", "default"),
   UP("z", "up"),

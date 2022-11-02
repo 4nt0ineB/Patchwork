@@ -1,28 +1,45 @@
 package view.cli;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 
-import controller.Action;
+import model.Action;
 import model.Coordinates;
-import model.GameBoard;
 import model.Patch;
 import model.QuiltBoard;
+import model.event.Event;
+import model.gameboard.GameBoard;
 import view.UserInterface;
 
 public class PatchworkCLI implements UserInterface {
   
-  private static final Scanner scanner = new Scanner(System.in);
+  // Should be a singleton then ? Because there is only one System.in
+  // and closing a PatchworkCLI instance (therefore the scanner) 
+  // would mess with other instance also using System.in
+  private static final Scanner scanner = new Scanner(System.in); 
+  // It's like the window, we draw our elements on it and we refresh the display
+  private final StringBuilder builder = new StringBuilder();
+  
+  public StringBuilder builder() {
+    return builder;
+  }
   
   @Override
   public void draw(GameBoard gb) {
-    gb.drawOnCLI();
+    gb.drawOnCLI(this);
+  }
+  
+  public void display() {
+    System.out.print(builder);
   }
   
   @Override
   public void clear() {
     System.out.print("\033[H\033[2J");
     System.out.flush();
+    builder.setLength(0);
   }
 
   @Override
@@ -31,36 +48,53 @@ public class PatchworkCLI implements UserInterface {
   }
   
   @Override
+  public void displayEvents(List<Event> eventQueue) {
+    List<DisplayableOnCLI> displayableEvents = new ArrayList<>(eventQueue);
+    displayableEvents.stream().forEachOrdered(event -> event.drawOnCLI(this)); 
+  }
+  
+  @Override
   public void selectPatch(GameBoard gb) {
+    clear();
     var i = 0;
     var input = -1;
+    clear();
+    drawSplashScreen();
     // Draw choices
     var patches = gb.availablePatches();
+    builder.append("\n");
     for(var patch: patches) {
       i++;
-      System.out.print(i + ". ");
-      patch.drawOnCLI();
+      builder.append(i + ". ");
+      patch.drawOnCLI(this);
+      builder.append("\n");
     }
+    display();
     // Menu
     boolean validInput = false;
-    var builder = new StringBuilder();
-    builder
+    var localBuilder = new StringBuilder();
+    localBuilder
     .append(Color.ANSI_ORANGE)
-    .append("Choose : ")
+    .append("\nChoose : ")
     .append(Color.ANSI_RESET);
     // Selection loop
     do {
-      System.out.print(builder);
-      input = Integer.valueOf(scanner.nextLine());
-      if(input > 0 && input <= i) {
-        validInput = true;
+      System.out.print(localBuilder);
+      try {
+        input = Integer.valueOf(scanner.nextLine());
+        if(input > 0 && input <= i) {
+          validInput = true;
+        }
+      } catch (NumberFormatException e) {
+        System.out.println("Wrong choice\n");
       }
+      
     }while(!validInput);
     gb.selectPatch(patches.get(input - 1));
   }
   
+  @Override
   public void drawDummyQuilt(QuiltBoard quilt, Patch patch) {
-    var builder = new StringBuilder();
     // top
     builder.append("┌");
     for(var i = 0; i < quilt.width(); i++) {
@@ -100,28 +134,26 @@ public class PatchworkCLI implements UserInterface {
       builder.append("─");
     }
     builder.append("┘");
-    System.out.println(builder);
   }
   
   @Override
   public Action getPlayerActionForTurn(GameBoard gb, Set<Action> options) {
-    var builder = new StringBuilder();
-    builder
+    var localBuilder = new StringBuilder();
+    localBuilder
     .append(Color.ANSI_ORANGE)
-    .append("[Actions] ")
-    .append(Color.ANSI_RESET)
-    .append("\n");
+    .append("\n[Actions]\n")
+    .append(Color.ANSI_RESET);
     options.stream().forEach(option -> 
-      builder.append(option).append("\n"));
-    builder.append("\nChoice ? : ");
-    System.out.print(builder);
+      localBuilder.append(option).append("\n"));
+    localBuilder.append("\nChoice ? : ");
+    System.out.print(localBuilder);
     var input = scanner.nextLine();
     for(var op: options) {
       if(op.bind().equals(input)) {
         return op;
       }
     }
-    System.out.println("Wrong choice");
+    System.out.println("Wrong choice\n");
     return Action.DEFAULT;
   }
   
@@ -130,10 +162,10 @@ public class PatchworkCLI implements UserInterface {
    * 
    * close scanner on {@link System.in}
    */
+  @Override
   public void close() {
     scanner.close();
-    System.out.println("Bye");
-    
+    System.out.println("Bye.");
   }
 
   @Override
@@ -147,7 +179,7 @@ public class PatchworkCLI implements UserInterface {
         + Color.ANSI_GREEN + "└─────────────────────────────────────────────────┘\n"
         + "\n"
         + Color.ANSI_RESET;
-    System.out.println(splash);
+    builder.append(splash);
   }
 
 }

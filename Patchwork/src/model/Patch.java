@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 import view.cli.DisplayableOnCLI;
+import view.cli.PatchworkCLI;
 
 public class Patch implements DisplayableOnCLI {
   
@@ -305,7 +306,7 @@ public class Patch implements DisplayableOnCLI {
   }
 
   @Override
-  public void drawOnCLI() {
+  public void drawOnCLI(PatchworkCLI ui) {
     // we use a quilt board to deal with absolute coordinates
     var quilt = new QuiltBoard(2, 2);
     // While the patch doesn't fit in, we expand the quilt
@@ -315,8 +316,8 @@ public class Patch implements DisplayableOnCLI {
       quilt = new QuiltBoard(quilt.height() + 1, quilt.width() + 1);
     }
     // draw the patch
-    var sb = new StringBuilder();
-    sb
+    var builder = ui.builder();
+    builder
     .append("[Price: ")
     .append(price)
     .append(" Buttons: ")
@@ -325,16 +326,14 @@ public class Patch implements DisplayableOnCLI {
     .append(moves)
     .append("]\n");
     for(var y = 0; y < quilt.height(); y++) {
-      sb.append("   ");
+      builder.append("   ");
       for(var x = 0; x < quilt.width(); x++) {
         if(quilt.occupied(new Coordinates(y, x))) {
-          sb.append("x");
+          builder.append("x");
         }
       }
-      sb.append("\n");
+      builder.append("\n");
     }
-    
-    System.out.println(sb);
   }
   
   /**

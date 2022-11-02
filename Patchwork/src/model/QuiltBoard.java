@@ -5,6 +5,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import view.cli.DisplayableOnCLI;
+import view.cli.PatchworkCLI;
 import view.cli.Color;
 
 public class QuiltBoard implements DisplayableOnCLI {
@@ -85,8 +86,8 @@ public class QuiltBoard implements DisplayableOnCLI {
   }
 
   @Override
-  public void drawOnCLI() {
-    var builder = new StringBuilder();
+  public void drawOnCLI(PatchworkCLI ui) {
+    var builder = ui.builder();
     // top
     builder.append("┌");
     for (var i = 0; i < width; i++) {

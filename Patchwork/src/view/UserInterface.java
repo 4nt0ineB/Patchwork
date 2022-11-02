@@ -1,11 +1,13 @@
 package view;
 
+import java.util.List;
 import java.util.Set;
 
-import controller.Action;
-import model.GameBoard;
+import model.Action;
 import model.Patch;
 import model.QuiltBoard;
+import model.event.Event;
+import model.gameboard.GameBoard;
 
 public interface UserInterface {
 
@@ -27,5 +29,9 @@ public interface UserInterface {
   void selectPatch(GameBoard gb);
 
   void drawDummyQuilt(QuiltBoard quilt, Patch patch);
+
+  void displayEvents(List<Event> eventQueue);
+
+  void display();
 
 }

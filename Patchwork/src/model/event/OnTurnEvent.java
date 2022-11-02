@@ -1,6 +1,6 @@
 package model.event;
 
-import model.Effect;
+import model.gameboard.Effect;
 
 public class OnTurnEvent extends Event {
   OnTurnEvent(EventType type, boolean oneUse, Effect effect) {
