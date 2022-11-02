@@ -43,17 +43,11 @@ public class FullGameBoard extends GameBoard {
       eventQueue.add(event);
     }
   }
-
+  
   @Override
-  public void nextTurn() {
+  public boolean nextTurn() {
     endOfTurnEvents(); // add on turn events before end of turn
-    super.nextTurn();
-  }
-
-  @Override
-  public void drawOnCLI(PatchworkCLI ui) {
-    System.out.println("Effects " + eventPool);
-    super.drawOnCLI(ui);
+    return super.nextTurn();
   }
 
 }

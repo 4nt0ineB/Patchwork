@@ -1,7 +1,9 @@
 package view.cli;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Scanner;
 import java.util.Set;
 
@@ -21,9 +23,28 @@ public class PatchworkCLI implements UserInterface {
   private static final Scanner scanner = new Scanner(System.in); 
   // It's like the window, we draw our elements on it and we refresh the display
   private final StringBuilder builder = new StringBuilder();
+  private final LinkedHashSet<String> messages = new LinkedHashSet<>();
   
   public StringBuilder builder() {
     return builder;
+  }
+  
+  public void addMessage(String message) {
+    Objects.requireNonNull(message, "The message can't be null");
+    messages.add(message);
+  }
+  
+  public void clearMessages() {
+    messages.clear();
+  }
+  
+  public void drawMessages() {
+    messages.stream().forEachOrdered(message -> {
+      builder
+      .append("\n")
+      .append(message)
+      .append("\n");
+      }); 
   }
   
   @Override
@@ -48,9 +69,11 @@ public class PatchworkCLI implements UserInterface {
   }
   
   @Override
-  public void displayEvents(List<Event> eventQueue) {
+  public void drawEvents(List<Event> eventQueue) {
     List<DisplayableOnCLI> displayableEvents = new ArrayList<>(eventQueue);
-    displayableEvents.stream().forEachOrdered(event -> event.drawOnCLI(this)); 
+    displayableEvents.stream().forEachOrdered(event -> {
+      event.drawOnCLI(this);
+      }); 
   }
   
   @Override

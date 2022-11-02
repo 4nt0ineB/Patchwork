@@ -31,8 +31,8 @@ public class GameBoard implements DisplayableOnCLI {
   protected final SortedMap<Integer, Stack<Player>> players = new TreeMap<>();
   // Patch manager (around the board patches)
   protected final NeutralToken neutralToken;
-  // Patches queue that must be played by the current player
-  protected final Queue<Patch> patchesToBePlayed = new LinkedList<>();
+  // Patches stack that must be played by the current player
+  protected final Stack<Patch> patchesToBePlayed = new Stack<>();
   // Event queue to process at the end of the turn
   protected final Queue<Event> eventQueue = new LinkedList<>();
   // The actions the player can do during this turn
@@ -117,8 +117,11 @@ public class GameBoard implements DisplayableOnCLI {
    */
   public void unselectPatch() {
     // Remove the patch from patches waiting queue as well
-    patchesToBePlayed.remove(neutralToken.selected());
-    neutralToken.unselect();
+    var patch = neutralToken.selected();
+    if(patch != null) {
+      patchesToBePlayed.remove(patch);
+      neutralToken.unselect();
+    }
   }
 
   /**
@@ -128,6 +131,9 @@ public class GameBoard implements DisplayableOnCLI {
    * @return
    */
   public Patch nextPatchToPlay() {
+    if(patchesToBePlayed.isEmpty()) {
+      return null;
+    }
     return patchesToBePlayed.peek();
   }
 
@@ -146,7 +152,7 @@ public class GameBoard implements DisplayableOnCLI {
       return false;
     }
     // The patch have been place on the quilt, we extract it from the waiting queue
-    patch = patchesToBePlayed.poll();
+    patch = patchesToBePlayed.pop();
     // Where does the patch comes from ?
     if (neutralToken.availablePatches().contains((patch))) { 
       // The patch comes from the neutral token
@@ -198,6 +204,9 @@ public class GameBoard implements DisplayableOnCLI {
     int buttonIncome = newPosition - currentPlayerPos;
     currentPlayerMove(newPosition);
     currentPlayer().buttonIncome(buttonIncome);
+    // The player advance on the board
+    // and can no more execute this actions
+    availableActions.clear();
   }
 
   /**
@@ -258,13 +267,15 @@ public class GameBoard implements DisplayableOnCLI {
    * @exception AssertionError if the player is stuck.
    * @return
    */
-  public void nextTurn() {
+  public boolean nextTurn() {
     if(!availableActions.isEmpty()) {
-      return;
+      return false;
     }
-    runWaitingEvents();
+    if(!eventQueue.isEmpty()) {
+      return false;
+    }
     if (!patchesToBePlayed.isEmpty()) {
-      return; // can't change player, the current has patches to deal with
+      return false; // can't change player, the current has patches to deal with
     }
     currentPlayerPos = nextPositionWithPlayers(0); // the most behind player
     resetActions();
@@ -272,6 +283,7 @@ public class GameBoard implements DisplayableOnCLI {
       throw new AssertionError("Unwanted game state. Player is stuck. "
           + "Probably bad init settings for the game board or the game is finished");
     }
+    return true;
   }
 
   public List<Event> eventQueue() {
@@ -302,7 +314,7 @@ public class GameBoard implements DisplayableOnCLI {
   /**
    * Run all events then clear the queue
    */
-  private void runWaitingEvents() {
+  public void runWaitingEvents() {
     eventQueue.stream().forEachOrdered(event -> event.run(this));
     eventQueue.clear();
   }

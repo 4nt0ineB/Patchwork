@@ -20,13 +20,16 @@ public class PatchworkController {
     var patchActions = new LinkedHashSet<Action>();
     patchActions.addAll(List.of(Action.UP, Action.DOWN, Action.RIGHT, Action.LEFT, Action.ROTATE_LEFT,
         Action.ROTATE_RIGHT, Action.QUIT));
-    ui.clear();
     // -- Game loop
     do {
-      board.nextTurn();
+      if(board.nextTurn()){
+        ui.clearMessages();
+      }
+      ui.clear();
       ui.drawSplashScreen();
       ui.draw(board);
-      ui.display();
+      ui.drawMessages();
+      ui.display();      
       action = doActionForTurn(ui, board);
       // The player has patches to place
       while (board.nextPatchToPlay() != null) {
@@ -40,8 +43,8 @@ public class PatchworkController {
           default -> {}
         }
       }
-      ui.displayEvents(board.eventQueue());
-      ui.clear();
+      ui.drawEvents(board.eventQueue());
+      board.runWaitingEvents();
     } while (action != Action.QUIT && !board.isFinished());
     ui.close();
   }
@@ -80,6 +83,8 @@ public class PatchworkController {
     do {
       ui.clear();
       ui.drawSplashScreen();
+      ui.draw(board);
+      ui.drawMessages();
       ui.drawDummyQuilt(quilt, patch);
       ui.display();
       if (quilt.canAdd(patch) && board.currentPlayer().canBuyPatch(patch)) {

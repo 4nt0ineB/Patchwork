@@ -31,7 +31,7 @@ public class FullGameBoardFactory implements GameBoardFactory {
       gb.patchesToBePlayed.add(new Patch(0, 0, 0, List.of(new Coordinates(0, 0))));
       return true;
     }));
-    var gameBoard = new FullGameBoard(3, 53, 152, patches, List.of(player1, player2), events);
+    var gameBoard = new FullGameBoard(3, 54, 152, patches, List.of(player1, player2), events);
     return gameBoard;
   }
 

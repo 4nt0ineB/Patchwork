@@ -30,8 +30,14 @@ public interface UserInterface {
 
   void drawDummyQuilt(QuiltBoard quilt, Patch patch);
 
-  void displayEvents(List<Event> eventQueue);
+  void drawEvents(List<Event> eventQueue);
 
   void display();
+
+  void clearMessages();
+
+  void drawMessages();
+
+  
 
 }

@@ -27,13 +27,9 @@ public class NeutralToken {
   }
 
   /**
-   * @exception AssertionError - If no patch have been selected first
-   * @return
+   * @return the selected patch, or null
    */
   public Patch selected() {
-    if (selected == null) {
-      throw new AssertionError("A patch should have been selected first");
-    }
     return selected;
   }
 

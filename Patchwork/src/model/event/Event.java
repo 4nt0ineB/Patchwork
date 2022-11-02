@@ -53,24 +53,22 @@ public class Event implements DisplayableOnCLI {
 
   @Override
   public void drawOnCLI(PatchworkCLI ui) {
-    var builder = ui.builder();
-    builder.append(switch (type) {
+    var text = switch (type) {
       case BUTTON_INCOME -> {
-        yield Color.ANSI_BBLUE + "Button Income !\n";
+        yield Color.ANSI_BBLUE + "Button Income !";
       }
       case PATCH_INCOME -> {
-        yield Color.ANSI_YELLOW + "You've got a patch !\n";
+        yield Color.ANSI_YELLOW + "You've got a patch !";
   
       }
       case SPECIAL_TILE -> {
-        yield Color.ANSI_PURPLE + "You've got a special tile !\n";
+        yield Color.ANSI_PURPLE + "You've got a special tile !";
       }
       default -> {
         yield "";
       }
-    });
-    builder.append(Color.ANSI_RESET);
-    System.out.print(builder);
+    };
+    ui.addMessage(text + Color.ANSI_RESET);
   }
 
 }
