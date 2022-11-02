@@ -49,7 +49,7 @@ public class GameBoard implements DisplayableOnCLI {
    * @param players     the players
    * @param the         list of events for the board
    */
-  public GameBoard(int nextPatches, int spaces, int buttons, List<Patch> patches, List<Player> players) {
+  protected GameBoard(int nextPatches, int spaces, int buttons, List<Patch> patches, List<Player> players) {
     Objects.requireNonNull(patches, "List of patches can't be null");
     Objects.requireNonNull(players, "List of players can't be null");
     if (patches.size() < 1) {

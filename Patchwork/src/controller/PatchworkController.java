@@ -110,8 +110,8 @@ public class PatchworkController {
   }
 
   public static void main(String[] args) {
+    // GameBoardFactory gameBoardFactory = new BasicGameBoardFactory();
     GameBoardFactory gameBoardFactory = new FullGameBoardFactory();
-    // GameBoardFactory gameBoardFactory = new FullGameBoardFactory();
     patchwork(new PatchworkCLI(), gameBoardFactory.makeBoard());
   }
 

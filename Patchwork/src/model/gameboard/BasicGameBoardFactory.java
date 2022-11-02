@@ -19,8 +19,8 @@ public class BasicGameBoardFactory implements GameBoardFactory {
         new Coordinates(1, 0), 
         new Coordinates(1, 1));
     for (var i = 0; i < 20; i++) {
-      patches.add(new Patch(1, 4, 3, squaredShape));
-      patches.add(new Patch(0, 2, 2, squaredShape));
+      patches.add(new Patch(3, 4, 1, squaredShape));
+      patches.add(new Patch(2, 2, 0, squaredShape));
     }
     var player1 = new Player("Player 1", 5, new QuiltBoard(9, 9));
     var player2 = new Player("Player 2", 5, new QuiltBoard(9, 9));

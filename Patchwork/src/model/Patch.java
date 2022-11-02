@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Predicate;
 
 import view.cli.DisplayableOnCLI;
 import view.cli.PatchworkCLI;
@@ -45,7 +44,7 @@ public class Patch implements DisplayableOnCLI {
    * </pre>
    * might be given as [(0, -1), (0, 0), (1, 0)].
    */
-  public Patch(int buttons, int moves, int price, List<Coordinates> coordinates) {
+  public Patch(int price, int moves, int buttons, List<Coordinates> coordinates) {
     if(buttons < 0) {
       throw new IllegalArgumentException("Buttons can't be negative");
     }
@@ -63,7 +62,7 @@ public class Patch implements DisplayableOnCLI {
     this.moves = moves;
     this.price = price;
     currentRotation = 0;
-    this.rotations = allRotations(Set.copyOf(coordinates));
+    this.rotations = allRotations(new HashSet<>(coordinates));
   }
   
   public int moves() {
@@ -237,7 +236,7 @@ public class Patch implements DisplayableOnCLI {
    */
   private List<Set<Coordinates>> allRotations(Set<Coordinates> cells) {
     var rotationsList = new ArrayList<Set<Coordinates>>();
-    rotationsList.add(cells);
+    rotationsList.add(new HashSet<>(cells));
     if(isSquare(cells)) {
       // if square, no rotations
       return rotationsList;
@@ -320,16 +319,18 @@ public class Patch implements DisplayableOnCLI {
     builder
     .append("[Price: ")
     .append(price)
-    .append(" Buttons: ")
-    .append(buttons)
     .append(" Moves: ")
     .append(moves)
-    .append("]\n");
+    .append(" Buttons: ")
+    .append(buttons)
+    .append("]\n\n");
     for(var y = 0; y < quilt.height(); y++) {
-      builder.append("   ");
+      builder.append("  ");
       for(var x = 0; x < quilt.width(); x++) {
         if(quilt.occupied(new Coordinates(y, x))) {
           builder.append("x");
+        }else {
+          builder.append(" ");
         }
       }
       builder.append("\n");
