@@ -6,11 +6,14 @@ import model.Effect;
 import model.GameBoard;
 
 public class Event {
+  
   private final Effect effect;
   private final boolean oneUse;
   private boolean active = true;
+  private EventType type;
 
-  public Event(boolean oneUse, Effect effect) {
+  public Event(EventType type, boolean oneUse, Effect effect) {
+    this.type = Objects.requireNonNull(type, "Type can't be null");
     this.effect = Objects.requireNonNull(effect, "Effect can't be null");
     this.oneUse = oneUse;
   }

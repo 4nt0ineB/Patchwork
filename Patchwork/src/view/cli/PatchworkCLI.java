@@ -35,7 +35,7 @@ public class PatchworkCLI implements UserInterface {
     var i = 0;
     var input = -1;
     // Draw choices
-    var patches = gb.neutralToken().availablePatches();
+    var patches = gb.availablePatches();
     for(var patch: patches) {
       i++;
       System.out.print(i + ". ");
@@ -138,7 +138,7 @@ public class PatchworkCLI implements UserInterface {
 
   @Override
   public void drawSplashScreen() {
-    var splash = Color.ANSI_BOLD+ "  _____      _       _                       _    \n"
+    var splash = Color.ANSI_BOLD + "  _____      _       _                       _    \n"
         + " |  __ \\    | |     | |                     | |   \n"
         + " | |__) |_ _| |_ ___| |____      _____  _ __| | __\n"
         + " |  ___/ _` | __/ __| '_ \\ \\ /\\ / / _ \\| '__| |/ /\n"

@@ -55,7 +55,7 @@ public class Player implements DisplayableOnCLI {
 
   @Override
   public boolean equals(Object obj) {
-    return obj instanceof Player o && buttons == o.buttons && name.equals(name);
+    return obj instanceof Player o && buttons == o.buttons && name.equals(o.name);
   }
 
   public int buttons() {

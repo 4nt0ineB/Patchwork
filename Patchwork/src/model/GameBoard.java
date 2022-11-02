@@ -37,9 +37,12 @@ public class GameBoard implements DisplayableOnCLI {
   /**
    * GameBoard constructor
    * 
-   * @param size    the number of squares on the board
+   * @param nextPatches max number of patches available each turn for the current player
+   * @param spaces the number of spaces on the board
+   * @param buttons the number of buttons in the bank
    * @param patches the patches around the board at the beginning
    * @param players the players
+   * @param the list of events for the board
    */
   private GameBoard(int nextPatches, int spaces, int buttons, List<Patch> patches, List<Player> players,
       ArrayList<Event> events) {
@@ -74,10 +77,6 @@ public class GameBoard implements DisplayableOnCLI {
     // @Todo check min square size to fit each patch ?
   }
 
-  public NeutralToken neutralToken() {
-    return neutralToken;
-  }
-
   /**
    * Make and initialize a new basic Patchwork game board
    * 
@@ -87,24 +86,23 @@ public class GameBoard implements DisplayableOnCLI {
     // Basic version
     // turn this into config files ?
     var patches = new ArrayList<Patch>();
+    var squaredShape = List.of(
+        new Coordinates(0, 0), 
+        new Coordinates(0, 1), 
+        new Coordinates(1, 0), 
+        new Coordinates(1, 1));
     for (var i = 0; i < 20; i++) {
-      patches.add(new Patch(1, 4, 3,
-          List.of(new Coordinates(0, 0), new Coordinates(0, 1), new Coordinates(1, 0), new Coordinates(1, 1))));
-      patches.add(new Patch(0, 2, 2, List.of(
-//               new Coordinates(0, 0),
-//               new Coordinates(0, 1),
-//               new Coordinates(1, 0),
-//               new Coordinates(1, 1)
-          new Coordinates(0, 0), new Coordinates(-1, 0), new Coordinates(-1, 1), new Coordinates(1, 0))));
+      patches.add(new Patch(1, 4, 3, squaredShape));
+      patches.add(new Patch(0, 2, 2, squaredShape));
     }
     var player1 = new Player("Player 1", 0, new QuiltBoard(9, 9));
     var player2 = new Player("Player 2", 0, new QuiltBoard(9, 9));
 
     var events = new ArrayList<Event>();
-    events.add(new PositionedEvent(2, true, (GameBoard gb) -> {
-      gb.earnedPatches.add(new Patch(0, 0, 0, List.of(new Coordinates(0, 0))));
-      return true;
-    }));
+//    events.add(new PositionedEvent(2, true, (GameBoard gb) -> {
+//      gb.earnedPatches.add(new Patch(0, 0, 0, List.of(new Coordinates(0, 0))));
+//      return true;
+//    }));
     var gameBoard = new GameBoard(3, 53, 162, patches, List.of(player1, player2), events);
     gameBoard.init();
     return gameBoard;
@@ -126,6 +124,50 @@ public class GameBoard implements DisplayableOnCLI {
   public Player currentPlayer() {
     return players.get(currentPlayerPos).peek();
   }
+  
+  /**
+   * Return a list of only purchasable patches by the current player
+   * @return
+   */
+  public List<Patch> availablePatches() {
+    return neutralToken.availablePatches().stream().filter(patch -> currentPlayer().canBuyPatch(patch)).toList();
+  }
+  
+  /**
+   * Select a patch among the next available
+   * 
+   * @param patch
+   */
+  public void selectPatch(Patch patch) {
+    neutralToken.select(patch);
+  }
+
+  public Patch selectedPatch() {
+    return neutralToken.selected();
+  }
+
+  public void unselectPatch() {
+    neutralToken.unselect();
+  }
+
+  public boolean playSelectedPatch() {
+    if (!currentPlayerPlayPatch(selectedPatch())) {
+      return false;
+    }
+    neutralToken.extractSelected();
+    return true;
+  }
+
+  public boolean currentPlayerPlayPatch(Patch patch) {
+    if (!currentPlayer().buyAndPlacePatch(patch)) {
+      return false;
+    }
+    // Moves
+    currentPlayerMove(currentPlayerPos + patch.moves());
+    // Buttons
+    buttons += patch.price();
+    return true;
+  }
 
   /**
    * Subtract amount of buttons from the game board buttons. if it goes below 0,
@@ -145,6 +187,8 @@ public class GameBoard implements DisplayableOnCLI {
 
   /**
    * Advance the current player
+   * to the space in front of the next player.
+   * This action lead to button income proportional of number of crossed spaces.
    */
   public void currentPlayerAdvance() {
     if (!currentPlayerCanAdvance()) {
@@ -221,6 +265,15 @@ public class GameBoard implements DisplayableOnCLI {
           "Unwanted game state. Player is stuck. " + "Probably bad init settings for the game board");
     }
   }
+  
+  /**
+   * Run events that are not triggered by moves (positioned events)
+   */
+  public void endOfTurnEvents() {
+    for (var event : eventPool.onTurn()) {
+      event.run(this);
+    }
+  }
 
   /**
    * Find the first next position where there are players from a given position
@@ -242,42 +295,6 @@ public class GameBoard implements DisplayableOnCLI {
     return -1;
   }
 
-  /**
-   * Select a patch among the next available
-   * 
-   * @param patch
-   */
-  public void selectPatch(Patch patch) {
-    neutralToken.select(patch);
-  }
-
-  public Patch selectedPatch() {
-    return neutralToken.selected();
-  }
-
-  public void unselectPatch() {
-    neutralToken.unselect();
-  }
-
-  public boolean playSelectedPatch() {
-    if (!currentPlayerPlayPatch(selectedPatch())) {
-      return false;
-    }
-    neutralToken.extractSelected();
-    return true;
-  }
-
-  public boolean currentPlayerPlayPatch(Patch patch) {
-    if (!currentPlayer().buyAndPlacePatch(patch)) {
-      return false;
-    }
-    // Moves
-    currentPlayerMove(currentPlayerPos + patch.moves());
-    // Buttons
-    buttons += patch.price();
-    return true;
-  }
-
   @Override
   public void drawOnCLI() {
     System.out.println(earnedPatches);
@@ -285,7 +302,7 @@ public class GameBoard implements DisplayableOnCLI {
     for (var position : players.entrySet()) {
       for (var player : position.getValue()) {
         System.out.print("Position " + position.getKey() + "| ");
-        if (player == currentPlayer()) {
+        if (player.equals(currentPlayer())) {
           System.out.print(Color.ANSI_GREEN);
         }
         player.drawOnCLI();
@@ -293,12 +310,6 @@ public class GameBoard implements DisplayableOnCLI {
       }
     }
     System.out.println();
-  }
-
-  public void endOfTurnEvents() {
-    for (var event : eventPool.onTurn()) {
-      event.run(this);
-    }
   }
 
 }

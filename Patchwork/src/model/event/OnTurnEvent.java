@@ -3,8 +3,8 @@ package model.event;
 import model.Effect;
 
 public class OnTurnEvent extends Event {
-  OnTurnEvent(boolean oneUse, Effect effect) {
-    super(oneUse, effect);
+  OnTurnEvent(EventType type, boolean oneUse, Effect effect) {
+    super(type, oneUse, effect);
   }
 
   @Override

@@ -6,8 +6,8 @@ public class PositionedEvent extends Event {
 
   private final int position;
 
-  public PositionedEvent(int position, boolean oneUse, Effect effect) {
-    super(oneUse, effect);
+  public PositionedEvent(EventType type, int position, boolean oneUse, Effect effect) {
+    super(type, oneUse, effect);
     this.position = position;
   }
 
