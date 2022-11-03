@@ -5,11 +5,12 @@ import java.util.Objects;
 import view.cli.DisplayableOnCLI;
 import view.cli.PatchworkCLI;
 
-public class Player implements DisplayableOnCLI {
+public class Player implements DisplayableOnCLI  {
+  
   private final String name;
   private int buttons;
-  // private final List<SpecialTile> tiles;
   private final QuiltBoard quilt;
+  private int position;
 
   public Player(String name, int buttons, QuiltBoard quilt) {
     Objects.requireNonNull(name, "The player must have a name");
@@ -19,14 +20,36 @@ public class Player implements DisplayableOnCLI {
     this.name = name;
     this.buttons = buttons;
     this.quilt = quilt;
+    position = 0;
   }
 
+  public int position() {
+    return position;
+  }
+  
+  public int buttons() {
+    return buttons;
+  }
+
+  public String name() {
+    return name;
+  }
+
+  public QuiltBoard quilt() {
+    return quilt;
+  }
+  
   public void buttonIncome(int amount) {
     if (amount < 0) {
       throw new IllegalArgumentException("A button income can't be negative");
     }
     buttons += amount;
   }
+  
+  public void move(int position) {
+    this.position = position;
+  }
+  
 
   /**
    * Buy the patch. Test if the player have enough buttons to buy the patch and if
@@ -51,24 +74,13 @@ public class Player implements DisplayableOnCLI {
 
   @Override
   public int hashCode() {
-    return Objects.hash(buttons, name);
+    return Objects.hash(name);
   }
 
   @Override
   public boolean equals(Object obj) {
-    return obj instanceof Player o && buttons == o.buttons && name.equals(o.name);
-  }
-
-  public int buttons() {
-    return buttons;
-  }
-
-  public String name() {
-    return name;
-  }
-
-  public QuiltBoard quilt() {
-    return quilt;
+    return obj instanceof Player o
+        && name.equals(o.name);
   }
 
   @Override
@@ -78,7 +90,9 @@ public class Player implements DisplayableOnCLI {
 
   @Override
   public void drawOnCLI(PatchworkCLI ui) {
-    ui.builder().append(name + " - buttons [" + buttons + "]");
+    ui.builder()
+    .append(String.format("%5d|", position))
+    .append(" " + name + " - buttons [" + buttons + "]");
   }
 
 }

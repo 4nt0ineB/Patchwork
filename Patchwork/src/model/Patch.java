@@ -363,5 +363,4 @@ public class Patch implements DisplayableOnCLI {
     return smallest;
   }
   
-  
 }

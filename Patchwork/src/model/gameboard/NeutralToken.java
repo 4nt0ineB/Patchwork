@@ -112,5 +112,9 @@ public class NeutralToken {
       availablePatches.add(patch);
     }
   }
+  
+  public int numberOfPatches() {
+    return patches.size();
+  }
 
 }

@@ -5,14 +5,14 @@ import java.util.Objects;
 public enum Action {
   ADVANCE("a", "Advance"),
   SELECT_PATCH("b", "Take and place a patch"),
-  QUIT("q", "Ragequit"),
+  QUIT("r", "Ragequit"),
   DEFAULT("default", "default"),
-  UP("z", "up"),
-  DOWN("e", "down"),
-  RIGHT("r", "right"),
-  LEFT("a", "left"),
-  ROTATE_RIGHT("t", "rotate right"),
-  ROTATE_LEFT("y", "rotate left"), 
+  UP("w", "up"),
+  DOWN("s", "down"),
+  RIGHT("d", "right"),
+  LEFT("q", "left"),
+  ROTATE_RIGHT("a", "rotate right"),
+  ROTATE_LEFT("z", "rotate left"), 
   PLACE("p", "Buy and place the patch");
   
   private final String bind;

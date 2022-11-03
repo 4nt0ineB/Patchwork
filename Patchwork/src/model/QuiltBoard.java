@@ -1,18 +1,18 @@
 package model;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
+import view.cli.Color;
 import view.cli.DisplayableOnCLI;
 import view.cli.PatchworkCLI;
-import view.cli.Color;
 
 public class QuiltBoard implements DisplayableOnCLI {
   private final int width;
   private final int height;
   private final ArrayList<Patch> patches;
-
+  
   public QuiltBoard(int width, int height) {
     if (width < 1 || height < 1) {
       throw new IllegalArgumentException("The QuiltBoard must be at least 1x1");
@@ -20,6 +20,18 @@ public class QuiltBoard implements DisplayableOnCLI {
     this.width = width;
     this.height = height;
     patches = new ArrayList<>();
+  }
+  
+  public List<Patch> patches() {
+    return patches;
+  }
+
+  public int width() {
+    return width;
+  }
+
+  public int height() {
+    return height;
   }
 
   /**
@@ -40,7 +52,7 @@ public class QuiltBoard implements DisplayableOnCLI {
       return false;
     }
     // Overlap ?
-    for (var p : patches) {
+    for (var p : patches()) {
       if (patch.overlap(p)) {
         return false;
       }
@@ -62,18 +74,6 @@ public class QuiltBoard implements DisplayableOnCLI {
       }
     }
     return false;
-  }
-
-  public Set<Patch> patches() {
-    return Set.copyOf(patches);
-  }
-
-  public int width() {
-    return width;
-  }
-
-  public int height() {
-    return height;
   }
 
   /**
@@ -113,12 +113,6 @@ public class QuiltBoard implements DisplayableOnCLI {
     }
     builder.append("┘");
     System.out.println(builder);
-  }
-
-  public QuiltBoard clone() {
-    var quilt = new QuiltBoard(width, height);
-    patches.stream().forEach(patch -> quilt.add(patch));
-    return quilt;
   }
   
   /**
