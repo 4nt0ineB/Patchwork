@@ -26,7 +26,7 @@
 	</target>
 	
 	<target name="javadoc">
-		<javadoc sourcepath="${src}"/>
+		<javadoc sourcepath="${src}" destdir="${doc}"/>
 	</target>
 	
 	<target name="clean">
