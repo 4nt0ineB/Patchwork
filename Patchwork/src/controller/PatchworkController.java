@@ -7,9 +7,7 @@ import java.util.Set;
 import model.Action;
 import model.Coordinates;
 import model.Patch;
-import model.gameboard.FullGameBoardFactory;
 import model.gameboard.GameBoard;
-import model.gameboard.GameBoardFactory;
 import view.UserInterface;
 import view.cli.PatchworkCLI;
 
@@ -111,8 +109,7 @@ public class PatchworkController {
 
   public static void main(String[] args) {
     // GameBoardFactory gameBoardFactory = new BasicGameBoardFactory();
-    GameBoardFactory gameBoardFactory = new FullGameBoardFactory();
-    patchwork(new PatchworkCLI(), gameBoardFactory.makeBoard());
+    patchwork(new PatchworkCLI(), GameBoard.basicBoard());
   }
 
 }

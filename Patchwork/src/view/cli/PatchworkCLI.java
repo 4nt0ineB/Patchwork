@@ -11,8 +11,8 @@ import model.Action;
 import model.Coordinates;
 import model.Patch;
 import model.QuiltBoard;
-import model.event.Event;
 import model.gameboard.GameBoard;
+import model.gameboard.event.Event;
 import view.UserInterface;
 
 public class PatchworkCLI implements UserInterface {

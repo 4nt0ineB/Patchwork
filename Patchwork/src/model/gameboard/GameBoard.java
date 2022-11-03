@@ -1,5 +1,8 @@
 package model.gameboard;
 
+
+
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -11,10 +14,14 @@ import java.util.Stack;
 import java.util.TreeMap;
 
 import model.Action;
-import model.NeutralToken;
+import model.Coordinates;
 import model.Patch;
 import model.Player;
-import model.event.Event;
+import model.QuiltBoard;
+import model.gameboard.event.Event;
+import model.gameboard.event.EventPool;
+import model.gameboard.event.EventType;
+import model.gameboard.event.PositionedEvent;
 import view.cli.Color;
 import view.cli.DisplayableOnCLI;
 import view.cli.PatchworkCLI;
@@ -22,21 +29,23 @@ import view.cli.PatchworkCLI;
 public class GameBoard implements DisplayableOnCLI {
 
   // Number of squares on the board
-  protected final int spaces;
+  private final int spaces;
   // The bank
-  protected int buttons;
+  private int buttons;
   // Current player is always at the top of the stack
-  protected int currentPlayerPos;
+  private int currentPlayerPos;
   // Players indexed by position
-  protected final SortedMap<Integer, Stack<Player>> players = new TreeMap<>();
+  private final SortedMap<Integer, Stack<Player>> players = new TreeMap<>();
   // Patch manager (around the board patches)
-  protected final NeutralToken neutralToken;
+  private final NeutralToken neutralToken;
   // Patches stack that must be played by the current player
-  protected final Stack<Patch> patchesToBePlayed = new Stack<>();
+  private final Stack<Patch> patchesToPlay = new Stack<>();
   // Event queue to process at the end of the turn
-  protected final Queue<Event> eventQueue = new LinkedList<>();
+  private final Queue<Event> eventQueue = new LinkedList<>();
+  // All events in game
+  private final EventPool eventPool = new EventPool();
   // The actions the player can do during this turn
-  protected final LinkedHashSet<Action> availableActions = new LinkedHashSet<>();
+  private final LinkedHashSet<Action> availableActions = new LinkedHashSet<>();
   
   /**
    * GameBoard constructor
@@ -49,7 +58,8 @@ public class GameBoard implements DisplayableOnCLI {
    * @param players     the players
    * @param the         list of events for the board
    */
-  protected GameBoard(int nextPatches, int spaces, int buttons, List<Patch> patches, List<Player> players) {
+  public GameBoard(int nextPatches, int spaces, int buttons, List<Patch> patches, List<Player> players,
+      List<Event> events) {
     Objects.requireNonNull(patches, "List of patches can't be null");
     Objects.requireNonNull(players, "List of players can't be null");
     if (patches.size() < 1) {
@@ -70,6 +80,7 @@ public class GameBoard implements DisplayableOnCLI {
     Collections.shuffle(this.players.get(0));
     this.spaces = spaces - 1;
     this.neutralToken = new NeutralToken(nextPatches, patches);
+    this.eventPool.addAll(events);
     resetActions();
   }
 
@@ -99,7 +110,7 @@ public class GameBoard implements DisplayableOnCLI {
   public void selectPatch(Patch patch) {
     neutralToken.select(patch);
     // also, add the patch to the Patch waiting queue
-    patchesToBePlayed.add(patch);
+    patchesToPlay.add(patch);
   }
 
   /**
@@ -119,7 +130,7 @@ public class GameBoard implements DisplayableOnCLI {
     // Remove the patch from patches waiting queue as well
     var patch = neutralToken.selected();
     if(patch != null) {
-      patchesToBePlayed.remove(patch);
+      patchesToPlay.remove(patch);
       neutralToken.unselect();
     }
   }
@@ -131,10 +142,10 @@ public class GameBoard implements DisplayableOnCLI {
    * @return
    */
   public Patch nextPatchToPlay() {
-    if(patchesToBePlayed.isEmpty()) {
+    if(patchesToPlay.isEmpty()) {
       return null;
     }
-    return patchesToBePlayed.peek();
+    return patchesToPlay.peek();
   }
 
   /**
@@ -143,7 +154,7 @@ public class GameBoard implements DisplayableOnCLI {
    * @return
    */
   public boolean playNextPatch() {
-    var patch = patchesToBePlayed.peek();
+    var patch = patchesToPlay.peek();
     if (patch == null) {
       return false;
     }
@@ -152,7 +163,7 @@ public class GameBoard implements DisplayableOnCLI {
       return false;
     }
     // The patch have been place on the quilt, we extract it from the waiting queue
-    patch = patchesToBePlayed.pop();
+    patch = patchesToPlay.pop();
     // Where does the patch comes from ?
     if (neutralToken.availablePatches().contains((patch))) { 
       // The patch comes from the neutral token
@@ -215,22 +226,25 @@ public class GameBoard implements DisplayableOnCLI {
    * 
    * @param newPosition
    */
-  protected void currentPlayerMove(int newPosition) {
+  private void currentPlayerMove(int newPosition) {
+
     var move = newPosition - currentPlayerPos;
     if (move > 0) {
       newPosition = Math.min(spaces, newPosition);
+      // Check if events on path (only when moving forward !)
+      for (var event : eventPool.positionedBetween(currentPlayerPos + 1, newPosition)) {
+        eventQueue.add(event);
+      }
     } else if (move < 0) {
       newPosition = Math.min(0, newPosition);
-    } else {
-      return;
     }
+    
     var player = players.get(currentPlayerPos).pop();
     var playersAtPos = players.get(newPosition);
     if (playersAtPos == null) {
       players.put(newPosition, new Stack<>());
     }
     players.get(newPosition).add(player);
-
     currentPlayerPos = newPosition;
   }
 
@@ -268,13 +282,14 @@ public class GameBoard implements DisplayableOnCLI {
    * @return
    */
   public boolean nextTurn() {
+    endOfTurnEvents(); // add on turn events before end of turn
     if(!availableActions.isEmpty()) {
       return false;
     }
     if(!eventQueue.isEmpty()) {
       return false;
     }
-    if (!patchesToBePlayed.isEmpty()) {
+    if (!patchesToPlay.isEmpty()) {
       return false; // can't change player, the current has patches to deal with
     }
     currentPlayerPos = nextPositionWithPlayers(0); // the most behind player
@@ -309,6 +324,12 @@ public class GameBoard implements DisplayableOnCLI {
       }
     }
     return -1;
+  }
+  
+  public void endOfTurnEvents() {
+    for (var event : eventPool.onTurn()) {
+      eventQueue.add(event);
+    }
   }
 
   /**
@@ -360,4 +381,81 @@ public class GameBoard implements DisplayableOnCLI {
     return nextPositionWithPlayers(0) == spaces;
   }
 
+  public static GameBoard basicBoard() {
+ // turn this into config files ?
+    var patches = new ArrayList<Patch>();
+    var squaredShape = List.of(
+        new Coordinates(0, 0), 
+        new Coordinates(0, 1), 
+        new Coordinates(1, 0), 
+        new Coordinates(1, 1));
+    for (var i = 0; i < 20; i++) {
+      patches.add(new Patch(3, 4, 1, squaredShape));
+      patches.add(new Patch(2, 2, 0, squaredShape));
+    }
+    var player1 = new Player("Player 1", 5, new QuiltBoard(9, 9));
+    var player2 = new Player("Player 2", 5, new QuiltBoard(9, 9));
+    var gameBoard = new GameBoard(3, 53, 152, patches, List.of(player1, player2), List.<Event>of());
+    return gameBoard;
+  }
+  
+  public static GameBoard fullBoard() {
+ // turn this into config files... very ugly
+    var patches = List.of(
+        new Patch(2, 2, 0, List.of(new Coordinates(0,-1),   new Coordinates(0,0),  new Coordinates(0,1))),
+        new Patch(2, 3, 0, List.of(new Coordinates(-1,-1),  new Coordinates(-1,0), new Coordinates(-1,1), new Coordinates(0,0), new Coordinates(1,-1),new Coordinates(1,0), new Coordinates(1,1))),
+        new Patch(2, 1, 0, List.of(new Coordinates(-1,0),   new Coordinates(0,-1),  new Coordinates(0,0),  new Coordinates(1,0), new Coordinates(1,1), new Coordinates(2,0))),
+        new Patch(2, 2, 0, List.of(new Coordinates(-1,-1),  new Coordinates(-1,0), new Coordinates(0,-1), new Coordinates(0,0), new Coordinates(1,0))),
+        new Patch(1, 2, 0, List.of(new Coordinates(-1,0),   new Coordinates(-1,1), new Coordinates(0,0),  new Coordinates(1,0), new Coordinates(1,1))),
+        new Patch(2, 1, 0, List.of(new Coordinates(0,-1),   new Coordinates(0,0))),
+        new Patch(1, 2, 0, List.of(new Coordinates(-1,0),   new Coordinates(-1,1), new Coordinates(0,0),  new Coordinates(1,0),  new Coordinates(2,0), new Coordinates(2,-1))),
+        new Patch(4, 2, 0, List.of(new Coordinates(0,-2),   new Coordinates(0,-1), new Coordinates(0,0),  new Coordinates(1,-1), new Coordinates(1,0), new Coordinates(1,1))),
+        new Patch(2, 2, 0, List.of(new Coordinates(0,-1),   new Coordinates(0,0),  new Coordinates(0,1),  new Coordinates(1,0))),
+        new Patch(3, 1, 0, List.of(new Coordinates(0,-1),   new Coordinates(-1,0), new Coordinates(0,0))),
+        new Patch(3, 4, 0, List.of(new Coordinates(-2,0),   new Coordinates(-1,0), new Coordinates(0,0),  new Coordinates(0,1),  new Coordinates(1,0))),
+        new Patch(0, 3, 1, List.of(new Coordinates(0,-2),   new Coordinates(0,-1), new Coordinates(0,0),  new Coordinates(-1,0), new Coordinates(1,0), new Coordinates(0,1))),
+        new Patch(1, 4, 1, List.of(new Coordinates(0,-2),   new Coordinates(0,-1), new Coordinates(0,0),  new Coordinates(-1,0), new Coordinates(1,0), new Coordinates(0,1), new Coordinates(0,2))),
+        new Patch(3, 2, 1, List.of(new Coordinates(0,-1),   new Coordinates(0,0),  new Coordinates(-1,0), new Coordinates(1,-1))),
+        new Patch(5, 3, 1, List.of(new Coordinates(0,-1),   new Coordinates(0,0),  new Coordinates(-1,0), new Coordinates(0,1),  new Coordinates(1,-1),new Coordinates(1,0), new Coordinates(2,0), new Coordinates(1,1))),
+        new Patch(4, 2, 1, List.of(new Coordinates(-1,0),   new Coordinates(0,0),  new Coordinates(1,0),  new Coordinates(1,1))),
+        new Patch(1, 5, 1, List.of(new Coordinates(-1,-1),  new Coordinates(0,-1), new Coordinates(0,0),  new Coordinates(0,1),  new Coordinates(0,2), new Coordinates(-1,2))),
+        new Patch(7, 1, 1, List.of(new Coordinates(0,-2),   new Coordinates(-0,-1), new Coordinates(0,0),  new Coordinates(0,1),  new Coordinates(0,2))),
+        new Patch(10, 3, 2,List.of(new Coordinates(-2,0),   new Coordinates(-1,0), new Coordinates(0,0),  new Coordinates(1,0),  new Coordinates(1,1))),
+        new Patch(7, 2, 2, List.of(new Coordinates(-1,-1),  new Coordinates(0,-1), new Coordinates(1,-1), new Coordinates(0,0),  new Coordinates(0,1), new Coordinates(0,2))),
+        new Patch(5, 4, 2, List.of(new Coordinates(0,-1),   new Coordinates(-1,0), new Coordinates(0,0),  new Coordinates(0,1),  new Coordinates(1,0))),
+        new Patch(2, 3, 1, List.of(new Coordinates(0,0),    new Coordinates(1,-1), new Coordinates(1,0),  new Coordinates(0,0),  new Coordinates(0,1), new Coordinates(0,2))),
+        new Patch(5, 5, 2, List.of(new Coordinates(0,-1),   new Coordinates(0,0),  new Coordinates(-1,1), new Coordinates(0,1),  new Coordinates(1,1))),
+        new Patch(3, 6, 2, List.of(new Coordinates(-1,-1),  new Coordinates(-1,0), new Coordinates(0,0),  new Coordinates(0,1),  new Coordinates(1,0), new Coordinates(1,-1))),
+        new Patch(10, 5, 3,List.of(new Coordinates(-1,-1),  new Coordinates(-1,0), new Coordinates(0,0),  new Coordinates(0,-1), new Coordinates(1,0), new Coordinates(2,0))),
+        new Patch(7, 4, 2, List.of(new Coordinates(-1,0),   new Coordinates(0,0),  new Coordinates(0,1),  new Coordinates(1,1),  new Coordinates(1,0), new Coordinates(2,0))),
+        new Patch(8, 6, 3, List.of(new Coordinates(0,-1),   new Coordinates(0,0),  new Coordinates(1,-1), new Coordinates(1,0),  new Coordinates(0,1), new Coordinates(-1,1))),
+        new Patch(6, 5, 2, List.of(new Coordinates(-1,-1),  new Coordinates(-1,0),  new Coordinates(0,0),  new Coordinates(0,-1))),
+        new Patch(10, 4, 3,List.of(new Coordinates(0,0),    new Coordinates(1,-1), new Coordinates(1,0),  new Coordinates(0,1),  new Coordinates(-1,1))),
+        new Patch(7, 6, 3, List.of(new Coordinates(0,-1),   new Coordinates(0,0),  new Coordinates(1,0),  new Coordinates(1,1))),
+        new Patch(4, 6, 2, List.of(new Coordinates(0,-1),   new Coordinates(0,0),  new Coordinates(0,1),  new Coordinates(-1,1))));
+    var player1 = new Player("Player 1", 5, new QuiltBoard(9, 9));
+    var player2 = new Player("Player 2", 5, new QuiltBoard(9, 9));
+    var events = new ArrayList<Event>();
+    events.add(new PositionedEvent(EventType.PATCH_INCOME, 2, true, (GameBoard gb) -> {
+      gb.patchesToPlay.add(new Patch(0, 0, 0, List.of(new Coordinates(0, 0))));
+      return true;
+    }));
+    var gameBoard = new GameBoard(3, 54, 152, patches, List.of(player1, player2), events);
+    return gameBoard;
+  }
+ 
+
+  private static Effect makeButtonIncomeEffect() {
+    return (GameBoard gb) -> { 
+      gb.currentPlayer().buttonIncome(gb.getButtons(gb.currentPlayer().quilt().buttons())); 
+      return true; 
+      };
+  }
+  
+  private static Effect makePatchIncomeEffect(Patch patch) {
+    return (GameBoard gb) -> { 
+      gb.patchesToPlay.add(patch);
+      return true; 
+      };
+  }
 }

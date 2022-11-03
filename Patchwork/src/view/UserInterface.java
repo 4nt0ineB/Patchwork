@@ -6,8 +6,8 @@ import java.util.Set;
 import model.Action;
 import model.Patch;
 import model.QuiltBoard;
-import model.event.Event;
 import model.gameboard.GameBoard;
+import model.gameboard.event.Event;
 
 public interface UserInterface {
 

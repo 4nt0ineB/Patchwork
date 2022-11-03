@@ -1,4 +1,4 @@
-package model.event;
+package model.gameboard.event;
 
 import java.util.LinkedList;
 import java.util.List;

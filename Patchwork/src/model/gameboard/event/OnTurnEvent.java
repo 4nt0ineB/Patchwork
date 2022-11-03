@@ -1,4 +1,4 @@
-package model.event;
+package model.gameboard.event;
 
 import model.gameboard.Effect;
 

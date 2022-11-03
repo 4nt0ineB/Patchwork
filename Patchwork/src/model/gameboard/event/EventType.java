@@ -1,4 +1,4 @@
-package model.event;
+package model.gameboard.event;
 
 public enum EventType {
   BUTTON_INCOME,

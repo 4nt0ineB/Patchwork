@@ -1,4 +1,4 @@
-package model.event;
+package model.gameboard.event;
 
 import java.util.Objects;
 
@@ -70,5 +70,5 @@ public class Event implements DisplayableOnCLI {
     };
     ui.addMessage(text + Color.ANSI_RESET);
   }
-
+  
 }

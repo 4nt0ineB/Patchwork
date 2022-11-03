@@ -73,6 +73,12 @@ public class Patch implements DisplayableOnCLI {
     return price;
   }
   
+  public int buttons() {
+    return buttons;
+  }
+  
+  
+  
   /**
    * 90° left rotation
    */

@@ -120,5 +120,13 @@ public class QuiltBoard implements DisplayableOnCLI {
     patches.stream().forEach(patch -> quilt.add(patch));
     return quilt;
   }
+  
+  /**
+   * Sum the patches buttons on the quilt
+   * @return the sum
+   */
+  public int buttons() {
+    return patches.stream().mapToInt(Patch::buttons).sum();
+  }
 
 }
