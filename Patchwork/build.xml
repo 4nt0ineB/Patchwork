@@ -20,13 +20,13 @@
 	<target name="jar" depends="compile">
 		<jar destfile="Patchwork.jar" basedir="${classes}">
 			<manifest>
-				<attribute name="Main-Class" value="Main"/>
+				<attribute name="Main-Class" value="controller.PatchworkController"/>
 			</manifest>
 		</jar>
 	</target>
 	
 	<target name="javadoc">
-		<javadoc sourcepath="${src}"/>
+		<javadoc sourcepath="${src}" destdir="${doc}"/>
 	</target>
 	
 	<target name="clean">
