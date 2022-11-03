@@ -7,3 +7,14 @@ PC version of the Patchwork game in Java
 - Ensure loading board settings from files
 - improves actions management ?
 
+#  Files
+
+```sh
+├── Patchwork/ 			<-- The code
+└── ressources/			<-- Useful ressources for the project
+    ├── cards				<-- images of the card 
+    ├── lib				<-- Zen5
+    ├── rules				<-- img of rules / rules summary in french
+    └── uml				<-- some conception draft (uml mostly)
+```
+

@@ -308,7 +308,7 @@ public class GameBoard implements DisplayableOnCLI {
   public Player nextPlayerFrom(int position) {
     testPosition(position);
     Player nextPlayer = null;
-    var<Player> iterator = players.iterator();
+    var iterator = players.iterator();
     while (iterator.hasNext()) {
       var player = iterator.next();
         if (nextPlayer != null) {
@@ -385,8 +385,8 @@ public class GameBoard implements DisplayableOnCLI {
    */
   public static GameBoard basicBoard() {
     // turn this into config files ?
-    var<Patch> patches = new ArrayList<Patch>();
-    var<Coordinates> squaredShape = List.of(new Coordinates(0, 0), new Coordinates(0, 1), new Coordinates(1, 0),
+    var patches = new ArrayList<Patch>();
+    var squaredShape = List.of(new Coordinates(0, 0), new Coordinates(0, 1), new Coordinates(1, 0),
         new Coordinates(1, 1));
     for (var i = 0; i < 20; i++) {
       patches.add(new Patch(3, 4, 1, squaredShape));
@@ -405,7 +405,7 @@ public class GameBoard implements DisplayableOnCLI {
    */
   public static GameBoard fullBoard() {
     // turn this into config files... very ugly
-    var<Patch> patches = List.of(
+    var patches = List.of(
         new Patch(2, 2, 0, List.of(new Coordinates(0, -1), new Coordinates(0, 0), new Coordinates(0, 1))),
         new Patch(2, 3, 0,
             List.of(new Coordinates(-1, -1), new Coordinates(-1, 0), new Coordinates(-1, 1), new Coordinates(0, 0),
@@ -489,7 +489,7 @@ public class GameBoard implements DisplayableOnCLI {
             List.of(new Coordinates(0, -1), new Coordinates(0, 0), new Coordinates(0, 1), new Coordinates(-1, 1))));
     var player1 = new Player("Player 1", 5, new QuiltBoard(9, 9));
     var player2 = new Player("Player 2", 5, new QuiltBoard(9, 9));
-    var<Event> events = new ArrayList<Event>();
+    var events = new ArrayList<Event>();
     for(var position: List.of(5, 11, 17, 23, 29, 35, 41, 47)) {
       events.add(new PositionedEvent(EventType.BUTTON_INCOME, position, false, makeButtonIncomeEffect()));
     }
