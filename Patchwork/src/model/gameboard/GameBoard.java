@@ -19,10 +19,10 @@ import model.gameboard.event.EventPool;
 import model.gameboard.event.EventType;
 import model.gameboard.event.PositionedEvent;
 import view.cli.Color;
-import view.cli.DisplayableOnCLI;
-import view.cli.PatchworkCLI;
+import view.cli.CommandLineInterface;
+import view.cli.DrawableOnCLI;
 
-public class GameBoard implements DisplayableOnCLI {
+public class GameBoard implements DrawableOnCLI {
 
   // Number of squares on the board
   private final int spaces;
@@ -32,14 +32,14 @@ public class GameBoard implements DisplayableOnCLI {
   // Players indexed by position
   private final LinkedHashSet<Player> players = new LinkedHashSet<>();
   // Patch manager (around the board patches)
-  private final NeutralToken neutralToken;
+  private final PatchManager patchManager;
   // Patches stack that must be played by the current player
   private final Stack<Patch> patchesToPlay = new Stack<>();
   // Event queue to process at the end of the turn
   private final Queue<Event> eventQueue = new LinkedList<>();
   // All events in game
   private final EventPool eventPool = new EventPool();
-  // The actions the player can do during this turn
+  // The actions the player can do during the turn
   private final LinkedHashSet<Action> availableActions = new LinkedHashSet<>();
 
   /**
@@ -67,9 +67,9 @@ public class GameBoard implements DisplayableOnCLI {
     if (spaces < 1) {
       throw new IllegalArgumentException("The number of spaces on the board can't be lower than 1");
     }
-    this.spaces = spaces - 1;
+    this.spaces = spaces - 1; // spaces => space no 0 to no spaces - 1
     this.buttons = buttons;
-    this.neutralToken = new NeutralToken(nextPatches, patches);
+    this.patchManager = new PatchManager(nextPatches, patches);
     this.players.addAll(players);
     this.eventPool.addAll(events);
   }
@@ -85,9 +85,13 @@ public class GameBoard implements DisplayableOnCLI {
    * @return
    */
   public List<Patch> availablePatches() {
-    return neutralToken.availablePatches().stream().filter(patch -> currentPlayer().canBuyPatch(patch)).toList();
+    return patchManager.availablePatches().stream().filter(patch -> currentPlayer().canBuyPatch(patch)).toList();
   }
 
+  public Set<Action> availableActions() {
+    return Set.copyOf(availableActions);
+  }
+  
   /**
    * Get the current player of the turn
    * 
@@ -103,7 +107,7 @@ public class GameBoard implements DisplayableOnCLI {
    * @param patch
    */
   public void selectPatch(Patch patch) {
-    neutralToken.select(patch);
+    patchManager.select(patch);
     // also, add the patch to the Patch waiting queue
     patchesToPlay.add(patch);
   }
@@ -114,7 +118,7 @@ public class GameBoard implements DisplayableOnCLI {
    * @return
    */
   public Patch selectedPatch() {
-    return neutralToken.selected();
+    return patchManager.selected();
   }
 
   /**
@@ -123,10 +127,10 @@ public class GameBoard implements DisplayableOnCLI {
    */
   public void unselectPatch() {
     // Remove the patch from patches waiting queue as well
-    var patch = neutralToken.selected();
+    var patch = patchManager.selected();
     if (patch != null) {
       patchesToPlay.remove(patch);
-      neutralToken.unselect();
+      patchManager.unselect();
     }
   }
 
@@ -160,9 +164,9 @@ public class GameBoard implements DisplayableOnCLI {
     // The patch have been place on the quilt, we extract it from the waiting queue
     patch = patchesToPlay.pop();
     // Where does the patch comes from ?
-    if (neutralToken.availablePatches().contains((patch))) {
+    if (patchManager.availablePatches().contains((patch))) {
       // The patch comes from the neutral token
-      patch = neutralToken.extractSelected();
+      patch = patchManager.extractSelected();
       // The player played a patch from around the board
       // and can no more execute this actions
       availableActions.clear();
@@ -203,10 +207,11 @@ public class GameBoard implements DisplayableOnCLI {
 
   private int getButtons(int amount) {
     if(amount < 0) {
-      throw new IllegalArgumentException("The amount of button requested can't be negative");
+      throw new IllegalArgumentException("The requested amount of button can't be negative");
     }
     if(buttons - amount < 0) {
-      throw new AssertionError("The amount of button requested exceed the amount of button on the board. The game is broken. Check your init settings");
+      throw new AssertionError("The requested amount of button exceed the amount of button on the board. "
+          + "The game is broken. Check your init settings");
     }
     buttons -= amount;
     return amount;
@@ -214,13 +219,14 @@ public class GameBoard implements DisplayableOnCLI {
 
   /**
    * Test if a given position is allowed
-   * @exception IllegalArgumentException - if the position exceeds boundaries
+   * @exception IndexOutOfBoundsException - if the position exceeds boundaries
    * @param position
    */
   private void testPosition(int position) {
-    if (position < 0 || position > spaces) {
-      throw new IllegalArgumentException("The new position can't exceed boundaries 0 <= " + position + " <= " + spaces);
-    }
+    Objects.checkFromIndexSize(0, position, spaces);
+//    if (position < 0 || position > spaces) {
+//      throw new IllegalArgumentException("The new position can't exceed boundaries 0 <= " + position + " <= " + spaces);
+//    }
   }
 
   /**
@@ -233,11 +239,9 @@ public class GameBoard implements DisplayableOnCLI {
     testPosition(newPosition);
     var move = newPosition - currentPlayer.position();
     if (move > 0) {
-      System.out.println("HEY\n moves from " + (currentPlayer.position() + 1) + " to " + newPosition);
       newPosition = Math.min(spaces, newPosition);
       // Check if events on path (only when moving forward !)
       eventQueue.addAll(eventPool.positionedBetween(currentPlayer.position() + 1, newPosition));
-      System.out.println(eventQueue);
     } else if (move < 0) {
       newPosition = Math.min(0, newPosition);
     } else {
@@ -305,7 +309,7 @@ public class GameBoard implements DisplayableOnCLI {
    * @param position
    * @return the player, or null
    */
-  public Player nextPlayerFrom(int position) {
+  private Player nextPlayerFrom(int position) {
     testPosition(position);
     Player nextPlayer = null;
     var iterator = players.iterator();
@@ -345,19 +349,19 @@ public class GameBoard implements DisplayableOnCLI {
         && nextPlayerFrom(currentPlayer.position() + 1) != null) {
       availableActions.add(Action.ADVANCE);    
     }
-    if(!neutralToken.availablePatches().isEmpty()
-       && neutralToken.availablePatches().stream().anyMatch(patch -> currentPlayer().canBuyPatch(patch) == true)) {
+    if(!patchManager.availablePatches().isEmpty()
+       && patchManager.availablePatches().stream().anyMatch(patch -> currentPlayer().canBuyPatch(patch) == true)) {
       availableActions.add(Action.SELECT_PATCH);
     }
   }
 
   @Override
-  public void drawOnCLI(PatchworkCLI ui) {
+  public void drawOnCLI(CommandLineInterface ui) {
     var builder = ui.builder();
     builder.append("[ ---- (Buttons: ")
     .append(buttons)
     .append(") - (Patches: ")
-    .append(neutralToken.numberOfPatches()).append(") ---- ]\n");
+    .append(patchManager.numberOfPatches()).append(") ---- ]\n");
     for (var player : players) {
       if (player.equals(currentPlayer())) {
         builder.append(Color.ANSI_GREEN);
@@ -369,13 +373,14 @@ public class GameBoard implements DisplayableOnCLI {
   }
 
   /**
-   * The game is finished when all the players are on the last space. In short,
-   * the game is finished when the position of the most behind player is the last
-   * space.
+   * The game is finished when all the players are on the last space. 
    * 
-   * @return
+   * @return true or false
    */
   public boolean isFinished() {
+    // In short,
+    // the game is finished when the position of the most behind player is the last
+    // space.
     return latestPlayer().position() == spaces;
   }
   
@@ -384,7 +389,7 @@ public class GameBoard implements DisplayableOnCLI {
    * @return a basic game board
    */
   public static GameBoard basicBoard() {
-    // turn this into config files ?
+    // turn this into config files !
     var patches = new ArrayList<Patch>();
     var squaredShape = List.of(new Coordinates(0, 0), new Coordinates(0, 1), new Coordinates(1, 0),
         new Coordinates(1, 1));

@@ -7,23 +7,22 @@ import java.util.Objects;
 
 import model.Patch;
 
-public class NeutralToken {
+public class PatchManager {
 
-  private int position;
+  private int neutralToken;
   private int nextPatchesRange;
   private final ArrayList<Patch> patches;
-  // @Todo Use HashSet !
   private final ArrayList<Patch> availablePatches = new ArrayList<>();
   private Patch selected;
 
-  public NeutralToken(int nextPatchesRange, List<Patch> patches) {
+  public PatchManager(int nextPatchesRange, List<Patch> patches) {
     Objects.requireNonNull(patches, "The list of patch can't be null");
     if (nextPatchesRange < 1) {
       throw new IllegalArgumentException("The number of possible next patches available can't be less than 1");
     }
     this.nextPatchesRange = nextPatchesRange;
     this.patches = new ArrayList<>(patches);
-    this.position = Patch.minPatch(this.patches);
+    this.neutralToken = Patch.minPatch(this.patches);
     Collections.shuffle(this.patches);
     loadNextPatches();
   }
@@ -41,14 +40,18 @@ public class NeutralToken {
    */
   public Patch extractSelected() {
     var indexInAvailable = availablePatches.indexOf(selected());
-    var extractedPatch = patches.remove(position + 1 + indexInAvailable);
+    var extractedPatch = patches.remove(neutralToken + 1 + indexInAvailable);
     move(indexInAvailable + 1);
     unselect();
     return extractedPatch;
   }
   
+  /**
+   * 
+   * @return
+   */
   public List<Patch> availablePatches() {
-    return availablePatches;
+    return List.copyOf(availablePatches);
   }
   
   /**
@@ -57,7 +60,7 @@ public class NeutralToken {
    * @param n
    */
   public void move(int n) {
-    position = (position + n) % patches.size();
+    neutralToken = (neutralToken + n) % patches.size();
     loadNextPatches();
   }
 
@@ -108,7 +111,7 @@ public class NeutralToken {
     availablePatches.clear();
     // NEXTPATCHES *after* the token, so i = 1
     for (var i = 1; i <= nextPatchesRange; i++) {
-      var patch = loopAndGetPatch(position + i);
+      var patch = loopAndGetPatch(neutralToken + i);
       availablePatches.add(patch);
     }
   }

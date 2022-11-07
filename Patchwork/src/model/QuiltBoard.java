@@ -5,10 +5,10 @@ import java.util.List;
 import java.util.Objects;
 
 import view.cli.Color;
-import view.cli.DisplayableOnCLI;
-import view.cli.PatchworkCLI;
+import view.cli.CommandLineInterface;
+import view.cli.DrawableOnCLI;
 
-public class QuiltBoard implements DisplayableOnCLI {
+public class QuiltBoard implements DrawableOnCLI {
   private final int width;
   private final int height;
   private final ArrayList<Patch> patches;
@@ -86,7 +86,7 @@ public class QuiltBoard implements DisplayableOnCLI {
   }
 
   @Override
-  public void drawOnCLI(PatchworkCLI ui) {
+  public void drawOnCLI(CommandLineInterface ui) {
     var builder = ui.builder();
     // top
     builder.append("┌");

@@ -56,11 +56,7 @@ public class EventPool {
   @Override
   public String toString() {
     var builder = new StringBuilder();
-    var iterator = events.iterator();
-    while (iterator.hasNext()) {
-      builder.append(iterator.next()).append("\n");
-    }
-
+    events.stream().forEach(e -> builder.append(e).append("\n"));
     return builder.toString();
   }
 }

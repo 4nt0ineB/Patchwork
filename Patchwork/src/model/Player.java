@@ -2,10 +2,10 @@ package model;
 
 import java.util.Objects;
 
-import view.cli.DisplayableOnCLI;
-import view.cli.PatchworkCLI;
+import view.cli.CommandLineInterface;
+import view.cli.DrawableOnCLI;
 
-public class Player implements DisplayableOnCLI  {
+public class Player implements DrawableOnCLI  {
   
   private final String name;
   private int buttons;
@@ -89,7 +89,7 @@ public class Player implements DisplayableOnCLI  {
   }
 
   @Override
-  public void drawOnCLI(PatchworkCLI ui) {
+  public void drawOnCLI(CommandLineInterface ui) {
     ui.builder()
     .append(String.format("%5d|", position))
     .append(" " + name + " - buttons [" + buttons + "]");

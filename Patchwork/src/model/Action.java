@@ -3,12 +3,15 @@ package model;
 import java.util.Objects;
 
 public enum Action {
+  
   ADVANCE("a", "Advance"),
   SELECT_PATCH("b", "Take and place a patch"),
+  BACK("r", "back"),
   QUIT("r", "Ragequit"),
   DEFAULT("default", "default"),
-  UP("w", "up"),
-  DOWN("s", "down"),
+  // wqsdb
+  UP("s", "up"),
+  DOWN("w", "down"),
   RIGHT("d", "right"),
   LEFT("q", "left"),
   ROTATE_RIGHT("a", "rotate right"),

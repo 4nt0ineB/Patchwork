@@ -1,6 +1,5 @@
 package view.cli;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
@@ -11,11 +10,10 @@ import model.Action;
 import model.Coordinates;
 import model.Patch;
 import model.QuiltBoard;
-import model.gameboard.GameBoard;
-import model.gameboard.event.Event;
+import view.Drawable;
 import view.UserInterface;
 
-public class PatchworkCLI implements UserInterface {
+public final class CommandLineInterface implements UserInterface {
   
   // Should be a singleton then ? Because there is only one System.in
   // and closing a PatchworkCLI instance (therefore the scanner) 
@@ -47,11 +45,6 @@ public class PatchworkCLI implements UserInterface {
       }); 
   }
   
-  @Override
-  public void draw(GameBoard gb) {
-    gb.drawOnCLI(this);
-  }
-  
   public void display() {
     System.out.print(builder);
   }
@@ -61,30 +54,19 @@ public class PatchworkCLI implements UserInterface {
     System.out.print("\033[H\033[2J");
     System.out.flush();
     builder.setLength(0);
+    drawSplashScreen();
   }
 
-  @Override
-  public Action choice() {
-    return Action.QUIT;
-  }
   
   @Override
-  public void drawEvents(List<Event> eventQueue) {
-    List<DisplayableOnCLI> displayableEvents = new ArrayList<>(eventQueue);
-    displayableEvents.stream().forEachOrdered(event -> {
-      event.drawOnCLI(this);
-      }); 
-  }
-  
-  @Override
-  public void selectPatch(GameBoard gb) {
-    clear();
+  public Patch selectPatch(List<Patch> patches) {
+    Objects.requireNonNull(patches);
+    if(patches.isEmpty()) {
+      throw new IllegalArgumentException("Their should be at least 1 patch in the list");
+    }
     var i = 0;
-    var input = -1;
     clear();
-    drawSplashScreen();
     // Draw choices
-    var patches = gb.availablePatches();
     builder.append("\n");
     for(var patch: patches) {
       i++;
@@ -94,28 +76,23 @@ public class PatchworkCLI implements UserInterface {
     }
     display();
     // Menu
-    boolean validInput = false;
     var localBuilder = new StringBuilder();
     localBuilder
     .append(Color.ANSI_ORANGE)
     .append("\nChoose : ")
     .append(Color.ANSI_RESET);
-    // Selection loop
-    do {
-      System.out.print(localBuilder);
-      try {
-        input = Integer.valueOf(scanner.nextLine());
-        if(input > 0 && input <= i) {
-          validInput = true;
-        }
-      } catch (NumberFormatException e) {
-        System.out.println("Wrong choice\n");
+    System.out.print(localBuilder);
+    if(scanner.hasNextInt()) {
+      var input = scanner.nextInt();
+      scanner.nextLine();
+      if(input > 0 && input <= i) {
+        return patches.get(input - 1);
       }
-      
-    }while(!validInput);
-    gb.selectPatch(patches.get(input - 1));
+    }
+    scanner.nextLine();
+    System.out.println("Wrong choice\n");
+    return null;
   }
-  
   @Override
   public void drawDummyQuilt(QuiltBoard quilt, Patch patch) {
     // top
@@ -160,7 +137,7 @@ public class PatchworkCLI implements UserInterface {
   }
   
   @Override
-  public Action getPlayerActionForTurn(GameBoard gb, Set<Action> options) {
+  public Action getPlayerAction(Set<Action> options) {
     var localBuilder = new StringBuilder();
     localBuilder
     .append(Color.ANSI_ORANGE)
@@ -170,10 +147,12 @@ public class PatchworkCLI implements UserInterface {
       localBuilder.append(option).append("\n"));
     localBuilder.append("\nChoice ? : ");
     System.out.print(localBuilder);
-    var input = scanner.nextLine();
-    for(var op: options) {
-      if(op.bind().equals(input)) {
-        return op;
+    if(scanner.hasNextLine()) {
+      var input = scanner.nextLine();
+      for(var op: options) {
+        if(op.bind().equals(input)) {
+          return op;
+        }
       }
     }
     System.out.println("Wrong choice\n");
@@ -203,6 +182,11 @@ public class PatchworkCLI implements UserInterface {
         + "\n"
         + Color.ANSI_RESET;
     builder.append(splash);
+  }
+
+  @Override
+  public void draw(Drawable drawable) {
+    ((DrawableOnCLI) drawable).drawOnCLI(this);
   }
 
 }

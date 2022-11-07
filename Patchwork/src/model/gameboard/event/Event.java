@@ -5,10 +5,10 @@ import java.util.Objects;
 import model.gameboard.Effect;
 import model.gameboard.GameBoard;
 import view.cli.Color;
-import view.cli.DisplayableOnCLI;
-import view.cli.PatchworkCLI;
+import view.cli.CommandLineInterface;
+import view.cli.DrawableOnCLI;
 
-public class Event implements DisplayableOnCLI {
+public class Event implements DrawableOnCLI {
 
   private final Effect effect;
   private final boolean oneUse;
@@ -52,7 +52,7 @@ public class Event implements DisplayableOnCLI {
   }
 
   @Override
-  public void drawOnCLI(PatchworkCLI ui) {
+  public void drawOnCLI(CommandLineInterface ui) {
     var text = switch (type) {
       case BUTTON_INCOME -> {
         yield Color.ANSI_BBLUE + "Button Income !";

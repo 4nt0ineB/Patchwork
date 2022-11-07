@@ -6,10 +6,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import view.cli.DisplayableOnCLI;
-import view.cli.PatchworkCLI;
+import view.cli.CommandLineInterface;
+import view.cli.DrawableOnCLI;
 
-public class Patch implements DisplayableOnCLI {
+public class Patch implements DrawableOnCLI {
   
   private static final Coordinates[] RLMATRIX = { new Coordinates(0, -1), new Coordinates(1, 0) };
   private static final Coordinates[] RRMATRIX = { new Coordinates(0, 1), new Coordinates(-1, 0) };
@@ -262,6 +262,7 @@ public class Patch implements DisplayableOnCLI {
   /**
    * Affine transformation of a set of coordinates (the patch cells)
    *  by a list of Coordinates
+   * @Todo improve stream
    * @param cells
    * @param vector
    * @return
@@ -311,7 +312,7 @@ public class Patch implements DisplayableOnCLI {
   }
 
   @Override
-  public void drawOnCLI(PatchworkCLI ui) {
+  public void drawOnCLI(CommandLineInterface ui) {
     // we use a quilt board to deal with absolute coordinates
     var quilt = new QuiltBoard(2, 2);
     // While the patch doesn't fit in, we expand the quilt
@@ -362,5 +363,4 @@ public class Patch implements DisplayableOnCLI {
     }
     return smallest;
   }
-  
 }
