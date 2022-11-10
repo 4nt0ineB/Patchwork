@@ -2,20 +2,21 @@ package model.gameboard.event;
 
 import java.util.Objects;
 
-import model.gameboard.Effect;
+import model.Patch;
+import model.gameboard.ConditionalEffect;
 import model.gameboard.GameBoard;
 import view.cli.Color;
 import view.cli.CommandLineInterface;
 import view.cli.DrawableOnCLI;
 
-public class Event implements DrawableOnCLI {
+public sealed class Event implements DrawableOnCLI permits PositionedEvent {
 
-  private final Effect effect;
+  private final ConditionalEffect effect;
   private final boolean oneUse;
   private boolean active = true;
   private EventType type;
 
-  public Event(EventType type, boolean oneUse, Effect effect) {
+  public Event(EventType type, boolean oneUse, ConditionalEffect effect) {
     this.type = Objects.requireNonNull(type, "Type can't be null");
     this.effect = Objects.requireNonNull(effect, "Effect can't be null");
     this.oneUse = oneUse;
@@ -39,7 +40,7 @@ public class Event implements DrawableOnCLI {
   }
 
   public Boolean runEachTurn() {
-    return false;
+    return true;
   }
 
   public Boolean active() {
@@ -70,5 +71,26 @@ public class Event implements DrawableOnCLI {
     };
     ui.addMessage(text + Color.ANSI_RESET);
   }
+
+  public static Event fromText(String text) {
+    Objects.requireNonNull(text, "Can't make new event out of null String");
+    var parameters = text.split("\\|");
+    var type = EventType.valueOf(parameters[0]);
+    return switch(type) {
+      case BUTTON_INCOME -> {
+       yield new Event(type, 
+           Boolean.parseBoolean(parameters[1]), 
+           ConditionalEffect.makeButtonIncomeEffect());
+      }
+      case PATCH_INCOME -> {
+        yield new Event(type, 
+            Boolean.parseBoolean(parameters[1]), 
+            ConditionalEffect.makePatchIncomeEffect(Patch.fromText(parameters[3])));
   
+      }
+      default -> {
+        throw new AssertionError("This type of event doesn't exists");
+      }
+    };
+  }
 }

@@ -69,7 +69,7 @@ public class QuiltBoard implements DrawableOnCLI {
   public boolean occupied(Coordinates coordinates) {
     for (var patch : patches) {
       // @Todo delegate ?!
-      if (patch.absolutePositions().contains(coordinates)) {
+      if (patch.absoluteCoordinates().contains(coordinates)) {
         return true;
       }
     }
@@ -121,6 +121,13 @@ public class QuiltBoard implements DrawableOnCLI {
    */
   public int buttons() {
     return patches.stream().mapToInt(Patch::buttons).sum();
+  }
+
+  public static QuiltBoard fromText(String text) {
+    Objects.requireNonNull(text, "Can't make new player out of null String");
+    var parameters = text.replaceAll("[\\(\\)]", "").split(",");
+    return new QuiltBoard(Integer.parseInt(parameters[0]), 
+        Integer.parseInt(parameters[1]));
   }
 
 }

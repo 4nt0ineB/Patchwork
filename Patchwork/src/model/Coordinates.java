@@ -3,19 +3,7 @@ package model;
 import java.util.Objects;
 
 public record Coordinates(int y, int x) {
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(y, x);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    return obj instanceof Coordinates o
-        && x == o.x
-        && y == o.y;
-  }
-
+  
   @Override
   public String toString() {
     return "(" + y + "," + x + ")";
@@ -41,6 +29,15 @@ public record Coordinates(int y, int x) {
     return new Coordinates(Math.abs(y), Math.abs(x));
   }
   
+  public Coordinates rotateClockwise() {
+    return new Coordinates(-1 * x, 1 * y);
+  }
+  
+  public Coordinates rotateAntiClockwise() {
+    return new Coordinates(1 * x(), -1 * y);
+  }
+  
+  
   /**
    * Check if coordinates are in a rectangle formed by two pairs of coordinates.
    * with c1 as upper left corner, c2 as lower right corner
@@ -55,6 +52,13 @@ public record Coordinates(int y, int x) {
         && y >= c1.y
         && y <= c2.y
         ;
+  }
+  
+  public static Coordinates fromText(String text) {
+    Objects.requireNonNull(text, "Can't make new coordinates out of null String");
+    var parameters = text.stripIndent().replaceAll("[\\(\\)]", "").split(",");
+    return new Coordinates(Integer.parseInt(parameters[0]), 
+        Integer.parseInt(parameters[1]));
   }
   
 }

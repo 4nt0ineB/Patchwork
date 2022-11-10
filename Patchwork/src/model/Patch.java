@@ -1,25 +1,26 @@
 package model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
+import model.button.ButtonValued;
 import view.cli.CommandLineInterface;
 import view.cli.DrawableOnCLI;
 
-public class Patch implements DrawableOnCLI {
-  
-  private static final Coordinates[] RLMATRIX = { new Coordinates(0, -1), new Coordinates(1, 0) };
-  private static final Coordinates[] RRMATRIX = { new Coordinates(0, 1), new Coordinates(-1, 0) };
+public class Patch implements ButtonValued, DrawableOnCLI {
   
   // buttons in case of income
   private final int buttons; 
   // number of move to execute for the player if the patch is placed on his quilt
   private final int moves; 
-  // the price of the patch
-  private final int price;
+  // the price of the patch (in buttons)
+  private final int price; 
   // Absolute origin on the QuiltBoard associated to the relative origin of the patch (0,0)
   private Coordinates absoluteOrigin = new Coordinates(0, 0);
   // Index of the current  of rotation
@@ -77,8 +78,6 @@ public class Patch implements DrawableOnCLI {
     return buttons;
   }
   
-  
-  
   /**
    * 90° left rotation
    */
@@ -133,7 +132,7 @@ public class Patch implements DrawableOnCLI {
    * Return a set of the absolute positions of the patch cells
    * @return
    */
-  public Set<Coordinates> absolutePositions(){
+  public Set<Coordinates> absoluteCoordinates(){
     return new HashSet<>(rotations.get(currentRotation).stream().map(c -> c.add(absoluteOrigin)).toList());
   }
   
@@ -144,7 +143,7 @@ public class Patch implements DrawableOnCLI {
    */
   public boolean overlap(Patch patch) {
     Objects.requireNonNull(patch, "Can't test overlapping on null");
-    for(var cell: patch.absolutePositions()) {
+    for(var cell: patch.absoluteCoordinates()) {
       if(meets(cell)) {
         return true;
       }
@@ -159,7 +158,7 @@ public class Patch implements DrawableOnCLI {
    * @return
    */
   public boolean meets(Coordinates coordinates) {
-    return absolutePositions().contains(coordinates);
+    return absoluteCoordinates().contains(coordinates);
   }
   
   /**
@@ -179,6 +178,7 @@ public class Patch implements DrawableOnCLI {
     }
     var topleft = new Coordinates(0, 0);
     var lowerright = new Coordinates(height, width);
+    
     for(var cell: rotations.get(currentRotation)) {
       var absPos = cell.add(absoluteOrigin);
       if(!absPos.inRectangle(topleft, lowerright)) {
@@ -243,39 +243,18 @@ public class Patch implements DrawableOnCLI {
   private List<Set<Coordinates>> allRotations(Set<Coordinates> cells) {
     var rotationsList = new ArrayList<Set<Coordinates>>();
     rotationsList.add(new HashSet<>(cells));
-    if(isSquare(cells)) {
-      // if square, no rotations
-      return rotationsList;
-    }
-    // 3 rotations left
-    var prevRotation = cells;
-    for(var i = 1; i < 4; i++) {
-      var rotation = rotate(prevRotation, RLMATRIX);
-      if(!rotationsList.contains(rotation)) {
-        rotationsList.add(rotation);
+    if(!isSquare(cells)) {
+      // 3 rotations left
+      var prevRotation = rotationsList.get(0);
+      for(var i = 1; i < 4; i++) {
+        var rotation = prevRotation.stream().map(Coordinates::rotateClockwise).collect(Collectors.toSet());
+        if(!rotationsList.contains(rotation)) {
+          rotationsList.add(rotation);
+          prevRotation = rotation;
+        }
       }
-      prevRotation = rotation;
     }
     return rotationsList;
-  }
-  
-  /**
-   * Affine transformation of a set of coordinates (the patch cells)
-   *  by a list of Coordinates
-   * @Todo improve stream
-   * @param cells
-   * @param vector
-   * @return
-   */
-  private Set<Coordinates> rotate(Set<Coordinates> cells, Coordinates rotMatrix[]) {
-    var newCells =  cells.stream().map(cell -> {
-      var newc = new Coordinates(
-          rotMatrix[0].y() * cell.y() + rotMatrix[0].x() * cell.x(), 
-          rotMatrix[1].y() * cell.y() + rotMatrix[1].x() * cell.x()
-          );
-      return newc;
-    }).toList();
-    return new HashSet<>(newCells);
   }
   
   @Override
@@ -293,8 +272,7 @@ public class Patch implements DrawableOnCLI {
         && buttons == o.buttons
         && moves == o.moves
         && price == o.price
-        && rotations.contains(o.rotations.get(o.currentRotation))
-        ;
+        && rotations.contains(o.rotations.get(o.currentRotation));
   }
   
   public void absoluteMoveTo(Coordinates coordinates) {
@@ -313,17 +291,18 @@ public class Patch implements DrawableOnCLI {
 
   @Override
   public void drawOnCLI(CommandLineInterface ui) {
-    // we use a quilt board to deal with absolute coordinates
-    var quilt = new QuiltBoard(2, 2);
-    // While the patch doesn't fit in, we expand the quilt
-    // and replace the origin of the patch at the center of the quilt
-    while(!quilt.add(this)) {
-      absoluteMoveTo(new Coordinates(quilt.height() / 2, quilt.width() / 2));
-      quilt = new QuiltBoard(quilt.height() + 1, quilt.width() + 1);
+    // We use a conceptual square to deal with absolute coordinates.
+    // While the patch doesn't fit in, we expand the square
+    // and replace the origin of the patch at the center of it
+    var width = 1;
+    var height = 1;
+    while(!this.fits(width, height)) {
+      absoluteMoveTo(new Coordinates(height / 2, width / 2));
+      width += 1;
+      height += 1;
     }
     // draw the patch
-    var builder = ui.builder();
-    builder
+    ui.builder()
     .append("[Price: ")
     .append(price)
     .append(" Moves: ")
@@ -331,36 +310,30 @@ public class Patch implements DrawableOnCLI {
     .append(" Buttons: ")
     .append(buttons)
     .append("]\n\n");
-    for(var y = 0; y < quilt.height(); y++) {
-      builder.append("  ");
-      for(var x = 0; x < quilt.width(); x++) {
-        if(quilt.occupied(new Coordinates(y, x))) {
-          builder.append("x");
+    for(var y = 0; y < height; y++) {
+      ui.builder().append("  ");
+      for(var x = 0; x < width; x++) {
+        if(absoluteCoordinates().contains(new Coordinates(y, x))) {
+          ui.builder().append("x");
         }else {
-          builder.append(" ");
+          ui.builder().append(" ");
         }
       }
-      builder.append("\n");
+      ui.builder().append("\n");
     }
   }
   
-  /**
-   * Return index of the smallest patch in a list
-   * @Todo can be improved !
-   * @param patches
-   * @return index or -1
-   */
-  public static int minPatch(List<Patch> patches) {
-    Objects.requireNonNull(patches, "Can't find smallest in null obj");
-    if(patches.size() == 0) {
-      return -1;
-    }
-    var smallest = 0;
-    for(var i = 1; i < patches.size(); i++) {
-      if(patches.get(i).countCells() < patches.get(0).countCells()) {
-        smallest = i;
-      }
-    }
-    return smallest;
+  public static Patch fromText(String text) {
+    Objects.requireNonNull(text, "Can't make new player out of null String");
+    var parameters = text.strip().split("\\|(?=[^\"]*(?:\"[^\"]*\")*$)");
+    return new Patch(Integer.parseInt(parameters[0]), 
+        Integer.parseInt(parameters[1]),
+        Integer.parseInt(parameters[2]),
+        Arrays.stream(parameters[3].replaceAll("\"", "").split("\\|")).map(Coordinates::fromText).toList());
+  }
+
+  @Override
+  public int value() {
+    return price;
   }
 }

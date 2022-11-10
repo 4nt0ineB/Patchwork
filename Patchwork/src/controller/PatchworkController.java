@@ -1,5 +1,9 @@
 package controller;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -7,8 +11,8 @@ import model.Action;
 import model.Coordinates;
 import model.Patch;
 import model.gameboard.GameBoard;
+import util.parser.JsonObject;
 import view.UserInterface;
-import view.cli.CommandLineInterface;
 
 public class PatchworkController {
   
@@ -84,7 +88,7 @@ public class PatchworkController {
       ui.drawDummyQuilt(quilt, patch);
       ui.display();
       actions.remove(Action.PLACE);
-      if (quilt.canAdd(patch) && board.currentPlayer().canBuyPatch(patch)) {
+      if (quilt.canAdd(patch) && board.currentPlayer().canBuy(patch)) {
         actions.add(Action.PLACE);
       }
       switch (ui.getPlayerAction(actions)) {
@@ -104,8 +108,26 @@ public class PatchworkController {
   }
 
   public static void main(String[] args) {
-    // GameBoardFactory gameBoardFactory = new BasicGameBoardFactory();
-    patchwork(new CommandLineInterface(), GameBoard.fullBoard());
+    var path = Path.of("resources/settings/patchwork_full.txt");
+    var jsonPath = Path.of("resources/settings/patchwork_full.json");
+    
+    try {
+      var json = JsonObject.fromFile(jsonPath);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    
+    
+    //    try {
+//  GameBoard.gameBoardFromFile(path);
+//  // patchwork(new CommandLineInterface(), GameBoard.gameBoardFromFile(path));
+//} catch (IOException e) {
+//  System.err.println("Error while trying to read " + path);
+//  System.err.println(e.getMessage());
+//  System.exit(1);
+//  return;
+//}
+// patchwork(new CommandLineInterface(), GameBoard.fullBoard());
   }
 
 }

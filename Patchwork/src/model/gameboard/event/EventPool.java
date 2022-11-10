@@ -35,7 +35,7 @@ public class EventPool {
    * 
    * @return
    */
-  public List<Event> onTurn() {
+  public List<Event> notPositionedEvents() {
     return events.stream().filter(event -> event.runEachTurn()).toList();
   }
 

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import model.Patch;
 
@@ -22,7 +24,7 @@ public class PatchManager {
     }
     this.nextPatchesRange = nextPatchesRange;
     this.patches = new ArrayList<>(patches);
-    this.neutralToken = Patch.minPatch(this.patches);
+    this.neutralToken = minPatch(this.patches);
     Collections.shuffle(this.patches);
     loadNextPatches();
   }
@@ -118,6 +120,22 @@ public class PatchManager {
   
   public int numberOfPatches() {
     return patches.size();
+  }
+  
+  /**
+   * Return index of the smallest patch in a list
+   * @Todo can be improved !
+   * @param patches
+   * @return index or -1
+   */
+  public static int minPatch(List<Patch> patches) {
+    Objects.requireNonNull(patches, "Can't find smallest in null obj");
+    if(patches.size() == 0) {
+      return -1;
+    }
+    return IntStream.range(0, patches.size()).boxed()
+        .min((i, j) -> Integer.compare(patches.get(i).countCells(), patches.get(j).countCells()))
+        .get();
   }
 
 }

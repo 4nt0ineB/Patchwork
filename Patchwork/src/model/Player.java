@@ -2,23 +2,23 @@ package model;
 
 import java.util.Objects;
 
+import model.button.ButtonOwner;
 import view.cli.CommandLineInterface;
 import view.cli.DrawableOnCLI;
 
-public class Player implements DrawableOnCLI  {
+public class Player extends ButtonOwner implements DrawableOnCLI {
   
   private final String name;
-  private int buttons;
   private final QuiltBoard quilt;
   private int position;
 
   public Player(String name, int buttons, QuiltBoard quilt) {
+    super(buttons);
     Objects.requireNonNull(name, "The player must have a name");
     if (buttons < 0) {
       throw new IllegalArgumentException("The player can't have debts at start-up");
     }
     this.name = name;
-    this.buttons = buttons;
     this.quilt = quilt;
     position = 0;
   }
@@ -27,10 +27,6 @@ public class Player implements DrawableOnCLI  {
     return position;
   }
   
-  public int buttons() {
-    return buttons;
-  }
-
   public String name() {
     return name;
   }
@@ -39,18 +35,10 @@ public class Player implements DrawableOnCLI  {
     return quilt;
   }
   
-  public void buttonIncome(int amount) {
-    if (amount < 0) {
-      throw new IllegalArgumentException("A button income can't be negative");
-    }
-    buttons += amount;
-  }
-  
   public void move(int position) {
     this.position = position;
   }
   
-
   /**
    * Buy the patch. Test if the player have enough buttons to buy the patch and if
    * it can be place on his quilt
@@ -58,18 +46,9 @@ public class Player implements DrawableOnCLI  {
    * @param patch
    * @return true or false
    */
-  public boolean buyAndPlacePatch(Patch patch) {
+  public boolean placePatch(Patch patch) {
     Objects.requireNonNull(patch, "The patch can't be null");
-    if (!canBuyPatch(patch) || !quilt.add(patch)) {
-      return false;
-    }
-    buttons -= patch.price();
-    return true;
-  }
-
-  public boolean canBuyPatch(Patch patch) {
-    Objects.requireNonNull(patch, "The patch can't be null");
-    return patch.price() <= buttons;
+    return quilt.add(patch);
   }
 
   @Override
@@ -85,14 +64,22 @@ public class Player implements DrawableOnCLI  {
 
   @Override
   public String toString() {
-    return "[" + name + "] buttons:" + buttons;
+    return "[" + name + "] buttons:" + buttons();
   }
 
   @Override
   public void drawOnCLI(CommandLineInterface ui) {
     ui.builder()
     .append(String.format("%5d|", position))
-    .append(" " + name + " - buttons [" + buttons + "]");
+    .append(" " + name + " - buttons [" + buttons() + "]");
   }
 
+  public static Player fromText(String text) {
+    Objects.requireNonNull(text, "Can't make new player out of null String");
+    var parameters = text.split("\\|");
+    return new Player(parameters[0], 
+        Integer.parseInt(parameters[1]),
+        QuiltBoard.fromText(parameters[2]));
+  }
+  
 }

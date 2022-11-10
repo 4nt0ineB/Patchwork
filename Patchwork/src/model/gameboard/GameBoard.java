@@ -1,6 +1,10 @@
 package model.gameboard;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -8,12 +12,14 @@ import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
+import java.util.regex.Pattern;
 
 import model.Action;
 import model.Coordinates;
 import model.Patch;
 import model.Player;
 import model.QuiltBoard;
+import model.button.ButtonOwner;
 import model.gameboard.event.Event;
 import model.gameboard.event.EventPool;
 import model.gameboard.event.EventType;
@@ -22,23 +28,24 @@ import view.cli.Color;
 import view.cli.CommandLineInterface;
 import view.cli.DrawableOnCLI;
 
-public class GameBoard implements DrawableOnCLI {
+public class GameBoard extends ButtonOwner implements DrawableOnCLI {
 
   // Number of squares on the board
   private final int spaces;
-  private int buttons;
-  // Current player is always at the top of the stack
-  private Player currentPlayer;
   // Players indexed by position
   private final LinkedHashSet<Player> players = new LinkedHashSet<>();
-  // Patch manager (around the board patches)
+  // Patch manager (patches around the board)
   private final PatchManager patchManager;
-  // Patches stack that must be played by the current player
+  //All events in game
+  private final EventPool eventPool = new EventPool();
+  // Patches stack gathering all patches that must be played by the current player during the turn
+ 
   private final Stack<Patch> patchesToPlay = new Stack<>();
   // Event queue to process at the end of the turn
   private final Queue<Event> eventQueue = new LinkedList<>();
-  // All events in game
-  private final EventPool eventPool = new EventPool();
+  //Current player is always at the top of the stack
+  private Player currentPlayer;
+  
   // The actions the player can do during the turn
   private final LinkedHashSet<Action> availableActions = new LinkedHashSet<>();
 
@@ -53,6 +60,7 @@ public class GameBoard implements DrawableOnCLI {
    * @param the         list of events for the board
    */
   public GameBoard(int spaces, int nextPatches, int buttons, List<Patch> patches, Set<Player> players, List<Event> events) {
+    super(buttons);
     Objects.requireNonNull(patches, "List of patches can't be null");
     Objects.requireNonNull(players, "List of players can't be null");
     if (patches.size() < 1) {
@@ -68,7 +76,6 @@ public class GameBoard implements DrawableOnCLI {
       throw new IllegalArgumentException("The number of spaces on the board can't be lower than 1");
     }
     this.spaces = spaces - 1; // spaces => space no 0 to no spaces - 1
-    this.buttons = buttons;
     this.patchManager = new PatchManager(nextPatches, patches);
     this.players.addAll(players);
     this.eventPool.addAll(events);
@@ -85,7 +92,7 @@ public class GameBoard implements DrawableOnCLI {
    * @return
    */
   public List<Patch> availablePatches() {
-    return patchManager.availablePatches().stream().filter(patch -> currentPlayer().canBuyPatch(patch)).toList();
+    return patchManager.availablePatches().stream().filter(patch -> currentPlayer().canBuy(patch)).toList();
   }
 
   public Set<Action> availableActions() {
@@ -103,17 +110,17 @@ public class GameBoard implements DrawableOnCLI {
 
   /**
    * Select a patch among the next available from those around the board
-   * 
+   * @exception AssertionError - if the given patch does not exists in the available patches
    * @param patch
    */
   public void selectPatch(Patch patch) {
     patchManager.select(patch);
-    // also, add the patch to the Patch waiting queue
-    patchesToPlay.add(patch);
+    // also, add the patch to the patches waiting queue
+    addPatchToPlay(patch);
   }
 
   /**
-   * Get the selected patch from those available, around the board
+   * Get the selected patch from those available around the board
    * 
    * @return
    */
@@ -176,13 +183,12 @@ public class GameBoard implements DrawableOnCLI {
   }
 
   public boolean currentPlayerPlayPatch(Patch patch) {
-    if (!currentPlayer().buyAndPlacePatch(patch)) {
+    if (!currentPlayer().placePatch(patch)) {
       return false;
     }
+    payFor(currentPlayer(), patch);
     // Moves
-    if(currentPlayerMove(currentPlayer.position() + patch.moves())) {
-      buttons += patch.price();
-    }
+    currentPlayerMove(currentPlayer.position() + patch.moves());
     return true;
   }
 
@@ -197,24 +203,11 @@ public class GameBoard implements DrawableOnCLI {
     int newPosition = nextPlayerFrom(currentPlayer.position() + 1).position() + 1;
     int buttonIncome = newPosition - currentPlayer.position();
     if (currentPlayerMove(newPosition)) {
-      currentPlayer().buttonIncome(getButtons(buttonIncome));
+      pay(currentPlayer(), buttonIncome);
       // The player advance on the board
       // and can no more execute this actions
       availableActions.clear();
     }
-  }
-
-
-  private int getButtons(int amount) {
-    if(amount < 0) {
-      throw new IllegalArgumentException("The requested amount of button can't be negative");
-    }
-    if(buttons - amount < 0) {
-      throw new AssertionError("The requested amount of button exceed the amount of button on the board. "
-          + "The game is broken. Check your init settings");
-    }
-    buttons -= amount;
-    return amount;
   }
 
   /**
@@ -223,10 +216,7 @@ public class GameBoard implements DrawableOnCLI {
    * @param position
    */
   private void testPosition(int position) {
-    Objects.checkFromIndexSize(0, position, spaces);
-//    if (position < 0 || position > spaces) {
-//      throw new IllegalArgumentException("The new position can't exceed boundaries 0 <= " + position + " <= " + spaces);
-//    }
+    Objects.checkIndex(position, spaces);
   }
 
   /**
@@ -281,7 +271,7 @@ public class GameBoard implements DrawableOnCLI {
    * @return
    */
   public boolean nextTurn() {
-    eventQueue.addAll(eventPool.onTurn()); // add on turn events before end of turn
+    eventQueue.addAll(eventPool.notPositionedEvents()); // add on-turn events before end of turn
     if (!availableActions.isEmpty() // Player has things to do
         || !eventQueue.isEmpty()    // Remaining event to treat for the player
         || !patchesToPlay.isEmpty() // can't change player, the current has patches to deal with
@@ -350,7 +340,7 @@ public class GameBoard implements DrawableOnCLI {
       availableActions.add(Action.ADVANCE);    
     }
     if(!patchManager.availablePatches().isEmpty()
-       && patchManager.availablePatches().stream().anyMatch(patch -> currentPlayer().canBuyPatch(patch) == true)) {
+       && patchManager.availablePatches().stream().anyMatch(patch -> currentPlayer().canBuy(patch) == true)) {
       availableActions.add(Action.SELECT_PATCH);
     }
   }
@@ -359,7 +349,7 @@ public class GameBoard implements DrawableOnCLI {
   public void drawOnCLI(CommandLineInterface ui) {
     var builder = ui.builder();
     builder.append("[ ---- (Buttons: ")
-    .append(buttons)
+    .append(buttons())
     .append(") - (Patches: ")
     .append(patchManager.numberOfPatches()).append(") ---- ]\n");
     for (var player : players) {
@@ -370,6 +360,15 @@ public class GameBoard implements DrawableOnCLI {
       builder.append(Color.ANSI_RESET).append("\n");
     }
     builder.append("\n");
+  }
+  
+  /**
+   * Add a patch to the waiting 
+   * @param patch
+   */
+  public void addPatchToPlay(Patch patch) {
+    Objects.requireNonNull(patch, "The patch can't be null");
+    patchesToPlay.add(patch);
   }
 
   /**
@@ -496,10 +495,10 @@ public class GameBoard implements DrawableOnCLI {
     var player2 = new Player("Player 2", 5, new QuiltBoard(9, 9));
     var events = new ArrayList<Event>();
     for(var position: List.of(5, 11, 17, 23, 29, 35, 41, 47)) {
-      events.add(new PositionedEvent(EventType.BUTTON_INCOME, position, false, makeButtonIncomeEffect()));
+      events.add(new PositionedEvent(EventType.BUTTON_INCOME, position, false, ConditionalEffect.makeButtonIncomeEffect()));
     }
     for(var position: List.of(20, 26, 32, 44, 50)) {
-      events.add(new PositionedEvent(EventType.PATCH_INCOME, position, false, makePatchIncomeEffect(new Patch(0, 0, 0, List.of(new Coordinates(0,0))))));
+      events.add(new PositionedEvent(EventType.PATCH_INCOME, position, true, ConditionalEffect.makePatchIncomeEffect(new Patch(0, 0, 0, List.of(new Coordinates(0,0))))));
     }
     // @Todo make special tile event !
     var gameBoard = new GameBoard(53, 3, 152, patches, Set.<Player>of(player1, player2), events);
@@ -507,17 +506,55 @@ public class GameBoard implements DrawableOnCLI {
     return gameBoard;
   }
 
-  private static Effect makeButtonIncomeEffect() {
-    return (GameBoard gb) -> {
-      gb.currentPlayer().buttonIncome(gb.getButtons(gb.currentPlayer().quilt().buttons()));
-      return true;
-    };
-  }
-
-  private static Effect makePatchIncomeEffect(Patch patch) {
-    return (GameBoard gb) -> {
-      gb.patchesToPlay.add(patch);
-      return true;
-    };
+  /**
+   * Make a new standard patchwork game board 
+   * from file
+   * 
+   * Lines starting with '#' ignored
+   * Expect lines as:
+   * typeOfData:data
+   * 
+   * @param text
+   * @return
+   */
+  public static GameBoard gameBoardFromFile(Path path) throws IOException {
+    Objects.requireNonNull(path, "The path can't be null");
+    var spaces = 0;
+    var maxAvailabelPatchesByTurn = 0;
+    var buttons = 0;
+    var patches = new ArrayList<Patch>();
+    var players = new HashSet<Player>();
+    var events = new ArrayList<Event>();
+    var pattern = Pattern.compile("^[^#].+:.+");
+    try(var reader = Files.newBufferedReader(path)){
+      var line = "";
+      var lineNo = 1;
+      while((line = reader.readLine()) != null) {
+        var matcher = pattern.matcher(line);
+        if(matcher.matches()) {
+          var splited = line.split(":");
+            switch(splited[0]) {
+            case "spaces" -> spaces = Integer.parseInt(splited[1]);
+            case "maxAvailablePatchesByTurn" -> maxAvailabelPatchesByTurn = Integer.parseInt(splited[1]); 
+            case "buttons" -> buttons = Integer.parseInt(splited[1]); 
+            case "pl" -> {
+              players.add(Player.fromText(splited[1]));
+            }
+            case "pa" -> {
+              patches.add(Patch.fromText(splited[1]));
+            }
+            case "pe" -> {
+              events.add(PositionedEvent.fromText(splited[1]));
+            }
+            default -> {
+              throw new AssertionError("Unexpected data at line " + lineNo);
+            }
+          }
+        }
+        lineNo++;
+      }
+    }
+    System.out.println(events);
+    return new GameBoard(spaces, maxAvailabelPatchesByTurn, buttons, patches, players, events);
   }
 }
