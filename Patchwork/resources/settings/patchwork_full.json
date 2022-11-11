@@ -1,19 +1,5 @@
 
 {
-	spaces: 54,
-	maxAvailablePatchesByTurn: 3 ,
-	buttons: 152 ,
-
-	patches: [
-		{   
-		  price:2,
-		  moves:2,
-		  buttons:0,
-		  coordinates: [
-		  			{y: 0, x: -1}, 
-		  			{y: 0, x: 0}, 
-		  			{y: 0, x: 1}
-		  		]
-		}
-	]
+	"foo": 2,
+	"bar" : 3
 }

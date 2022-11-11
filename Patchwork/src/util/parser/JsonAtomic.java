@@ -5,7 +5,7 @@ import java.util.Objects;
 
 public class JsonAtomic {
   
-  public final ArrayList<String> values = new ArrayList<>();
+  public final ArrayList<JsonObject> values = new ArrayList<>();
   
   public JsonAtomic(String id, String value){
     Objects.requireNonNull(id);

@@ -12,6 +12,7 @@ import model.Coordinates;
 import model.Patch;
 import model.gameboard.GameBoard;
 import util.parser.JsonObject;
+import util.parser.JsonParser;
 import view.UserInterface;
 
 public class PatchworkController {
@@ -112,7 +113,8 @@ public class PatchworkController {
     var jsonPath = Path.of("resources/settings/patchwork_full.json");
     
     try {
-      var json = JsonObject.fromFile(jsonPath);
+      var jsonParser = new JsonParser();
+      var jsonObject = jsonParser.fromFile(jsonPath);
     } catch (IOException e) {
       e.printStackTrace();
     }
