@@ -5,7 +5,7 @@ import java.util.List;
 import util.xml.XMLElement;
 import util.xml.XMLSerializable;
 
-public record Coordinates(int y, int x) implements XMLSerializable<Coordinates> {
+public record Coordinates(int y, int x) implements XMLSerializable {
   
   @Override
   public String toString() {

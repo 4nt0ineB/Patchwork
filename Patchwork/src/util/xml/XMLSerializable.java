@@ -1,5 +1,10 @@
 package util.xml;
 
-public interface XMLSerializable<T> {
+/**
+ * 
+ * Defines the API of XML serializable objects
+ *
+ */
+public interface XMLSerializable {
   XMLElement toXML();
 }
