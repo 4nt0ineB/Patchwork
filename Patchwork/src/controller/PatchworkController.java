@@ -11,6 +11,8 @@ import model.Patch;
 import model.gameboard.GameBoard;
 import util.xml.parser.XMLParser;
 import view.UserInterface;
+import view.cli.Color;
+import view.cli.CommandLineInterface;
 
 public class PatchworkController {
   
@@ -20,6 +22,7 @@ public class PatchworkController {
 
   private static void patchwork(UserInterface ui, GameBoard board) {
     var action = Action.DEFAULT;
+    board.init();
     do { // -- Game loop
       if(board.nextTurn()){
         ui.clearMessages();
@@ -106,38 +109,19 @@ public class PatchworkController {
   }
 
   public static void main(String[] args) {
-    var path = Path.of("resources/settings/patchwork_full.txt");
-    var jsonPath = Path.of("resources/settings/patchwork_full.xml");
-    
+    var path = Path.of("resources/settings/patchwork_full.xml");
     try {
       var xmlParser = new XMLParser();
-      var xmlElement = xmlParser.parse(jsonPath);
-      var x = xmlParser.parse("""
-              <coordinates>
-                <Coordinates><x>-1</x><y>-1</y></Coordinates>  
-                <Coordinates><x>-1</x><y>0</y></Coordinates>  
-                <Coordinates><x>0</x><y>0</y></Coordinates>  
-                <Coordinates><x>0</x><y>-1</y></Coordinates>
-            </coordinates>
-              """);
-      System.out.println(x);
-      var coord = new Coordinates(4, -2);
-      System.out.println(coord.toXML());
+      var xmlElement = xmlParser.parse(path);
+      var board = GameBoard.fromXML(xmlElement);
+      patchwork(new CommandLineInterface(), board);
     } catch (IOException e) {
-      e.printStackTrace();
+      System.err.println("Error while trying to make game board from " + path);
+      System.err.println(e.getMessage());
+      System.exit(1);
+      return;
     }
-    
-    
-    //    try {
-//  GameBoard.gameBoardFromFile(path);
-//  // patchwork(new CommandLineInterface(), GameBoard.gameBoardFromFile(path));
-//} catch (IOException e) {
-//  System.err.println("Error while trying to read " + path);
-//  System.err.println(e.getMessage());
-//  System.exit(1);
-//  return;
-//}
-// patchwork(new CommandLineInterface(), GameBoard.fullBoard());
+ 
   }
 
 }

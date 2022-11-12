@@ -178,7 +178,8 @@ public final class CommandLineInterface implements UserInterface {
         + " |  ___/ _` | __/ __| '_ \\ \\ /\\ / / _ \\| '__| |/ /\n"
         + " | |  | (_| | || (__| | | \\ V  V / (_) | |  |   < \n"
         + " |_|   \\__,_|\\__\\___|_| |_|\\_/\\_/ \\___/|_|  |_|\\_\\\n"
-        + Color.ANSI_GREEN + "└─────────────────────────────────────────────────┘\n"
+        + Color.ANSI_GREEN + "└─────────────────────────────────────────────────┘"
+        + Color.rgb(2, 77, 24) +  "v2.0\n" + Color.ANSI_RESET
         + "\n"
         + Color.ANSI_RESET;
     builder.append(splash);

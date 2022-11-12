@@ -4,6 +4,7 @@ public enum Color {
   ANSI_ITALIC("\u001B[3m"), 
   ANSI_BOLD("\u001B[1m"), 
   ANSI_RESET("\u001B[0m"),
+  ANSI_RESET2("\033[39m\\033[49m"),
   ANSI_GREY("\033[38;5;59m"),
   ANSI_BLACK("\u001B[30m"), 
   ANSI_RED("\u001B[31m"), 
@@ -33,5 +34,9 @@ public enum Color {
   @Override
   public String toString() {
       return str;
+  }
+  
+  public static String rgb(int r, int g, int b) {
+    return "\033[38;2;"+ (r & 0xFF) +";"+ (g & 0xFF) +";"+ (b & 0xFF) +"m";
   }
 }

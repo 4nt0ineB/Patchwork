@@ -1,41 +1,83 @@
-<fullGameBoard> 
-	<space>54</space>
+<GameBoard> 
+	<spaces>54</space>
 	<patchByTurn>3</patchByTurn>
 	<buttons>152</buttons>
-	<players>
-		<player>
+	<playerList>
+		<Player>
 			<name>Player 1</name>
 			<buttons>5</buttons>
-			<quilt>
+			<QuiltBoard>
 				<width>9</width>
 				<height>9</height>
-			</quilt>
-		</player>
-		<player>
+			</QuiltBoard>
+		</Player>
+		<Player>
 			<name>Player 2</name>
 			<buttons>5</buttons>
-			<quilt>
+			<QuiltBoard>
 				<width>9</width>
 				<height>9</height>
-			</quilt>
-		</player>
-	</players>
-	<patches>
-		<patch>
+			</QuiltBoard>
+		</Player>
+	</playerList>
+	<eventList>
+		<Event>
+			<type>BUTTON_INCOME</type>
+			<oneUse>false</oneUse>
+			<position>5</position>
+		</Event>
+		<Event>
+			<type>BUTTON_INCOME</type>
+			<oneUse>false</oneUse>
+			<position>11</position>
+		</Event>
+		<Event>
+			<type>BUTTON_INCOME</type>
+			<oneUse>false</oneUse>
+			<position>17</position>
+		</Event>
+		<Event>
+			<type>BUTTON_INCOME</type>
+			<oneUse>false</oneUse>
+			<position>23</position>
+		</Event>
+		<Event>
+			<type>BUTTON_INCOME</type>
+			<oneUse>false</oneUse>
+			<position>29</position>
+		</Event>
+		<Event>
+			<type>BUTTON_INCOME</type>
+			<oneUse>false</oneUse>
+			<position>35</position>
+		</Event>
+		<Event>
+			<type>BUTTON_INCOME</type>
+			<oneUse>false</oneUse>
+			<position>41</position>
+		</Event>
+		<Event>
+			<type>BUTTON_INCOME</type>
+			<oneUse>false</oneUse>
+			<position>47</position>
+		</Event>
+	</enventList>
+	<patchList>
+		<Patch>
 			<price>2</price>
 			<moves>2</moves>
 			<buttons>0</buttons>
-			<coordinates>
+			<coordinatesList>
 				<Coordinates><x>0</x><y>-1</y></Coordinates>
 				<Coordinates><x>0</x><y>0</y></Coordinates>
 				<Coordinates><x>0</x><y>1</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-		<patch>
+		<Patch>
 			<price>2</price>
 			<moves>3</moves>
 			<buttons>0</buttons>
-			<coordinates>
+			<coordinatesList>
 				<Coordinates><x>-1</x><y>-1</y></Coordinates>  
 				<Coordinates><x>-1</x><y>0</y></Coordinates> 
 				<Coordinates><x>-1</x><y>1</y></Coordinates> 
@@ -43,131 +85,131 @@
 				<Coordinates><x>1</x><y>-1</y></Coordinates>
 				<Coordinates><x>1</x><y>0</y></Coordinates> 
 				<Coordinates><x>1</x><y>1</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-		<patch>
+		<Patch>
 			<price>2</price>
 			<moves>1</moves>
 			<buttons>0</buttons>
-			<coordinates>
+			<coordinatesList>
 				<Coordinates><x>-1</x><y>0</y></Coordinates>   
 				<Coordinates><x>0</x><y>-1</y></Coordinates>  
 				<Coordinates><x>0</x><y>0</y></Coordinates>  
 				<Coordinates><x>1</x><y>0</y></Coordinates> 
 				<Coordinates><x>1</x><y>1</y></Coordinates> 
 				<Coordinates><x>2</x><y>0</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-		<patch>
+		<Patch>
 			<price>2</price>
 			<moves>2</moves>
 			<buttons>0</buttons>
-			<coordinates>
+			<coordinatesList>
 				<Coordinates><x>-1</x><y>-1</y></Coordinates>  
 				<Coordinates><x>-1</x><y>0</y></Coordinates> 
 				<Coordinates><x>0</x><y>-1</y></Coordinates> 
 				<Coordinates><x>0</x><y>0</y></Coordinates> 
 				<Coordinates><x>1</x><y>0</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-		<patch>
+		<Patch>
 			<price>1</price>
 			<moves>2</moves>
 			<buttons>0</buttons>
-			<coordinates>
+			<coordinatesList>
 				<Coordinates><x>-1</x><y>0</y></Coordinates>   
 				<Coordinates><x>-1</x><y>1</y></Coordinates> 
 				<Coordinates><x>0</x><y>0</y></Coordinates>  
 				<Coordinates><x>1</x><y>0</y></Coordinates> 
 				<Coordinates><x>1</x><y>1</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-		<patch>
+		<Patch>
 			<price>2</price>
 			<moves>1</moves>
 			<buttons>0</buttons>
-			<coordinates>
+			<coordinatesList>
 				<Coordinates><x>0</x><y>-1</y></Coordinates>   
 				<Coordinates><x>0</x><y>0</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-		<patch>
+		<Patch>
 			<price>1</price>
 			<moves>2</moves>
 			<buttons>0</buttons>
-			<coordinates>
+			<coordinatesList>
 				<Coordinates><x>-1</x><y>0</y></Coordinates>   
 				<Coordinates><x>-1</x><y>1</y></Coordinates> 
 				<Coordinates><x>0</x><y>0</y></Coordinates>  
 				<Coordinates><x>1</x><y>0</y></Coordinates>  
 				<Coordinates><x>2</x><y>0</y></Coordinates> 
 				<Coordinates><x>2</x><y>-1</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-		<patch>
+		<Patch>
 			<price>4</price>
 			<moves>2</moves>
 			<buttons>0</buttons>
-			<coordinates>
+			<coordinatesList>
 				<Coordinates><x>0</x><y>-2</y></Coordinates>   
 				<Coordinates><x>0</x><y>-1</y></Coordinates> 
 				<Coordinates><x>0</x><y>0</y></Coordinates>  
 				<Coordinates><x>1</x><y>-1</y></Coordinates> 
 				<Coordinates><x>1</x><y>0</y></Coordinates> 
 				<Coordinates><x>1</x><y>1</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-		<patch>
+		<Patch>
 			<price>2</price>
 			<moves>2</moves>
 			<buttons>0</buttons>
-			<coordinates>
+			<coordinatesList>
 				<Coordinates><x>0</x><y>-1</y></Coordinates>   
 				<Coordinates><x>0</x><y>0</y></Coordinates> 
 				<Coordinates><x>0</x><y>1</y></Coordinates>  
 				<Coordinates><x>1</x><y>0</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-		<patch>
+		<Patch>
 			<price>3</price>
 			<moves>1</moves>
 			<buttons>0</buttons>
-			<coordinates>
+			<coordinatesList>
 				<Coordinates><x>0</x><y>-1</y></Coordinates>   
 				<Coordinates><x>-1</x><y>0</y></Coordinates> 
 				<Coordinates><x>0</x><y>0</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-		<patch>
+		<Patch>
 			<price>3</price>
 			<moves>4</moves>
 			<buttons>0</buttons>
-			<coordinates>
+			<coordinatesList>
 				<Coordinates><x>-2</x><y>0</y></Coordinates>   
 				<Coordinates><x>-1</x><y>0</y></Coordinates> 
 				<Coordinates><x>0</x><y>0</y></Coordinates>  
 				<Coordinates><x>0</x><y>1</y></Coordinates>  
 				<Coordinates><x>1</x><y>0</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-		<patch>
+		<Patch>
 			<price>0</price>
 			<moves>3</moves>
 			<buttons>1</buttons>
-			<coordinates>
+			<coordinatesList>
 				<Coordinates><x>0</x><y>-2</y></Coordinates>   
 				<Coordinates><x>0</x><y>-1</y></Coordinates> 
 				<Coordinates><x>0</x><y>0</y></Coordinates>  
 				<Coordinates><x>-1</x><y>0</y></Coordinates> 
 				<Coordinates><x>1</x><y>0</y></Coordinates> 
 				<Coordinates><x>0</x><y>1</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-		<patch>
+		<Patch>
 			<price>1</price>
 			<moves>4</moves>
 			<buttons>1</buttons>
-			<coordinates>
+			<coordinatesList>
 				<Coordinates><x>0</x><y>-2</y></Coordinates>   
 				<Coordinates><x>0</x><y>-1</y></Coordinates> 
 				<Coordinates><x>0</x><y>0</y></Coordinates>  
@@ -175,24 +217,24 @@
 				<Coordinates><x>1</x><y>0</y></Coordinates> 
 				<Coordinates><x>0</x><y>1</y></Coordinates> 
 				<Coordinates><x>0</x><y>2</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-		<patch>
+		<Patch>
 			<price>3</price>
 			<moves>2</moves>
 			<buttons>1</buttons>
-			<coordinates>
+			<coordinatesList>
 				<Coordinates><x>0</x><y>-1</y></Coordinates>   
 				<Coordinates><x>0</x><y>0</y></Coordinates> 
 				<Coordinates><x>-1</x><y>0</y></Coordinates> 
 				<Coordinates><x>1</x><y>-1</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-		<patch>
+		<Patch>
 			<price>5</price>
 			<moves>3</moves>
 			<buttons>1</buttons>
-			<coordinates>
+			<coordinatesList>
 				<Coordinates><x>0</x><y>-1</y></Coordinates>   
 				<Coordinates><x>0</x><y>0</y></Coordinates> 
 				<Coordinates><x>-1</x><y>0</y></Coordinates> 
@@ -201,203 +243,203 @@
 				<Coordinates><x>1</x><y>0</y></Coordinates> 
 				<Coordinates><x>2</x><y>0</y></Coordinates> 
 				<Coordinates><x>1</x><y>1</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-		<patch>
+		<Patch>
 			<price>4</price>
 			<moves>2</moves>
 			<buttons>1</buttons>
-			<coordinates>
+			<coordinatesList>
 				<Coordinates><x>-1</x><y>0</y></Coordinates>   
 				<Coordinates><x>0</x><y>0</y></Coordinates> 
 				<Coordinates><x>1</x><y>0</y></Coordinates>  
 				<Coordinates><x>1</x><y>1</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-		<patch>
+		<Patch>
 			<price>1</price>
 			<moves>5</moves>
 			<buttons>1</buttons>
-			<coordinates>
+			<coordinatesList>
 				<Coordinates><x>-1</x><y>-1</y></Coordinates>  
 				<Coordinates><x>0</x><y>-1</y></Coordinates> 
 				<Coordinates><x>0</x><y>0</y></Coordinates>  
 				<Coordinates><x>0</x><y>1</y></Coordinates>  
 				<Coordinates><x>0</x><y>2</y></Coordinates> 
 				<Coordinates><x>-1</x><y>2</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-		<patch>
+		<Patch>
 			<price>7</price>
 			<moves>1</moves>
 			<buttons>1</buttons>
-			<coordinates>
+			<coordinatesList>
 				<Coordinates><x>0</x><y>-2</y></Coordinates>   
 				<Coordinates><x>-0</x><y>-1</y></Coordinates> 
 				<Coordinates><x>0</x><y>0</y></Coordinates>  
 				<Coordinates><x>0</x><y>1</y></Coordinates>  
 				<Coordinates><x>0</x><y>2</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-		<patch>
+		<Patch>
 			<price>10</price>
 			<moves>3</moves>
 			<buttons>2</buttons>
-			<coordinates>
+			<coordinatesList>
 				"
 				<Coordinates><x>-2</x><y>0</y></Coordinates>   
 				<Coordinates><x>-1</x><y>0</y></Coordinates> 
 				<Coordinates><x>0</x><y>0</y></Coordinates>  
 				<Coordinates><x>1</x><y>0</y></Coordinates>  
 				<Coordinates><x>1</x><y>1</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-		<patch>
+		<Patch>
 			<price>7</price>
 			<moves>2</moves>
 			<buttons>2</buttons>
-			<coordinates>
+			<coordinatesList>
 				<Coordinates><x>-1</x><y>-1</y></Coordinates>  
 				<Coordinates><x>0</x><y>-1</y></Coordinates> 
 				<Coordinates><x>1</x><y>-1</y></Coordinates> 
 				<Coordinates><x>0</x><y>0</y></Coordinates>  
 				<Coordinates><x>0</x><y>1</y></Coordinates> 
 				<Coordinates><x>0</x><y>2</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-		<patch>
+		<Patch>
 			<price>5</price>
 			<moves>4</moves>
 			<buttons>2</buttons>
-			<coordinates>
+			<coordinatesList>
 				<Coordinates><x>0</x><y>-1</y></Coordinates>   
 				<Coordinates><x>-1</x><y>0</y></Coordinates> 
 				<Coordinates><x>0</x><y>0</y></Coordinates>  
 				<Coordinates><x>0</x><y>1</y></Coordinates>  
 				<Coordinates><x>1</x><y>0</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-		<patch>
+		<Patch>
 			<price>2</price>
 			<moves>3</moves>
 			<buttons>1</buttons>
-			<coordinates>
+			<coordinatesList>
 				<Coordinates><x>0</x><y>0</y></Coordinates>    
 				<Coordinates><x>1</x><y>-1</y></Coordinates> 
 				<Coordinates><x>1</x><y>0</y></Coordinates>  
 				<Coordinates><x>0</x><y>0</y></Coordinates>  
 				<Coordinates><x>0</x><y>1</y></Coordinates> 
 				<Coordinates><x>0</x><y>2</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-		<patch>
+		<Patch>
 			<price>5</price>
 			<moves>5</moves>
 			<buttons>2</buttons>
-			<coordinates>
+			<coordinatesList>
 				<Coordinates><x>0</x><y>-1</y></Coordinates>   
 				<Coordinates><x>0</x><y>0</y></Coordinates> 
 				<Coordinates><x>-1</x><y>1</y></Coordinates> 
 				<Coordinates><x>0</x><y>1</y></Coordinates>  
 				<Coordinates><x>1</x><y>1</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-		<patch>
+		<Patch>
 			<price>3</price>
 			<moves>6</moves>
 			<buttons>2</buttons>
-			<coordinates>
+			<coordinatesList>
 				<Coordinates><x>-1</x><y>-1</y></Coordinates>  
 				<Coordinates><x>-1</x><y>0</y></Coordinates> 
 				<Coordinates><x>0</x><y>0</y></Coordinates>  
 				<Coordinates><x>0</x><y>1</y></Coordinates>  
 				<Coordinates><x>1</x><y>0</y></Coordinates> 
 				<Coordinates><x>1</x><y>-1</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-		<patch>
+		<Patch>
 			<price>10</price>
 			<moves>5</moves>
 			<buttons>3</buttons>
-			<coordinates>
+			<coordinatesList>
 				<Coordinates><x>-1</x><y>-1</y></Coordinates>  
 				<Coordinates><x>-1</x><y>0</y></Coordinates> 
 				<Coordinates><x>0</x><y>0</y></Coordinates>  
 				<Coordinates><x>0</x><y>-1</y></Coordinates> 
 				<Coordinates><x>1</x><y>0</y></Coordinates> 
 				<Coordinates><x>2</x><y>0</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-		<patch>
+		<Patch>
 			<price>7</price>
 			<moves>4</moves>
 			<buttons>2</buttons>
-			<coordinates>
+			<coordinatesList>
 				<Coordinates><x>-1</x><y>0</y></Coordinates>   
 				<Coordinates><x>0</x><y>0</y></Coordinates> 
 				<Coordinates><x>0</x><y>1</y></Coordinates>  
 				<Coordinates><x>1</x><y>1</y></Coordinates>  
 				<Coordinates><x>1</x><y>0</y></Coordinates> 
 				<Coordinates><x>2</x><y>0</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-		<patch>
+		<Patch>
 			<price>8</price>
 			<moves>6</moves>
 			<buttons>3</buttons>
-			<coordinates>
+			<coordinatesList>
 				<Coordinates><x>0</x><y>-1</y></Coordinates>   
 				<Coordinates><x>0</x><y>0</y></Coordinates> 
 				<Coordinates><x>1</x><y>-1</y></Coordinates> 
 				<Coordinates><x>1</x><y>0</y></Coordinates>  
 				<Coordinates><x>0</x><y>1</y></Coordinates> 
 				<Coordinates><x>-1</x><y>1</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-		<patch>
+		<Patch>
 			<price>6</price>
 			<moves>5</moves>
 			<buttons>2</buttons>
-			<coordinates>
+			<coordinatesList>
 				<Coordinates><x>-1</x><y>-1</y></Coordinates>  
 				<Coordinates><x>-1</x><y>0</y></Coordinates>  
 				<Coordinates><x>0</x><y>0</y></Coordinates>  
 				<Coordinates><x>0</x><y>-1</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-		<patch>
+		<Patch>
 			<price>10</price>
 			<moves>4</moves>
 			<buttons>3</buttons>
-			<coordinates>
+			<coordinatesList>
 				<Coordinates><x>0</x><y>0</y></Coordinates>    
 				<Coordinates><x>1</x><y>-1</y></Coordinates> 
 				<Coordinates><x>1</x><y>0</y></Coordinates>  
 				<Coordinates><x>0</x><y>1</y></Coordinates>  
 				<Coordinates><x>-1</x><y>1</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-		<patch>
+		<Patch>
 			<price>7</price>
 			<moves>6</moves>
 			<buttons>3</buttons>
-			<coordinates>
+			<coordinatesList>
 				<Coordinates><x>0</x><y>-1</y></Coordinates>   
 				<Coordinates><x>0</x><y>0</y></Coordinates> 
 				<Coordinates><x>1</x><y>0</y></Coordinates>  
 				<Coordinates><x>1</x><y>1</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-		<patch>
+		<Patch>
 			<price>4</price>
 			<moves>6</moves>
 			<buttons>2</buttons>
-			<coordinates>
+			<coordinatesList>
 				<Coordinates><x>0</x><y>-1</y></Coordinates>   
 				<Coordinates><x>0</x><y>0</y></Coordinates> 
 				<Coordinates><x>0</x><y>1</y></Coordinates>  
 				<Coordinates><x>-1</x><y>1</y></Coordinates>
-			</coordinates>
+			</coordinatesList>
 		</patch>
-	</patches>
-</fullGameBoard>
+	</patchList>
+</GameBoard>
