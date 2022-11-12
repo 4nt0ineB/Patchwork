@@ -1,4 +1,4 @@
-package util.xml.parser;
+package util.xml;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -8,8 +8,10 @@ import java.util.Arrays;
 import java.util.function.IntPredicate;
 import java.util.regex.Pattern;
 
-import util.xml.XMLElement;
-
+/**
+ * Provides a XML parser tool to build an XML manipulable DOM
+ *
+ */
 public class XMLParser {
   
   private int i = 0;

@@ -9,7 +9,7 @@ import model.Action;
 import model.Coordinates;
 import model.Patch;
 import model.gameboard.GameBoard;
-import util.xml.parser.XMLParser;
+import util.xml.XMLParser;
 import view.UserInterface;
 import view.cli.Color;
 import view.cli.CommandLineInterface;
