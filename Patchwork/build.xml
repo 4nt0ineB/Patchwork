@@ -28,7 +28,10 @@
 	</target>
 	
 	<target name="javadoc">
-		<javadoc sourcepath="${src}" destdir="${doc}"/>
+		<javadoc 
+		version="true"
+			sourcepath="${src}" 
+			destdir="${doc}"/>
 	</target>
 	
 	<target name="clean">

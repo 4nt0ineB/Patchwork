@@ -10,11 +10,16 @@ import java.util.regex.Pattern;
 
 public class XMLParser {
   
-  int i = 0;
+  private int i = 0;
   private final char[] buffer = new char[512];
   private String text = "";
   
- 
+  /**
+   * Parse a XML formated file to produce a nested XMLElement
+   * @param path
+   * @return
+   * @throws IOException If an I/O error occurs
+   */
   public XMLElement parse(Path path) throws IOException {
     clear();
     try(var reader = Files.newBufferedReader(path)){
@@ -25,6 +30,11 @@ public class XMLParser {
     }
   }
   
+  /**
+   * Parse a XML formated string to produce a nested XMLElement
+   * @param text
+   * @return
+   */
   public XMLElement parse(String text) {
     clear();
     this.text = text;
@@ -32,7 +42,7 @@ public class XMLParser {
   }
   
   /**
-   * Recursive parsing shared text field
+   * Recursive parsing with shared {@link XMLParser#text} string
    * @param element
    * @return
    */
@@ -65,6 +75,13 @@ public class XMLParser {
     return null;
   }
   
+  /**
+   * Extract from {@link XMLParser#text} a given pattern.
+   * If pattern matches with {@link Matcher#lookingAt} the {@link XMLParser#text} is replaced
+   * with the one where the pattern have been extracted
+   * @param pattern 
+   * @return the extracted part of {@link XMLParser#text} that matches the pattern
+   */
   private String readFromString(String pattern) {
     var matcher = Pattern.compile(pattern).matcher(text);
     if(matcher.lookingAt()) {
@@ -74,7 +91,13 @@ public class XMLParser {
     return null;
   }
  
-  
+  /**
+   * Read and don't put any characters read in the {@link XMLParser#buffer} until the predicate is true.
+   * The character read when the predicate is triggered is added to the buffer.
+   * @param reader
+   * @param predicate
+   * @throws IOException If an I/O error occurs
+   */
   private void eatBufferUntil(BufferedReader reader, IntPredicate predicate) throws IOException {
     int c = reader.read();
     if(c == -1) {
@@ -88,6 +111,13 @@ public class XMLParser {
     eatBufferUntil(reader, predicate);
   }
   
+  /**
+   * Add to the {@link XMLParser#buffer}, read characters until the given predicate is true. 
+   * The character read when the predicate is triggered is not added to the buffer.
+   * @param reader
+   * @param predicate
+   * @throws IOException If an I/O error occurs
+   */
   private void readBufferUntil(BufferedReader  reader, IntPredicate predicate) throws IOException {
     int c = reader.read();
     if(c == -1) {
@@ -101,6 +131,12 @@ public class XMLParser {
     readBufferUntil(reader, predicate);
   }
   
+  /**
+   * Recursive parsing from a {@link BufferedReader}.
+   * @param reader
+   * @param element The root of the xml formated stream of char must be given.
+   * @throws IOException If an I/O error occurs
+   */
   private void fromBufferedReader(BufferedReader reader, XMLElement element) throws IOException {
     readBufferUntil(reader, (i) -> (char) i == '<');
     var content = new String(Arrays.copyOfRange(buffer, 1, i));
@@ -120,6 +156,10 @@ public class XMLParser {
     }
   }
   
+  /**
+   * Clear the buffers and temporary variables used 
+   * by the parsing
+   */
   private void clear() {
     i = 0;
     text = "";

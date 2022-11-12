@@ -70,11 +70,11 @@ public record Coordinates(int y, int x) implements XMLSerializable<Coordinates> 
     var coordinatesElement = new XMLElement("Coordinates");
     coordinatesElement.addAll(List.of(
         new XMLElement("x", x), 
-        new XMLElement("x", y)));
+        new XMLElement("y", y)));
     return coordinatesElement;
   }
 
-  @Override
+  
   public Coordinates fromXML(XMLElement element) {
     Objects.requireNonNull(element, "xml can't be null");
     if(element.isEmpty()) {
@@ -83,6 +83,7 @@ public record Coordinates(int y, int x) implements XMLSerializable<Coordinates> 
     if(element.isEmpty()) {
       throw new IllegalStateException("Empty xml");
     }
+    
     return null;
   }
   
