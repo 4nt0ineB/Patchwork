@@ -1,8 +1,10 @@
-package model.gameboard;
+package model.gameboard.event;
 
 import java.util.Objects;
 
 import model.Patch;
+import model.gameboard.GameBoard;
+import view.cli.Color;
 
 @FunctionalInterface
 public interface ConditionalEffect {
@@ -27,5 +29,9 @@ public interface ConditionalEffect {
       gb.addPatchToPlay(patch);
       return true;
     };
+  }
+  
+  public static ConditionalEffect makeEmptyEffect() {
+    return (GameBoard gb) -> false;
   }
 }

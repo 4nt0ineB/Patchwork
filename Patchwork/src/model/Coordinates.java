@@ -3,8 +3,8 @@ package model;
 import java.util.List;
 import java.util.Objects;
 
-import util.xml.parser.XMLElement;
-import util.xml.parser.XMLSerializable;
+import util.xml.XMLElement;
+import util.xml.XMLSerializable;
 
 public record Coordinates(int y, int x) implements XMLSerializable<Coordinates> {
   
@@ -74,17 +74,11 @@ public record Coordinates(int y, int x) implements XMLSerializable<Coordinates> 
     return coordinatesElement;
   }
 
-  
-  public Coordinates fromXML(XMLElement element) {
-    Objects.requireNonNull(element, "xml can't be null");
-    if(element.isEmpty()) {
-      throw new IllegalStateException("Empty xml");
-    }
-    if(element.isEmpty()) {
-      throw new IllegalStateException("Empty xml");
-    }
-    
-    return null;
+  public static Coordinates fromXML(XMLElement element) {
+    XMLElement.requireNotEmpty(element);
+    return new Coordinates(
+        Integer.parseInt(element.getByTagName("x").content()),
+        Integer.parseInt(element.getByTagName("y").content()));
   }
   
 }

@@ -1,6 +1,6 @@
 package model.gameboard.event;
 
-public enum EventType {
+public enum EffectType {
   BUTTON_INCOME,
   PATCH_INCOME,
   SPECIAL_TILE,

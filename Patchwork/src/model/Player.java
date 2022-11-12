@@ -3,6 +3,7 @@ package model;
 import java.util.Objects;
 
 import model.button.ButtonOwner;
+import util.xml.XMLElement;
 import view.cli.CommandLineInterface;
 import view.cli.DrawableOnCLI;
 
@@ -80,6 +81,14 @@ public class Player extends ButtonOwner implements DrawableOnCLI {
     return new Player(parameters[0], 
         Integer.parseInt(parameters[1]),
         QuiltBoard.fromText(parameters[2]));
+  }
+  
+  public static Player fromXML(XMLElement element) {
+    XMLElement.requireNotEmpty(element);
+    return new Player(
+        element.getByTagName("name").content(),
+        Integer.parseInt(element.getByTagName("buttons").content()),
+        QuiltBoard.fromXML(element.getByTagName("QuiltBoard")));
   }
   
 }

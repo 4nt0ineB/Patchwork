@@ -1,10 +1,6 @@
 package model.gameboard;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -12,7 +8,7 @@ import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
-import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import model.Action;
 import model.Coordinates;
@@ -22,8 +18,7 @@ import model.QuiltBoard;
 import model.button.ButtonOwner;
 import model.gameboard.event.Event;
 import model.gameboard.event.EventPool;
-import model.gameboard.event.EventType;
-import model.gameboard.event.PositionedEvent;
+import util.xml.XMLElement;
 import view.cli.Color;
 import view.cli.CommandLineInterface;
 import view.cli.DrawableOnCLI;
@@ -52,14 +47,14 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
   /**
    * GameBoard constructor
    * 
-   * @param nextPatches max number of patches available each turn for the current
+   * @param patchByTurn max number of patches available each turn for the current
    *                    player
    * @param spaces      the number of spaces on the board
    * @param patches     the patches around the board at the beginning
    * @param players     the players
    * @param the         list of events for the board
    */
-  public GameBoard(int spaces, int nextPatches, int buttons, List<Patch> patches, Set<Player> players, List<Event> events) {
+  public GameBoard(int spaces, int patchByTurn, int buttons, List<Patch> patches, Set<Player> players, List<Event> events) {
     super(buttons);
     Objects.requireNonNull(patches, "List of patches can't be null");
     Objects.requireNonNull(players, "List of players can't be null");
@@ -69,18 +64,21 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
     if (players.size() < 2) {
       throw new IllegalArgumentException("There must be at least 2 players");
     }
-    if (nextPatches < 1) {
+    if (patchByTurn < 1) {
       throw new IllegalArgumentException("The number of available patches during a turn can't be lower than 1");
     }
     if (spaces < 1) {
       throw new IllegalArgumentException("The number of spaces on the board can't be lower than 1");
     }
     this.spaces = spaces - 1; // spaces => space no 0 to no spaces - 1
-    this.patchManager = new PatchManager(nextPatches, patches);
+    this.patchManager = new PatchManager(patchByTurn, patches);
     this.players.addAll(players);
     this.eventPool.addAll(events);
   }
-
+  
+  /**
+   * Must be called before running a game
+   */
   public void init() {
     currentPlayer = latestPlayer();
     updateActions();
@@ -404,157 +402,19 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
   }
 
   /**
-   * Make a initialized new standard game board 
-   * @return a basic game board
-   */
-  public static GameBoard fullBoard() {
-    // turn this into config files... very ugly
-    var patches = List.of(
-        new Patch(2, 2, 0, List.of(new Coordinates(0, -1), new Coordinates(0, 0), new Coordinates(0, 1))),
-        new Patch(2, 3, 0,
-            List.of(new Coordinates(-1, -1), new Coordinates(-1, 0), new Coordinates(-1, 1), new Coordinates(0, 0),
-                new Coordinates(1, -1), new Coordinates(1, 0), new Coordinates(1, 1))),
-        new Patch(2, 1, 0,
-            List.of(new Coordinates(-1, 0), new Coordinates(0, -1), new Coordinates(0, 0), new Coordinates(1, 0),
-                new Coordinates(1, 1), new Coordinates(2, 0))),
-        new Patch(2, 2, 0,
-            List.of(new Coordinates(-1, -1), new Coordinates(-1, 0), new Coordinates(0, -1), new Coordinates(0, 0),
-                new Coordinates(1, 0))),
-        new Patch(1, 2, 0,
-            List.of(new Coordinates(-1, 0), new Coordinates(-1, 1), new Coordinates(0, 0), new Coordinates(1, 0),
-                new Coordinates(1, 1))),
-        new Patch(2, 1, 0, List.of(new Coordinates(0, -1), new Coordinates(0, 0))),
-        new Patch(1, 2, 0,
-            List.of(new Coordinates(-1, 0), new Coordinates(-1, 1), new Coordinates(0, 0), new Coordinates(1, 0),
-                new Coordinates(2, 0), new Coordinates(2, -1))),
-        new Patch(4, 2, 0,
-            List.of(new Coordinates(0, -2), new Coordinates(0, -1), new Coordinates(0, 0), new Coordinates(1, -1),
-                new Coordinates(1, 0), new Coordinates(1, 1))),
-        new Patch(2, 2, 0,
-            List.of(new Coordinates(0, -1), new Coordinates(0, 0), new Coordinates(0, 1), new Coordinates(1, 0))),
-        new Patch(3, 1, 0, List.of(new Coordinates(0, -1), new Coordinates(-1, 0), new Coordinates(0, 0))),
-        new Patch(3, 4, 0,
-            List.of(new Coordinates(-2, 0), new Coordinates(-1, 0), new Coordinates(0, 0), new Coordinates(0, 1),
-                new Coordinates(1, 0))),
-        new Patch(0, 3, 1,
-            List.of(new Coordinates(0, -2), new Coordinates(0, -1), new Coordinates(0, 0), new Coordinates(-1, 0),
-                new Coordinates(1, 0), new Coordinates(0, 1))),
-        new Patch(1, 4, 1,
-            List.of(new Coordinates(0, -2), new Coordinates(0, -1), new Coordinates(0, 0), new Coordinates(-1, 0),
-                new Coordinates(1, 0), new Coordinates(0, 1), new Coordinates(0, 2))),
-        new Patch(3, 2, 1,
-            List.of(new Coordinates(0, -1), new Coordinates(0, 0), new Coordinates(-1, 0), new Coordinates(1, -1))),
-        new Patch(5, 3, 1,
-            List.of(new Coordinates(0, -1), new Coordinates(0, 0), new Coordinates(-1, 0), new Coordinates(0, 1),
-                new Coordinates(1, -1), new Coordinates(1, 0), new Coordinates(2, 0), new Coordinates(1, 1))),
-        new Patch(4, 2, 1,
-            List.of(new Coordinates(-1, 0), new Coordinates(0, 0), new Coordinates(1, 0), new Coordinates(1, 1))),
-        new Patch(1, 5, 1,
-            List.of(new Coordinates(-1, -1), new Coordinates(0, -1), new Coordinates(0, 0), new Coordinates(0, 1),
-                new Coordinates(0, 2), new Coordinates(-1, 2))),
-        new Patch(7, 1, 1,
-            List.of(new Coordinates(0, -2), new Coordinates(-0, -1), new Coordinates(0, 0), new Coordinates(0, 1),
-                new Coordinates(0, 2))),
-        new Patch(10, 3, 2,
-            List.of(new Coordinates(-2, 0), new Coordinates(-1, 0), new Coordinates(0, 0), new Coordinates(1, 0),
-                new Coordinates(1, 1))),
-        new Patch(7, 2, 2,
-            List.of(new Coordinates(-1, -1), new Coordinates(0, -1), new Coordinates(1, -1), new Coordinates(0, 0),
-                new Coordinates(0, 1), new Coordinates(0, 2))),
-        new Patch(5, 4, 2,
-            List.of(new Coordinates(0, -1), new Coordinates(-1, 0), new Coordinates(0, 0), new Coordinates(0, 1),
-                new Coordinates(1, 0))),
-        new Patch(2, 3, 1,
-            List.of(new Coordinates(0, 0), new Coordinates(1, -1), new Coordinates(1, 0), new Coordinates(0, 0),
-                new Coordinates(0, 1), new Coordinates(0, 2))),
-        new Patch(5, 5, 2,
-            List.of(new Coordinates(0, -1), new Coordinates(0, 0), new Coordinates(-1, 1), new Coordinates(0, 1),
-                new Coordinates(1, 1))),
-        new Patch(3, 6, 2,
-            List.of(new Coordinates(-1, -1), new Coordinates(-1, 0), new Coordinates(0, 0), new Coordinates(0, 1),
-                new Coordinates(1, 0), new Coordinates(1, -1))),
-        new Patch(10, 5, 3,
-            List.of(new Coordinates(-1, -1), new Coordinates(-1, 0), new Coordinates(0, 0), new Coordinates(0, -1),
-                new Coordinates(1, 0), new Coordinates(2, 0))),
-        new Patch(7, 4, 2,
-            List.of(new Coordinates(-1, 0), new Coordinates(0, 0), new Coordinates(0, 1), new Coordinates(1, 1),
-                new Coordinates(1, 0), new Coordinates(2, 0))),
-        new Patch(8, 6, 3,
-            List.of(new Coordinates(0, -1), new Coordinates(0, 0), new Coordinates(1, -1), new Coordinates(1, 0),
-                new Coordinates(0, 1), new Coordinates(-1, 1))),
-        new Patch(6, 5, 2,
-            List.of(new Coordinates(-1, -1), new Coordinates(-1, 0), new Coordinates(0, 0), new Coordinates(0, -1))),
-        new Patch(10, 4, 3,
-            List.of(new Coordinates(0, 0), new Coordinates(1, -1), new Coordinates(1, 0), new Coordinates(0, 1),
-                new Coordinates(-1, 1))),
-        new Patch(7, 6, 3,
-            List.of(new Coordinates(0, -1), new Coordinates(0, 0), new Coordinates(1, 0), new Coordinates(1, 1))),
-        new Patch(4, 6, 2,
-            List.of(new Coordinates(0, -1), new Coordinates(0, 0), new Coordinates(0, 1), new Coordinates(-1, 1))));
-    var player1 = new Player("Player 1", 5, new QuiltBoard(9, 9));
-    var player2 = new Player("Player 2", 5, new QuiltBoard(9, 9));
-    var events = new ArrayList<Event>();
-    for(var position: List.of(5, 11, 17, 23, 29, 35, 41, 47)) {
-      events.add(new PositionedEvent(EventType.BUTTON_INCOME, position, false, ConditionalEffect.makeButtonIncomeEffect()));
-    }
-    for(var position: List.of(20, 26, 32, 44, 50)) {
-      events.add(new PositionedEvent(EventType.PATCH_INCOME, position, true, ConditionalEffect.makePatchIncomeEffect(new Patch(0, 0, 0, List.of(new Coordinates(0,0))))));
-    }
-    // @Todo make special tile event !
-    var gameBoard = new GameBoard(53, 3, 152, patches, Set.<Player>of(player1, player2), events);
-    gameBoard.init();
-    return gameBoard;
-  }
-
-  /**
-   * Make a new standard patchwork game board 
-   * from file
-   * 
-   * Lines starting with '#' ignored
-   * Expect lines as:
-   * typeOfData:data
-   * 
-   * @param text
+   * Make new game board from a XMLElement
+   * @param element
    * @return
    */
-  public static GameBoard gameBoardFromFile(Path path) throws IOException {
-    Objects.requireNonNull(path, "The path can't be null");
-    var spaces = 0;
-    var maxAvailabelPatchesByTurn = 0;
-    var buttons = 0;
-    var patches = new ArrayList<Patch>();
-    var players = new HashSet<Player>();
-    var events = new ArrayList<Event>();
-    var pattern = Pattern.compile("^[^#].+:.+");
-    try(var reader = Files.newBufferedReader(path)){
-      var line = "";
-      var lineNo = 1;
-      while((line = reader.readLine()) != null) {
-        var matcher = pattern.matcher(line);
-        if(matcher.matches()) {
-          var splited = line.split(":");
-            switch(splited[0]) {
-            case "spaces" -> spaces = Integer.parseInt(splited[1]);
-            case "maxAvailablePatchesByTurn" -> maxAvailabelPatchesByTurn = Integer.parseInt(splited[1]); 
-            case "buttons" -> buttons = Integer.parseInt(splited[1]); 
-            case "pl" -> {
-              players.add(Player.fromText(splited[1]));
-            }
-            case "pa" -> {
-              patches.add(Patch.fromText(splited[1]));
-            }
-            case "pe" -> {
-              events.add(PositionedEvent.fromText(splited[1]));
-            }
-            default -> {
-              throw new AssertionError("Unexpected data at line " + lineNo);
-            }
-          }
-        }
-        lineNo++;
-      }
-    }
-    System.out.println(events);
-    return new GameBoard(spaces, maxAvailabelPatchesByTurn, buttons, patches, players, events);
+  public static GameBoard fromXML(XMLElement element) {
+    XMLElement.requireNotEmpty(element);
+    var spaces = Integer.parseInt(element.getByTagName("spaces").content());
+    var patchByTurn = Integer.parseInt(element.getByTagName("patchByTurn").content());
+    var buttons = Integer.parseInt(element.getByTagName("buttons").content());
+    var players = element.getByTagName("playerList")
+        .getAllByTagName("Player").stream().map(Player::fromXML).collect(Collectors.toSet());
+    var patches = element.getByTagName("patchList").getAllByTagName("Patch").stream().map(Patch::fromXML).toList();
+    var events = element.getByTagName("eventList").getAllByTagName("Event").stream().map(Event::fromXML).toList();
+    return new GameBoard(spaces, patchByTurn, buttons, patches, players, events);
   }
 }

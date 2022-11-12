@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import util.xml.XMLElement;
 import view.cli.Color;
 import view.cli.CommandLineInterface;
 import view.cli.DrawableOnCLI;
@@ -128,6 +129,13 @@ public class QuiltBoard implements DrawableOnCLI {
     var parameters = text.replaceAll("[\\(\\)]", "").split(",");
     return new QuiltBoard(Integer.parseInt(parameters[0]), 
         Integer.parseInt(parameters[1]));
+  }
+
+  public static QuiltBoard fromXML(XMLElement element) {
+    XMLElement.requireNotEmpty(element);
+    return new QuiltBoard(Integer.parseInt(element.getByTagName("width").content()),
+        Integer.parseInt(element.getByTagName("height").content())
+        );
   }
 
 }

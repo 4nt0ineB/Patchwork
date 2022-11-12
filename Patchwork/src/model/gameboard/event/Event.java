@@ -3,31 +3,27 @@ package model.gameboard.event;
 import java.util.Objects;
 
 import model.Patch;
-import model.gameboard.ConditionalEffect;
 import model.gameboard.GameBoard;
+import util.xml.XMLElement;
 import view.cli.Color;
 import view.cli.CommandLineInterface;
 import view.cli.DrawableOnCLI;
 
-public sealed class Event implements DrawableOnCLI permits PositionedEvent {
+public class Event implements DrawableOnCLI {
 
   private final ConditionalEffect effect;
   private final boolean oneUse;
   private boolean active = true;
-  private EventType type;
+  private final int position;
+  private EffectType type;
 
-  public Event(EventType type, boolean oneUse, ConditionalEffect effect) {
+  public Event(EffectType type, boolean oneUse, int position, ConditionalEffect effect) {
     this.type = Objects.requireNonNull(type, "Type can't be null");
     this.effect = Objects.requireNonNull(effect, "Effect can't be null");
     this.oneUse = oneUse;
+    this.position = position;
   }
-
-  public void run(GameBoard gameboard) {
-    if (effect.run(gameboard) && oneUse) {
-      active = false;
-    }
-  }
-
+  
   /**
    * Test if the event is positioned inside a given interval
    * 
@@ -36,7 +32,13 @@ public sealed class Event implements DrawableOnCLI permits PositionedEvent {
    * @return
    */
   public Boolean isPositionedBetween(int n, int m) {
-    return false;
+    return position > -1 && position >= n && position <= m;
+  }
+
+  public void run(GameBoard gameboard) {
+    if (effect.run(gameboard) && oneUse) {
+      active = false;
+    }
   }
 
   public Boolean runEachTurn() {
@@ -49,7 +51,8 @@ public sealed class Event implements DrawableOnCLI permits PositionedEvent {
 
   @Override
   public String toString() {
-    return "oneUse: " + oneUse + ", active: " + active;
+    return  "{" + (position > -1 ? "Position: " + position + ", " : ", ")
+        +  "oneUse: " + oneUse + ", active: " + active + "}";
   }
 
   @Override
@@ -71,26 +74,22 @@ public sealed class Event implements DrawableOnCLI permits PositionedEvent {
     };
     ui.addMessage(text + Color.ANSI_RESET);
   }
-
-  public static Event fromText(String text) {
-    Objects.requireNonNull(text, "Can't make new event out of null String");
-    var parameters = text.split("\\|");
-    var type = EventType.valueOf(parameters[0]);
-    return switch(type) {
-      case BUTTON_INCOME -> {
-       yield new Event(type, 
-           Boolean.parseBoolean(parameters[1]), 
-           ConditionalEffect.makeButtonIncomeEffect());
-      }
-      case PATCH_INCOME -> {
-        yield new Event(type, 
-            Boolean.parseBoolean(parameters[1]), 
-            ConditionalEffect.makePatchIncomeEffect(Patch.fromText(parameters[3])));
   
+  public static Event fromXML(XMLElement element) {
+    XMLElement.requireNotEmpty(element);
+    var type = EffectType.valueOf(element.getByTagName("type").content());
+    var position = Integer.parseInt(element.getByTagName("position").content());
+    var oneUse = Boolean.parseBoolean(element.getByTagName("oneUse").content());
+    var effect = switch(type) {
+      case BUTTON_INCOME ->  ConditionalEffect.makeButtonIncomeEffect();
+      case PATCH_INCOME -> ConditionalEffect.makePatchIncomeEffect(Patch.fromXML(element.getByTagName("patch")));
+      case SPECIAL_TILE -> {
+          throw new IllegalArgumentException("This type event must be implemented !");
       }
-      default -> {
-        throw new AssertionError("This type of event doesn't exists");
-      }
+       default -> {
+          throw new IllegalArgumentException("This type does not exists. ("+ type + ")");
+       }
     };
+    return new Event(type, oneUse, position, effect);
   }
 }

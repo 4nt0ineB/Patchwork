@@ -10,6 +10,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import model.button.ButtonValued;
+import model.gameboard.GameBoard;
+import util.xml.XMLElement;
 import view.cli.CommandLineInterface;
 import view.cli.DrawableOnCLI;
 
@@ -76,6 +78,11 @@ public class Patch implements ButtonValued, DrawableOnCLI {
   
   public int buttons() {
     return buttons;
+  }
+  
+  @Override
+  public int value() {
+    return price;
   }
   
   /**
@@ -323,17 +330,19 @@ public class Patch implements ButtonValued, DrawableOnCLI {
     }
   }
   
-  public static Patch fromText(String text) {
-    Objects.requireNonNull(text, "Can't make new player out of null String");
-    var parameters = text.strip().split("\\|(?=[^\"]*(?:\"[^\"]*\")*$)");
-    return new Patch(Integer.parseInt(parameters[0]), 
-        Integer.parseInt(parameters[1]),
-        Integer.parseInt(parameters[2]),
-        Arrays.stream(parameters[3].replaceAll("\"", "").split("\\|")).map(Coordinates::fromText).toList());
+  /**
+   * Make new patch from a XMLElement
+   * @param element
+   * @return
+   */
+  public static Patch fromXML(XMLElement element) {
+    XMLElement.requireNotEmpty(element);
+    var price = Integer.parseInt(element.getByTagName("price").content());
+    var moves = Integer.parseInt(element.getByTagName("moves").content());
+    var buttons = Integer.parseInt(element.getByTagName("buttons").content());
+    var coordinatesList = element.getByTagName("coordinatesList")
+        .getAllByTagName("Coordinates").stream().map(Coordinates::fromXML).toList();
+    return new Patch(price, moves, buttons, coordinatesList);
   }
 
-  @Override
-  public int value() {
-    return price;
-  }
 }
