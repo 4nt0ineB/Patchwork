@@ -1,8 +1,12 @@
 package model;
 
+import java.util.List;
 import java.util.Objects;
 
-public record Coordinates(int y, int x) {
+import util.xml.parser.XMLElement;
+import util.xml.parser.XMLSerializable;
+
+public record Coordinates(int y, int x) implements XMLSerializable<Coordinates> {
   
   @Override
   public String toString() {
@@ -59,6 +63,27 @@ public record Coordinates(int y, int x) {
     var parameters = text.stripIndent().replaceAll("[\\(\\)]", "").split(",");
     return new Coordinates(Integer.parseInt(parameters[0]), 
         Integer.parseInt(parameters[1]));
+  }
+
+  @Override
+  public XMLElement toXML() {
+    var coordinatesElement = new XMLElement("Coordinates");
+    coordinatesElement.addAll(List.of(
+        new XMLElement("x", x), 
+        new XMLElement("x", y)));
+    return coordinatesElement;
+  }
+
+  @Override
+  public Coordinates fromXML(XMLElement element) {
+    Objects.requireNonNull(element, "xml can't be null");
+    if(element.isEmpty()) {
+      throw new IllegalStateException("Empty xml");
+    }
+    if(element.isEmpty()) {
+      throw new IllegalStateException("Empty xml");
+    }
+    return null;
   }
   
 }

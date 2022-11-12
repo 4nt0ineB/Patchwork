@@ -1,9 +1,7 @@
 package controller;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -11,8 +9,7 @@ import model.Action;
 import model.Coordinates;
 import model.Patch;
 import model.gameboard.GameBoard;
-import util.parser.JsonObject;
-import util.parser.JsonParser;
+import util.xml.parser.XMLParser;
 import view.UserInterface;
 
 public class PatchworkController {
@@ -110,11 +107,22 @@ public class PatchworkController {
 
   public static void main(String[] args) {
     var path = Path.of("resources/settings/patchwork_full.txt");
-    var jsonPath = Path.of("resources/settings/patchwork_full.json");
+    var jsonPath = Path.of("resources/settings/patchwork_full.xml");
     
     try {
-      var jsonParser = new JsonParser();
-      var jsonObject = jsonParser.fromFile(jsonPath);
+      var xmlParser = new XMLParser();
+      var xmlElement = xmlParser.parse(jsonPath);
+      var x = xmlParser.parse("""
+              <coordinates>
+                <Coordinates><x>-1</x><y>-1</y></Coordinates>  
+                <Coordinates><x>-1</x><y>0</y></Coordinates>  
+                <Coordinates><x>0</x><y>0</y></Coordinates>  
+                <Coordinates><x>0</x><y>-1</y></Coordinates>
+            </coordinates>
+              """);
+      System.out.println(x);
+      var coord = new Coordinates(4, -2);
+      System.out.println(coord.toXML());
     } catch (IOException e) {
       e.printStackTrace();
     }
