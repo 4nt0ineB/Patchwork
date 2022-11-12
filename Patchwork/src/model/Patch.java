@@ -1,20 +1,22 @@
 package model;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import model.button.ButtonValued;
-import model.gameboard.GameBoard;
 import util.xml.XMLElement;
 import view.cli.CommandLineInterface;
 import view.cli.DrawableOnCLI;
 
+/**
+ * 
+ * Provides an implementation of a patch
+ *
+ */
 public class Patch implements ButtonValued, DrawableOnCLI {
   
   // buttons in case of income
@@ -68,14 +70,18 @@ public class Patch implements ButtonValued, DrawableOnCLI {
     this.rotations = allRotations(new HashSet<>(coordinates));
   }
   
+  /**
+   * 
+   * @return
+   */
   public int moves() {
     return moves;
   }
   
-  public int price() {
-    return price;
-  }
-  
+  /**
+   * Return the amount of button on the patch
+   * @return 
+   */
   public int buttons() {
     return buttons;
   }
@@ -131,6 +137,10 @@ public class Patch implements ButtonValued, DrawableOnCLI {
     absoluteOrigin = absoluteOrigin.add(new Coordinates(0, 1));
   }
   
+  /**
+   * Count the number of coordinates in the patch
+   * @return
+   */
   public int countCells() {
     return rotations.get(currentRotation).size();
   }
@@ -282,6 +292,10 @@ public class Patch implements ButtonValued, DrawableOnCLI {
         && rotations.contains(o.rotations.get(o.currentRotation));
   }
   
+  /**
+   * Move the absolute origin of the patch to the given coordinates
+   * @param coordinates
+   */
   public void absoluteMoveTo(Coordinates coordinates) {
     absoluteOrigin = coordinates;
   }

@@ -1,5 +1,5 @@
 <GameBoard> 
-	<spaces>54</space>
+	<spaces>54</spaces>
 	<patchByTurn>3</patchByTurn>
 	<buttons>152</buttons>
 	<playerList>
@@ -61,7 +61,7 @@
 			<oneUse>false</oneUse>
 			<position>47</position>
 		</Event>
-	</enventList>
+	</eventList>
 	<patchList>
 		<Patch>
 			<price>2</price>
@@ -72,7 +72,7 @@
 				<Coordinates><x>0</x><y>0</y></Coordinates>
 				<Coordinates><x>0</x><y>1</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 		<Patch>
 			<price>2</price>
 			<moves>3</moves>
@@ -86,7 +86,7 @@
 				<Coordinates><x>1</x><y>0</y></Coordinates> 
 				<Coordinates><x>1</x><y>1</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 		<Patch>
 			<price>2</price>
 			<moves>1</moves>
@@ -99,7 +99,7 @@
 				<Coordinates><x>1</x><y>1</y></Coordinates> 
 				<Coordinates><x>2</x><y>0</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 		<Patch>
 			<price>2</price>
 			<moves>2</moves>
@@ -111,7 +111,7 @@
 				<Coordinates><x>0</x><y>0</y></Coordinates> 
 				<Coordinates><x>1</x><y>0</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 		<Patch>
 			<price>1</price>
 			<moves>2</moves>
@@ -123,7 +123,7 @@
 				<Coordinates><x>1</x><y>0</y></Coordinates> 
 				<Coordinates><x>1</x><y>1</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 		<Patch>
 			<price>2</price>
 			<moves>1</moves>
@@ -132,7 +132,7 @@
 				<Coordinates><x>0</x><y>-1</y></Coordinates>   
 				<Coordinates><x>0</x><y>0</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 		<Patch>
 			<price>1</price>
 			<moves>2</moves>
@@ -145,7 +145,7 @@
 				<Coordinates><x>2</x><y>0</y></Coordinates> 
 				<Coordinates><x>2</x><y>-1</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 		<Patch>
 			<price>4</price>
 			<moves>2</moves>
@@ -158,7 +158,7 @@
 				<Coordinates><x>1</x><y>0</y></Coordinates> 
 				<Coordinates><x>1</x><y>1</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 		<Patch>
 			<price>2</price>
 			<moves>2</moves>
@@ -169,7 +169,7 @@
 				<Coordinates><x>0</x><y>1</y></Coordinates>  
 				<Coordinates><x>1</x><y>0</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 		<Patch>
 			<price>3</price>
 			<moves>1</moves>
@@ -179,7 +179,7 @@
 				<Coordinates><x>-1</x><y>0</y></Coordinates> 
 				<Coordinates><x>0</x><y>0</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 		<Patch>
 			<price>3</price>
 			<moves>4</moves>
@@ -191,7 +191,7 @@
 				<Coordinates><x>0</x><y>1</y></Coordinates>  
 				<Coordinates><x>1</x><y>0</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 		<Patch>
 			<price>0</price>
 			<moves>3</moves>
@@ -204,7 +204,7 @@
 				<Coordinates><x>1</x><y>0</y></Coordinates> 
 				<Coordinates><x>0</x><y>1</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 		<Patch>
 			<price>1</price>
 			<moves>4</moves>
@@ -218,7 +218,7 @@
 				<Coordinates><x>0</x><y>1</y></Coordinates> 
 				<Coordinates><x>0</x><y>2</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 		<Patch>
 			<price>3</price>
 			<moves>2</moves>
@@ -229,7 +229,7 @@
 				<Coordinates><x>-1</x><y>0</y></Coordinates> 
 				<Coordinates><x>1</x><y>-1</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 		<Patch>
 			<price>5</price>
 			<moves>3</moves>
@@ -244,7 +244,7 @@
 				<Coordinates><x>2</x><y>0</y></Coordinates> 
 				<Coordinates><x>1</x><y>1</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 		<Patch>
 			<price>4</price>
 			<moves>2</moves>
@@ -255,7 +255,7 @@
 				<Coordinates><x>1</x><y>0</y></Coordinates>  
 				<Coordinates><x>1</x><y>1</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 		<Patch>
 			<price>1</price>
 			<moves>5</moves>
@@ -268,7 +268,7 @@
 				<Coordinates><x>0</x><y>2</y></Coordinates> 
 				<Coordinates><x>-1</x><y>2</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 		<Patch>
 			<price>7</price>
 			<moves>1</moves>
@@ -280,7 +280,7 @@
 				<Coordinates><x>0</x><y>1</y></Coordinates>  
 				<Coordinates><x>0</x><y>2</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 		<Patch>
 			<price>10</price>
 			<moves>3</moves>
@@ -293,7 +293,7 @@
 				<Coordinates><x>1</x><y>0</y></Coordinates>  
 				<Coordinates><x>1</x><y>1</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 		<Patch>
 			<price>7</price>
 			<moves>2</moves>
@@ -306,7 +306,7 @@
 				<Coordinates><x>0</x><y>1</y></Coordinates> 
 				<Coordinates><x>0</x><y>2</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 		<Patch>
 			<price>5</price>
 			<moves>4</moves>
@@ -318,7 +318,7 @@
 				<Coordinates><x>0</x><y>1</y></Coordinates>  
 				<Coordinates><x>1</x><y>0</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 		<Patch>
 			<price>2</price>
 			<moves>3</moves>
@@ -331,7 +331,7 @@
 				<Coordinates><x>0</x><y>1</y></Coordinates> 
 				<Coordinates><x>0</x><y>2</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 		<Patch>
 			<price>5</price>
 			<moves>5</moves>
@@ -343,7 +343,7 @@
 				<Coordinates><x>0</x><y>1</y></Coordinates>  
 				<Coordinates><x>1</x><y>1</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 		<Patch>
 			<price>3</price>
 			<moves>6</moves>
@@ -356,7 +356,7 @@
 				<Coordinates><x>1</x><y>0</y></Coordinates> 
 				<Coordinates><x>1</x><y>-1</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 		<Patch>
 			<price>10</price>
 			<moves>5</moves>
@@ -369,7 +369,7 @@
 				<Coordinates><x>1</x><y>0</y></Coordinates> 
 				<Coordinates><x>2</x><y>0</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 		<Patch>
 			<price>7</price>
 			<moves>4</moves>
@@ -382,7 +382,7 @@
 				<Coordinates><x>1</x><y>0</y></Coordinates> 
 				<Coordinates><x>2</x><y>0</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 		<Patch>
 			<price>8</price>
 			<moves>6</moves>
@@ -395,7 +395,7 @@
 				<Coordinates><x>0</x><y>1</y></Coordinates> 
 				<Coordinates><x>-1</x><y>1</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 		<Patch>
 			<price>6</price>
 			<moves>5</moves>
@@ -406,7 +406,7 @@
 				<Coordinates><x>0</x><y>0</y></Coordinates>  
 				<Coordinates><x>0</x><y>-1</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 		<Patch>
 			<price>10</price>
 			<moves>4</moves>
@@ -418,7 +418,7 @@
 				<Coordinates><x>0</x><y>1</y></Coordinates>  
 				<Coordinates><x>-1</x><y>1</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 		<Patch>
 			<price>7</price>
 			<moves>6</moves>
@@ -429,7 +429,7 @@
 				<Coordinates><x>1</x><y>0</y></Coordinates>  
 				<Coordinates><x>1</x><y>1</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 		<Patch>
 			<price>4</price>
 			<moves>6</moves>
@@ -440,6 +440,6 @@
 				<Coordinates><x>0</x><y>1</y></Coordinates>  
 				<Coordinates><x>-1</x><y>1</y></Coordinates>
 			</coordinatesList>
-		</patch>
+		</Patch>
 	</patchList>
 </GameBoard>

@@ -1,7 +1,6 @@
 package model;
 
 import java.util.List;
-import java.util.Objects;
 
 import util.xml.XMLElement;
 import util.xml.XMLSerializable;
@@ -13,30 +12,62 @@ public record Coordinates(int y, int x) implements XMLSerializable<Coordinates> 
     return "(" + y + "," + x + ")";
   }
   
+  /**
+   * Add the Coordinates with the corresponding coordinates from an other instance
+   * @param other Coordinates
+   * @return
+   */
   public Coordinates add(Coordinates other) {
     return new Coordinates(y + other.y, x + other.x);
   }
   
+  /**
+   * Multiply the Coordinates with the corresponding coordinates from an other instance
+   * @param other Coordinates
+   * @return
+   */
   public Coordinates mul(Coordinates other) {
     return new Coordinates(y * other.y, x * other.x);
   }
   
+  /**
+   * Substract the Coordinates with the corresponding coordinates from an other instance
+   * @param other Coordinates
+   * @return
+   */
   public Coordinates sub(Coordinates other) {
     return new Coordinates(y - other.y, x - other.x);
   }
   
+  /**
+   * Return the distance between the instance and other Coordinates
+   * @param other Coordinates
+   * @return
+   */
   public double distance(Coordinates other) {
     return Math.sqrt(Math.pow(other.x - x, 2) + Math.pow(other.y - y, 2));
   }
   
+  /**
+   * Apply {@link Math#abs} on the each coordinate
+   * @return new Coordinates
+   */
   public Coordinates abs() {
     return new Coordinates(Math.abs(y), Math.abs(x));
   }
   
+  /**
+   * Transform the coordinates by a clockwise rotation
+   * @return
+   */
   public Coordinates rotateClockwise() {
     return new Coordinates(-1 * x, 1 * y);
   }
   
+  /**
+   * Transform the coordinates by an anti-clockwise rotation
+   * @return
+   */
   public Coordinates rotateAntiClockwise() {
     return new Coordinates(1 * x(), -1 * y);
   }
@@ -46,8 +77,8 @@ public record Coordinates(int y, int x) implements XMLSerializable<Coordinates> 
    * Check if coordinates are in a rectangle formed by two pairs of coordinates.
    * with c1 as upper left corner, c2 as lower right corner
    * 
-   * @param c1
-   * @param c2
+   * @param c1 Coordinates
+   * @param c2 Coordinates
    * @return true or false
    */
   public boolean inRectangle(Coordinates c1, Coordinates c2) {
@@ -58,13 +89,6 @@ public record Coordinates(int y, int x) implements XMLSerializable<Coordinates> 
         ;
   }
   
-  public static Coordinates fromText(String text) {
-    Objects.requireNonNull(text, "Can't make new coordinates out of null String");
-    var parameters = text.stripIndent().replaceAll("[\\(\\)]", "").split(",");
-    return new Coordinates(Integer.parseInt(parameters[0]), 
-        Integer.parseInt(parameters[1]));
-  }
-
   @Override
   public XMLElement toXML() {
     var coordinatesElement = new XMLElement("Coordinates");
@@ -74,6 +98,12 @@ public record Coordinates(int y, int x) implements XMLSerializable<Coordinates> 
     return coordinatesElement;
   }
 
+  /**
+   * Make new Coordinates from a XMLElement
+   * @param element XMLElement
+   * @exception IllegalStateException If the XMLElement is empty
+   * @return
+   */
   public static Coordinates fromXML(XMLElement element) {
     XMLElement.requireNotEmpty(element);
     return new Coordinates(

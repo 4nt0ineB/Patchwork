@@ -4,10 +4,16 @@ import java.util.Objects;
 
 import model.Patch;
 import model.gameboard.GameBoard;
-import view.cli.Color;
 
+/**
+ * 
+ * Provides effect to be triggered by and conditioned event in game
+ * 
+ *
+ */
 @FunctionalInterface
-public interface ConditionalEffect {
+public interface Effect {
+  
   /**
    * run the effect on a GameBoard
    * 
@@ -16,22 +22,28 @@ public interface ConditionalEffect {
    */
   boolean run(GameBoard gb);
   
-  public static ConditionalEffect makeButtonIncomeEffect() {
+  /*
+   * Make a new effect, paying the current 
+   * player according to the amount of buttons on his quilt
+   */
+  public static Effect makeButtonIncomeEffect() {
     return (GameBoard gb) -> {
       gb.pay(gb.currentPlayer(), gb.currentPlayer().quilt().buttons());
       return true;
     };
   }
 
-  public static ConditionalEffect makePatchIncomeEffect(Patch patch) {
+  /**
+   * Make a new effect, dropping a patch to the current player
+   * @param patch The patch to drop
+   * @return
+   */
+  public static Effect makePatchIncomeEffect(Patch patch) {
     Objects.requireNonNull(patch, "Patch can't be null");
     return (GameBoard gb) -> {
       gb.addPatchToPlay(patch);
       return true;
     };
   }
-  
-  public static ConditionalEffect makeEmptyEffect() {
-    return (GameBoard gb) -> false;
-  }
+
 }

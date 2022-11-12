@@ -1,10 +1,10 @@
 /**
  * Controller of the Patchwork game.
  * 
- * <dl>
+ * <p>
  * The controller binds the model and the view by reflecting 
  * user interaction on the given user interface, on the model.
- * <dl>
+ * <p>
  * This is where the game loop run.
  */
 package controller;
