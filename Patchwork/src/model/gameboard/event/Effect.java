@@ -9,7 +9,6 @@ import model.gameboard.GameBoard;
  * 
  * Provides effect to be triggered by and conditioned event in game
  * 
- *
  */
 @FunctionalInterface
 public interface Effect {
@@ -27,8 +26,11 @@ public interface Effect {
    * player according to the amount of buttons on his quilt
    */
   public static Effect makeButtonIncomeEffect() {
-    return (GameBoard gb) -> {
-      gb.pay(gb.currentPlayer(), gb.currentPlayer().quilt().buttons());
+    return (GameBoard board) -> {
+      int amount = board.currentPlayer().quilt().buttons();
+      if(board.canPay(amount)) {
+        board.pay(board.currentPlayer(), amount);  
+      }
       return true;
     };
   }

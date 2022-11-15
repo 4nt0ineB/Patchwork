@@ -1,4 +1,4 @@
 /**
- * Provides the Patchwork game components.
+ * Provides the Patchwork game main components.
  */
 package model;

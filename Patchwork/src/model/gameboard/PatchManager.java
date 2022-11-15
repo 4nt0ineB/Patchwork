@@ -24,8 +24,9 @@ public class PatchManager {
     }
     this.nextPatchesRange = nextPatchesRange;
     this.patches = new ArrayList<>(patches);
-    this.neutralToken = minPatch(this.patches);
     Collections.shuffle(this.patches);
+    // -1 because the next patches are those selected after the neutralToken
+    this.neutralToken = minPatch(this.patches) - 1;
     loadNextPatches();
   }
 
@@ -75,14 +76,11 @@ public class PatchManager {
    */
   public void select(Patch patch) {
     Objects.requireNonNull(patch, "Can't select with null patch");
-    for (var availablePatch : availablePatches) {
-      // We want to test on addresses here
-      if (patch.equals(availablePatch)) {
-        selected = availablePatch;
-        return;
-      }
+    if(!availablePatches.contains(patch)) {
+      throw new IllegalArgumentException("This patch is not present in those available");
     }
-    throw new AssertionError("This patch isn't present in the available ones.");
+    selected = patch;
+    
   }
   
   /**
@@ -130,8 +128,8 @@ public class PatchManager {
    */
   public static int minPatch(List<Patch> patches) {
     Objects.requireNonNull(patches, "Can't find smallest in null obj");
-    if(patches.size() == 0) {
-      return -1;
+    if(patches.isEmpty()) {
+      throw new IllegalArgumentException("Empty list of patches");
     }
     return IntStream.range(0, patches.size()).boxed()
         .min((i, j) -> Integer.compare(patches.get(i).countCells(), patches.get(j).countCells()))

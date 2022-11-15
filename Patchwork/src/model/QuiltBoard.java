@@ -117,7 +117,7 @@ public class QuiltBoard implements DrawableOnCLI {
   }
   
   /**
-   * Sum the patches buttons on the quilt
+   * Sum the total of buttons on the quilt
    * @return the sum
    */
   public int buttons() {

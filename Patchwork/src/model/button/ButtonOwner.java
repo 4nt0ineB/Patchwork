@@ -18,14 +18,14 @@ public abstract class ButtonOwner implements Comparable<ButtonOwner>{
   
   public ButtonOwner(int buttons) {
     if(buttons < 0) {
-      throw new IllegalArgumentException("The amount of buttons must be positive");
+      throw new IllegalArgumentException("The amount of buttons can't be negative");
     }
     this.buttons = buttons;
   }
   
   public boolean canPay(int amount) {
-    if(buttons < 0) {
-      throw new IllegalArgumentException("The amount of buttons must be positive");
+    if(amount < 0) {
+      throw new IllegalArgumentException("The amount of buttons can't be negative");
     }
     return buttons >= amount;
   }
@@ -35,19 +35,18 @@ public abstract class ButtonOwner implements Comparable<ButtonOwner>{
   }
   
   
-  public boolean pay(ButtonOwner owner, int amount) {
+  public void pay(ButtonOwner owner, int amount) {
     if(!canPay(amount)) {
-      return false;
+      throw new IllegalArgumentException("Not enough money to pay " + amount + "buttons");
     }
     buttons -= amount;
     owner.buttons += amount;
-    return true;
   }
-
-  public boolean payFor(ButtonOwner owner, ButtonValued thing) {
+  
+  public void payOwnerFor(ButtonOwner owner, ButtonValued thing) {
     Objects.requireNonNull(owner, "owner can't be null");
     Objects.requireNonNull(thing, "thing can't be null");
-    return pay(owner, thing.value());
+    pay(owner, thing.value());
   }
   
   @Override

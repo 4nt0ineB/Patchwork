@@ -79,6 +79,7 @@ public class PatchworkController {
     // A list of actions
     var action = Action.DEFAULT;
     var actions = new LinkedHashSet<>(patchActions);
+    actions.add(Action.BACK);
     // We use a dummy quilt to play with the patch
     var quilt = board.currentPlayer().quilt();
     patch.absoluteMoveTo(new Coordinates(quilt.width() / 2, quilt.height() / 2));
@@ -109,7 +110,8 @@ public class PatchworkController {
   }
 
   public static void main(String[] args) {
-    var path = Path.of("resources/settings/patchwork_full.xml");
+    // var path = Path.of("resources/settings/patchwork_full.xml");
+    var path = Path.of("resources/settings/patchwork_basic.xml");
     try {
       var xmlParser = new XMLParser();
       var xmlElement = xmlParser.parse(path);

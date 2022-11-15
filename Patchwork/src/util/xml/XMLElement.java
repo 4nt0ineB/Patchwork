@@ -69,15 +69,10 @@ public class XMLElement extends ArrayList<XMLElement> {
   /**
    * Return all records of the XMLElement having the given tag
    * @param tag
-   * @exception NoSuchElementException If a no record with the given tag could be found
    * @return
    */
   public List<XMLElement> getAllByTagName(String tag){
-    var elements = this.stream().filter(e -> e.tag().equals(tag)).toList();
-    if(elements.isEmpty()) {
-      throw new NoSuchElementException("No tagged records \""+ tag +"\" found");
-    }
-    return elements;
+    return this.stream().filter(e -> e.tag().equals(tag)).toList();
   }
   
   public void setContent(Object content) {

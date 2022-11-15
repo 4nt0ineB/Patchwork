@@ -1,6 +1,5 @@
 package model.gameboard;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -11,13 +10,10 @@ import java.util.Stack;
 import java.util.stream.Collectors;
 
 import model.Action;
-import model.Coordinates;
 import model.Patch;
 import model.Player;
-import model.QuiltBoard;
 import model.button.ButtonOwner;
 import model.gameboard.event.Event;
-import model.gameboard.event.EventPool;
 import util.xml.XMLElement;
 import view.cli.Color;
 import view.cli.CommandLineInterface;
@@ -32,7 +28,7 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
   // Patch manager (patches around the board)
   private final PatchManager patchManager;
   //All events in game
-  private final EventPool eventPool = new EventPool();
+  private final Queue<Event> events = new LinkedList<>();
   // Patches stack gathering all patches that must be played by the current player during the turn
  
   private final Stack<Patch> patchesToPlay = new Stack<>();
@@ -73,7 +69,7 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
     this.spaces = spaces - 1; // spaces => space no 0 to no spaces - 1
     this.patchManager = new PatchManager(patchByTurn, patches);
     this.players.addAll(players);
-    this.eventPool.addAll(events);
+    this.events.addAll(events);
   }
   
   /**
@@ -184,7 +180,7 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
     if (!currentPlayer().placePatch(patch)) {
       return false;
     }
-    payFor(currentPlayer(), patch);
+    currentPlayer.payOwnerFor(this, patch);
     // Moves
     currentPlayerMove(currentPlayer.position() + patch.moves());
     return true;
@@ -229,7 +225,11 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
     if (move > 0) {
       newPosition = Math.min(spaces, newPosition);
       // Check if events on path (only when moving forward !)
-      eventQueue.addAll(eventPool.positionedBetween(currentPlayer.position() + 1, newPosition));
+      var pos = newPosition;
+      var positioned = events.stream()
+          .filter(event -> event.isPositionedBetween(currentPlayer.position() + 1, pos))
+          .toList();
+      eventQueue.addAll(positioned);
     } else if (move < 0) {
       newPosition = Math.min(0, newPosition);
     } else {
@@ -242,6 +242,8 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
     players.add(currentPlayer);
     return true;
   }
+  
+  
 
   /**
    * Test if the current player can advance on the board The player can advance if
@@ -269,9 +271,10 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
    * @return
    */
   public boolean nextTurn() {
-    eventQueue.addAll(eventPool.notPositionedEvents()); // add on-turn events before end of turn
+    // add not positioned events before end of turn
+    eventQueue.addAll(events.stream().filter(event -> event.runEachTurn()).toList()); 
     if (!availableActions.isEmpty() // Player has things to do
-        || !eventQueue.isEmpty()    // Remaining event to treat for the player
+        || !eventQueue.isEmpty()    // Remaining event to run for the player
         || !patchesToPlay.isEmpty() // can't change player, the current has patches to deal with
         ) {
       return false;
@@ -279,8 +282,8 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
     currentPlayer = latestPlayer();
     updateActions();
     if (availableActions.isEmpty()) {
-      throw new AssertionError("Unwanted game state. Player is stuck. "
-          + "Probably bad init settings for the game board or the game is finished."
+      throw new AssertionError("Unwanted game state. Player is stuck. \n"
+          + "Probably bad init settings for the game board, or the game is finished.\n"
           + " Also don't forget to init the board.");
     }
     return true;
@@ -338,7 +341,8 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
       availableActions.add(Action.ADVANCE);    
     }
     if(!patchManager.availablePatches().isEmpty()
-       && patchManager.availablePatches().stream().anyMatch(patch -> currentPlayer().canBuy(patch) == true)) {
+       && patchManager.availablePatches()
+       .stream().anyMatch(patch -> currentPlayer().canBuy(patch) == true)) {
       availableActions.add(Action.SELECT_PATCH);
     }
   }
@@ -379,26 +383,6 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
     // the game is finished when the position of the most behind player is the last
     // space.
     return latestPlayer().position() == spaces;
-  }
-  
-  /**
-   * Make a initialized new basic game board 
-   * @return a basic game board
-   */
-  public static GameBoard basicBoard() {
-    // turn this into config files !
-    var patches = new ArrayList<Patch>();
-    var squaredShape = List.of(new Coordinates(0, 0), new Coordinates(0, 1), new Coordinates(1, 0),
-        new Coordinates(1, 1));
-    for (var i = 0; i < 20; i++) {
-      patches.add(new Patch(3, 4, 1, squaredShape));
-      patches.add(new Patch(2, 2, 0, squaredShape));
-    }
-    var player1 = new Player("Player 1", 5, new QuiltBoard(9, 9));
-    var player2 = new Player("Player 2", 5, new QuiltBoard(9, 9));
-    var gameBoard = new GameBoard(53, 3, 152, patches, Set.<Player>of(player1, player2), List.<Event>of());
-    gameBoard.init();
-    return gameBoard;
   }
 
   /**

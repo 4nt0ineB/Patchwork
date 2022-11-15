@@ -150,7 +150,9 @@ public class Patch implements ButtonValued, DrawableOnCLI {
    * @return
    */
   public Set<Coordinates> absoluteCoordinates(){
-    return new HashSet<>(rotations.get(currentRotation).stream().map(c -> c.add(absoluteOrigin)).toList());
+    return new HashSet<>(rotations.get(currentRotation).stream()
+        .map(c -> c.add(absoluteOrigin))
+        .toList());
   }
   
   /**
@@ -217,7 +219,8 @@ public class Patch implements ButtonValued, DrawableOnCLI {
       return false;
     }
     // the vector with which the square must expand from origin to form the expected square
-    var vector = farthestCoordinates(cells).mul(new Coordinates(((int) side) - 1, ((int) side) - 1));
+    var vector = farthestCoordinates(cells)
+        .mul(new Coordinates(((int) side) - 1, ((int) side) - 1));
     var origin = new Coordinates(0, 0);
     var c1 = origin;
     var c2 = vector;
@@ -264,7 +267,9 @@ public class Patch implements ButtonValued, DrawableOnCLI {
       // 3 rotations left
       var prevRotation = rotationsList.get(0);
       for(var i = 1; i < 4; i++) {
-        var rotation = prevRotation.stream().map(Coordinates::rotateClockwise).collect(Collectors.toSet());
+        var rotation = prevRotation.stream()
+            .map(Coordinates::rotateClockwise)
+            .collect(Collectors.toSet());
         if(!rotationsList.contains(rotation)) {
           rotationsList.add(rotation);
           prevRotation = rotation;

@@ -1,5 +1,6 @@
 package model.gameboard.event;
 
+import java.util.List;
 import java.util.Objects;
 
 import model.Patch;
@@ -32,7 +33,7 @@ public class Event implements DrawableOnCLI {
    * @return
    */
   public Boolean isPositionedBetween(int n, int m) {
-    return position > -1 && position >= n && position <= m;
+    return !runEachTurn() && position >= n && position <= m;
   }
 
   public void run(GameBoard gameboard) {
@@ -42,7 +43,7 @@ public class Event implements DrawableOnCLI {
   }
 
   public Boolean runEachTurn() {
-    return true;
+    return position < 0;
   }
 
   public Boolean active() {
