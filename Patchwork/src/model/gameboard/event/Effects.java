@@ -2,30 +2,24 @@ package model.gameboard.event;
 
 import java.util.Objects;
 
+import java.util.function.Function;
+
 import model.Patch;
 import model.gameboard.GameBoard;
 
 /**
  * 
- * Provides effect to be triggered by and conditioned event in game
+ * Provides effects to be triggered by an event in game
  * 
  */
-@FunctionalInterface
-public interface Effect {
-  
-  /**
-   * run the effect on a GameBoard
-   * 
-   * @param gb
-   * @return true if effect have been applied, else false
-   */
-  boolean run(GameBoard gb);
+
+public final class Effects {
   
   /*
    * Make a new effect, paying the current 
    * player according to the amount of buttons on his quilt
    */
-  public static Effect makeButtonIncomeEffect() {
+  public static Function<GameBoard, Boolean> buttonIncome() {
     return (GameBoard board) -> {
       int amount = board.currentPlayer().quilt().buttons();
       if(board.canPay(amount)) {
@@ -40,7 +34,7 @@ public interface Effect {
    * @param patch The patch to drop
    * @return
    */
-  public static Effect makePatchIncomeEffect(Patch patch) {
+  public static Function<GameBoard, Boolean> patchIncome(Patch patch) {
     Objects.requireNonNull(patch, "Patch can't be null");
     return (GameBoard gb) -> {
       gb.addPatchToPlay(patch);

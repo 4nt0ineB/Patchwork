@@ -1,7 +1,7 @@
 package model.gameboard.event;
 
-import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 
 import model.Patch;
 import model.gameboard.GameBoard;
@@ -12,13 +12,13 @@ import view.cli.DrawableOnCLI;
 
 public class Event implements DrawableOnCLI {
 
-  private final Effect effect;
+  private final Function<GameBoard, Boolean> effect;
   private final boolean oneUse;
   private boolean active = true;
   private final int position;
   private EffectType type;
 
-  public Event(EffectType type, boolean oneUse, int position, Effect effect) {
+  public Event(EffectType type, boolean oneUse, int position, Function<GameBoard, Boolean> effect) {
     this.type = Objects.requireNonNull(type, "Type can't be null");
     this.effect = Objects.requireNonNull(effect, "Effect can't be null");
     this.oneUse = oneUse;
@@ -37,7 +37,7 @@ public class Event implements DrawableOnCLI {
   }
 
   public void run(GameBoard gameboard) {
-    if (effect.run(gameboard) && oneUse) {
+    if (effect.apply(gameboard) && oneUse) {
       active = false;
     }
   }
@@ -88,8 +88,8 @@ public class Event implements DrawableOnCLI {
     var position = Integer.parseInt(element.getByTagName("position").content());
     var oneUse = Boolean.parseBoolean(element.getByTagName("oneUse").content());
     var effect = switch(type) {
-      case BUTTON_INCOME ->  Effect.makeButtonIncomeEffect();
-      case PATCH_INCOME -> Effect.makePatchIncomeEffect(Patch.fromXML(element.getByTagName("patch")));
+      case BUTTON_INCOME ->  Effects.buttonIncome();
+      case PATCH_INCOME -> Effects.patchIncome(Patch.fromXML(element.getByTagName("patch")));
       case SPECIAL_TILE -> {
           throw new IllegalArgumentException("This type event must be implemented !");
       }

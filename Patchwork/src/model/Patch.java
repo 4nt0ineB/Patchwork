@@ -215,10 +215,10 @@ public class Patch implements ButtonValued, DrawableOnCLI {
   private boolean isSquare(Set<Coordinates> cells) {
     var side = Math.sqrt(cells.size());
     if(side * side != cells.size()) {
-      // number of cells cannot form a square
+      // number of cells not enough for square
       return false;
     }
-    // the vector with which the square must expand from origin to form the expected square
+    // the vector with which the origin must form the expected square
     var vector = farthestCoordinates(cells)
         .mul(new Coordinates(((int) side) - 1, ((int) side) - 1));
     var origin = new Coordinates(0, 0);
@@ -320,21 +320,18 @@ public class Patch implements ButtonValued, DrawableOnCLI {
     // We use a conceptual square to deal with absolute coordinates.
     // While the patch doesn't fit in, we expand the square
     // and replace the origin of the patch at the center of it
-    var width = 1;
-    var height = 1;
+    var width = 2;
+    var height = 2;
     while(!this.fits(width, height)) {
       absoluteMoveTo(new Coordinates(height / 2, width / 2));
       width += 1;
       height += 1;
     }
     // draw the patch
-    ui.builder()
-    .append("[Price: ")
-    .append(price)
-    .append(" Moves: ")
-    .append(moves)
-    .append(" Buttons: ")
-    .append(buttons)
+    ui.builder().append("[")
+    .append("Price: ").append(price)
+    .append(", Moves: ").append(moves)
+    .append(", Buttons: ").append(buttons)
     .append("]\n\n");
     for(var y = 0; y < height; y++) {
       ui.builder().append("  ");

@@ -9,14 +9,14 @@ public enum Action {
   BACK("r", "back"),
   QUIT("r", "Ragequit"),
   DEFAULT("default", "default"),
-  // wqsdb
+  ROTATE_RIGHT("a", "rotate right"),
+  ROTATE_LEFT("z", "rotate left"), 
+  PLACE("p", "Buy and place the patch"),
+  // wqsd
   UP("s", "up"),
   DOWN("w", "down"),
   RIGHT("d", "right"),
-  LEFT("q", "left"),
-  ROTATE_RIGHT("a", "rotate right"),
-  ROTATE_LEFT("z", "rotate left"), 
-  PLACE("p", "Buy and place the patch");
+  LEFT("q", "left");
   
   private final String bind;
   private final String description;

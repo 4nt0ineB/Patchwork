@@ -37,12 +37,17 @@ public final class CommandLineInterface implements UserInterface {
   }
   
   public void drawMessages() {
-    messages.stream().forEachOrdered(message -> {
+    messages.forEach(message -> {
       builder
       .append("\n")
       .append(message)
       .append("\n");
       }); 
+  }
+  
+  @Override
+  public void draw(Drawable drawable) {
+    ((DrawableOnCLI) drawable).drawOnCLI(this);
   }
   
   public void display() {
@@ -143,7 +148,7 @@ public final class CommandLineInterface implements UserInterface {
     .append(Color.ANSI_ORANGE)
     .append("\n[Actions]\n")
     .append(Color.ANSI_RESET);
-    options.stream().forEach(option -> 
+    options.forEach(option -> 
       localBuilder.append(option).append("\n"));
     localBuilder.append("\nChoice ? : ");
     System.out.print(localBuilder);
@@ -184,10 +189,5 @@ public final class CommandLineInterface implements UserInterface {
         + Color.ANSI_RESET;
     builder.append(splash);
   }
-
-  @Override
-  public void draw(Drawable drawable) {
-    ((DrawableOnCLI) drawable).drawOnCLI(this);
-  }
-
+  
 }

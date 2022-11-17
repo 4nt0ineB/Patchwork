@@ -95,7 +95,7 @@ public class XMLElement extends ArrayList<XMLElement> {
     .append(">");
     if(!isEmpty()) {
       builder.append("\n");
-      this.stream().forEach(element -> {
+      this.forEach(element -> {
         builder.append(element.toStringRecursive(new StringBuilder(), depth + 1));
       });
       for(var i = 0; i < depth; i++) {

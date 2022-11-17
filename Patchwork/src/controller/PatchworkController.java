@@ -3,6 +3,7 @@ package controller;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import model.Action;
@@ -20,7 +21,11 @@ public class PatchworkController {
       Set.of(Action.UP, Action.DOWN, Action.RIGHT, Action.LEFT, Action.ROTATE_LEFT,
           Action.ROTATE_RIGHT));
 
-  private static void patchwork(UserInterface ui, GameBoard board) {
+  private static void menu(UserInterface ui, GameBoard board) {
+    // var actions = List.of(new Action(""));
+  }
+    
+  private static void mainLoop(UserInterface ui, GameBoard board) {
     var action = Action.DEFAULT;
     board.init();
     do { // -- Game loop
@@ -46,7 +51,7 @@ public class PatchworkController {
           }
         }
       }
-      board.eventQueue().stream().forEach(e -> ui.draw(e));
+      board.eventQueue().forEach(e -> ui.draw(e));
       board.runWaitingEvents();
     } while (action != Action.QUIT && !board.isFinished());
     ui.close();
