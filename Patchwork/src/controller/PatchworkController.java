@@ -98,6 +98,23 @@ public class PatchworkController {
       if (quilt.canAdd(patch) && board.currentPlayer().canBuy(patch)) {
         actions.add(Action.PLACE);
       }
+      actions.remove(Action.UP);
+      actions.remove(Action.DOWN);
+      actions.remove(Action.LEFT);
+      actions.remove(Action.RIGHT);
+      if (patch.canMoveUp(quilt)) {
+      	actions.add(Action.UP);
+      }
+      if (patch.canMoveDown(quilt)) {
+      	actions.add(Action.DOWN);
+      }
+      if (patch.canMoveLeft(quilt)) {
+      	actions.add(Action.LEFT);
+      }
+      if (patch.canMoveRight(quilt)) {
+      	actions.add(Action.RIGHT);
+      }
+      
       switch (ui.getPlayerAction(actions)) {
         case UP -> patch.moveUp(quilt);
         case DOWN -> patch.moveDown(quilt);

@@ -113,7 +113,7 @@ public class Patch implements ButtonValued, DrawableOnCLI {
    * Decrement by one the absolute coordinates along y axis
    */
   public void moveUp(QuiltBoard qb) {
-  	if (this.maxUpCoord() + this.absoluteOrigin.y() > 0) {
+  	if (this.canMoveUp(qb)) {
       absoluteOrigin = absoluteOrigin.sub(new Coordinates(1, 0));		
   	}
   }
@@ -122,7 +122,7 @@ public class Patch implements ButtonValued, DrawableOnCLI {
    * Increment by one the absolute coordinates along y axis
    */
   public void moveDown(QuiltBoard qb) {
-  	if (this.maxDownCoord() + this.absoluteOrigin.y() < qb.height() - 1) {
+  	if (this.canMoveDown(qb)) {
   		absoluteOrigin = absoluteOrigin.add(new Coordinates(1, 0));
   	}
   }
@@ -131,7 +131,7 @@ public class Patch implements ButtonValued, DrawableOnCLI {
    * Decrement by one the absolute coordinates along x axis
    */
   public void moveLeft(QuiltBoard qb) {
-  	if (this.maxLeftCoord() + this.absoluteOrigin.x() > 0) {
+  	if  (this.canMoveLeft(qb)) {
   		absoluteOrigin = absoluteOrigin.sub(new Coordinates(0, 1));
   	}
   }
@@ -140,9 +140,41 @@ public class Patch implements ButtonValued, DrawableOnCLI {
    * Increment by one the absolute coordinates along x axis
    */
   public void moveRight(QuiltBoard qb) {
-  	if (this.maxRightCoord() + this.absoluteOrigin.x() < qb.width() - 1) {
+  	if (this.canMoveRight(qb)) {
   	  absoluteOrigin = absoluteOrigin.add(new Coordinates(0, 1));
   	}
+  }
+  
+  /**
+   * Says if it's possible for the patch to move up
+   * @return
+   */
+  public boolean canMoveUp(QuiltBoard qb) {
+  	return (this.maxUpCoord() + this.absoluteOrigin.y() > 0);
+  }
+  
+  /**
+   * Says if it's possible for the patch to move down
+   * @return
+   */
+  public boolean canMoveDown(QuiltBoard qb) {
+  	return (this.maxDownCoord() + this.absoluteOrigin.y() < qb.height() - 1);
+  }
+  
+  /**
+   * Says if it's possible for the patch to move left
+   * @return
+   */
+  public boolean canMoveLeft(QuiltBoard qb) {
+  	return (this.maxLeftCoord() + this.absoluteOrigin.x() > 0);
+  }
+  
+  /**
+   * Says if it's possible for the patch to move right
+   * @return
+   */
+  public boolean canMoveRight(QuiltBoard qb) {
+  	return (this.maxRightCoord() + this.absoluteOrigin.x() < qb.width() - 1);
   }
   
   /**
