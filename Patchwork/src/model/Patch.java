@@ -112,29 +112,101 @@ public class Patch implements ButtonValued, DrawableOnCLI {
   /**
    * Decrement by one the absolute coordinates along y axis
    */
-  public void moveUp() {
-    absoluteOrigin = absoluteOrigin.sub(new Coordinates(1, 0));
+  public void moveUp(QuiltBoard qb) {
+  	if (this.maxUpCoord() + this.absoluteOrigin.y() > 0) {
+      absoluteOrigin = absoluteOrigin.sub(new Coordinates(1, 0));		
+  	}
   }
   
   /**
    * Increment by one the absolute coordinates along y axis
    */
-  public void moveDown() {
-    absoluteOrigin = absoluteOrigin.add(new Coordinates(1, 0));
+  public void moveDown(QuiltBoard qb) {
+  	if (this.maxDownCoord() + this.absoluteOrigin.y() < qb.height() - 1) {
+  		absoluteOrigin = absoluteOrigin.add(new Coordinates(1, 0));
+  	}
   }
   
   /**
    * Decrement by one the absolute coordinates along x axis
    */
-  public void moveLeft() {
-    absoluteOrigin = absoluteOrigin.sub(new Coordinates(0, 1));
+  public void moveLeft(QuiltBoard qb) {
+  	if (this.maxLeftCoord() + this.absoluteOrigin.x() > 0) {
+  		absoluteOrigin = absoluteOrigin.sub(new Coordinates(0, 1));
+  	}
   }
   
   /**
    * Increment by one the absolute coordinates along x axis
    */
-  public void moveRight() {
-    absoluteOrigin = absoluteOrigin.add(new Coordinates(0, 1));
+  public void moveRight(QuiltBoard qb) {
+  	if (this.maxRightCoord() + this.absoluteOrigin.x() < qb.width() - 1) {
+  	  absoluteOrigin = absoluteOrigin.add(new Coordinates(0, 1));
+  	}
+  }
+  
+  /**
+   * Get the most left piece of the Patch
+   * @return
+   */
+  private int maxLeftCoord() {
+  	var maxLeft = 0; // case the absolute origin is the max left
+  	var iterator = this.rotations.get(currentRotation).iterator();
+  	while(iterator.hasNext()) {
+  		var coordinates = iterator.next();
+  		if (maxLeft > coordinates.x()) {
+  			maxLeft = coordinates.x();
+  		}
+  	}
+  	return maxLeft;
+  }
+  
+  /**
+   * Get the most right piece of the Patch
+   * @return
+   */
+  private int maxRightCoord() {
+  	var maxRight = 0; // case the absolute origin is the max right
+  	var iterator = this.rotations.get(currentRotation).iterator();
+  	while(iterator.hasNext()) {
+  		var coordinates = iterator.next();
+  		if (maxRight < coordinates.x()) {
+  			maxRight = coordinates.x();
+  		}
+  	}
+  	return maxRight;
+  }
+  
+  /**
+   * Get the most up piece of the Patch
+   * @return
+   */
+  private int maxUpCoord() {
+  	var maxUp = 0; // case the absolute origin is the max left
+  	var iterator = this.rotations.get(currentRotation).iterator();
+  	while(iterator.hasNext()) {
+  		var coordinates = iterator.next();
+  		if (maxUp > coordinates.y()) {
+  			maxUp = coordinates.y();
+  		}
+  	}
+  	return maxUp;
+  }
+  
+  /**
+   * Get the most down piece of the Patch
+   * @return
+   */
+  private int maxDownCoord() {
+  	var maxDown = 0; // case the absolute origin is the max down
+  	var iterator = this.rotations.get(currentRotation).iterator();
+  	while(iterator.hasNext()) {
+  		var coordinates = iterator.next();
+  		if (maxDown < coordinates.y()) {
+  			maxDown = coordinates.y();
+  		}
+  	}
+  	return maxDown;
   }
   
   /**

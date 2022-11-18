@@ -99,10 +99,10 @@ public class PatchworkController {
         actions.add(Action.PLACE);
       }
       switch (ui.getPlayerAction(actions)) {
-        case UP -> patch.moveUp();
-        case DOWN -> patch.moveDown();
-        case RIGHT -> patch.moveRight();
-        case LEFT -> patch.moveLeft();
+        case UP -> patch.moveUp(quilt);
+        case DOWN -> patch.moveDown(quilt);
+        case RIGHT -> patch.moveRight(quilt);
+        case LEFT -> patch.moveLeft(quilt);
         case ROTATE_LEFT -> patch.rotateLeft();
         case ROTATE_RIGHT -> patch.rotateRight();
         case PLACE -> { return Action.PLACE; }
@@ -116,12 +116,12 @@ public class PatchworkController {
 
   public static void main(String[] args) {
     // var path = Path.of("resources/settings/patchwork_full.xml");
-    var path = Path.of("resources/settings/patchwork_basic.xml");
+    var path = Path.of("resources/settings/patchwork_full.xml");
     try {
       var xmlParser = new XMLParser();
       var xmlElement = xmlParser.parse(path);
       var board = GameBoard.fromXML(xmlElement);
-      patchwork(new CommandLineInterface(), board);
+      mainLoop(new CommandLineInterface(), board);
     } catch (IOException e) {
       System.err.println("Error while trying to make game board from " + path);
       System.err.println(e.getMessage());
