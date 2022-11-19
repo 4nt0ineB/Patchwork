@@ -12,6 +12,7 @@ public class Player extends ButtonOwner implements DrawableOnCLI {
   private final String name;
   private final QuiltBoard quilt;
   private int position;
+  private int specialTile = 0;
 
   public Player(String name, int buttons, QuiltBoard quilt) {
     super(buttons);
@@ -89,6 +90,10 @@ public class Player extends ButtonOwner implements DrawableOnCLI {
         element.getByTagName("name").content(),
         Integer.parseInt(element.getByTagName("buttons").content()),
         QuiltBoard.fromXML(element.getByTagName("QuiltBoard")));
+  }
+  
+  public void getSpecialTile() {
+  	this.specialTile = 1;
   }
   
 }

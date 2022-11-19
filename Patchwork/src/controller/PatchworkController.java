@@ -72,6 +72,14 @@ public class PatchworkController {
           }
           case PLACE -> { // Add the patch to the quilt
             board.playNextPatch();
+            // Patch added to the quilt we merge all the quilt patches
+            board.currentPlayer().quilt().mergeAllPatches();
+            // Look if the placed Patch permits the user to get the special tile
+            // Only if special tile not already given
+            if (board.specialTile()) {
+            	// Special tile not already given
+            	board.giveSpecialTileToPlayer(board.currentPlayer());
+            }
           }
           default -> {
             throw new AssertionError("Their shouldn't be other choices");

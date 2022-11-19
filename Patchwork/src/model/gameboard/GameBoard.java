@@ -45,6 +45,9 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
   private HashSet<Integer> specialPatchesIndex = new HashSet<>();
   // Game mode choosen
   private final MenuOption gameMode;
+  //The Special Tile only 1 in the game
+  private int specialTile = 1;
+  
   /**
    * GameBoard constructor
    * 
@@ -450,11 +453,34 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
   	}
   }
   
+  /**
+   * return if the game mode choosen is the full game mode
+   * 
+   * @return boolean
+   */
   public boolean isFullGameMode() {
   	if (this.gameMode.getBind() == 2) {
   		return true;
   	}
   	return false;
   }
+
+  /**
+   * return if the special Tile is still in the possesion of the game board. 
+   * @return boolean
+   */
+	public boolean specialTile() {
+		return specialTile == 1;
+	}
+	
+	/**
+	 * Give the player the special tile (make the game board special tile to 0)
+   * 
+   * @return void
+   */
+	public void giveSpecialTileToPlayer(Player player) {
+		player.getSpecialTile();
+		this.specialTile = 0;
+	}
   
 }
