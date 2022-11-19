@@ -447,8 +447,6 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
     		i++;
     	}
   	}
-  	System.out.println(this.specialPatchesIndex);
-  	System.out.println(spaces);
   }
   
   public boolean isFullGameMode() {
