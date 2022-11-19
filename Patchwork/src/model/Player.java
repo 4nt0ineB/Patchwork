@@ -96,4 +96,13 @@ public class Player extends ButtonOwner implements DrawableOnCLI {
   	this.specialTile = 1;
   }
   
+  /**
+   * Returns the score of the player following Game rules
+   * 
+   * @return void
+   */
+  public int score() {
+  	return this.buttons() + this.specialTile * 7 - (quilt.countEmptySpaces() * 2);
+  }
+  
 }
