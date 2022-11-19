@@ -95,7 +95,7 @@ public class PatchworkController {
   }
   
   /**
-   * Function that do the action the user want
+   * Function that do the action the user select
    *
    * @param ui, board
    * @return Action

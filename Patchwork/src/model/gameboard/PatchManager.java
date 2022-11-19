@@ -26,7 +26,10 @@ public class PatchManager {
     this.patches = new ArrayList<>(patches);
     Collections.shuffle(this.patches);
     // -1 because the next patches are those selected after the neutralToken
-    this.neutralToken = minPatch(this.patches) - 1;
+    // No - 1 because we want to start our neutral token right after the min Patch
+    // So our neutral token must be after our min patch and we can't select it 
+    // during the first turn
+    this.neutralToken = minPatch(this.patches);
     loadNextPatches();
   }
 

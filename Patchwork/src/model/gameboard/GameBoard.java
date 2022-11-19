@@ -1,5 +1,6 @@
 package model.gameboard;
 
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -30,7 +31,6 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
   //All events in game
   private final Queue<Event> events = new LinkedList<>();
   // Patches stack gathering all patches that must be played by the current player during the turn
- 
   private final Stack<Patch> patchesToPlay = new Stack<>();
   // Event queue to process at the end of the turn
   private final Queue<Event> eventQueue = new LinkedList<>();
@@ -40,6 +40,8 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
   // The actions the player can do during the turn
   private final LinkedHashSet<Action> availableActions = new LinkedHashSet<>();
 
+  // List of index of all 5 SPECIAL PATCHES (1 * 1 patch in 
+  private HashSet<Integer> specialPatchesIndex = new HashSet<>();
   /**
    * GameBoard constructor
    * 
@@ -81,14 +83,21 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
   }
 
   /**
-   * Return a list of only purchasable patches by the current player
+   * Return the list of all availables patches (next 3 patches in front of neutral token)
    * 
-   * @return
-   */
+   * @return List of patches
+   */ 
+  // NO RULES THAT SAYS TO ONLY SHOW THE PURCHASABLE PATCHES 
+  // YOU MUST SHOW EVEN THE PATCHES YOU CAN'T AFFORD ELSE RUINNING THE GAME
   public List<Patch> availablePatches() {
-    return patchManager.availablePatches().stream().filter(patch -> currentPlayer().canBuy(patch)).toList();
+    return patchManager.availablePatches();
   }
 
+  /**
+   * Return the set of all availables actions during the turn
+   * 
+   * @return Set of Action
+   */ 
   public Set<Action> availableActions() {
     return Set.copyOf(availableActions);
   }
@@ -400,5 +409,19 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
     var patches = element.getByTagName("patchList").getAllByTagName("Patch").stream().map(Patch::fromXML).toList();
     var events = element.getByTagName("eventList").getAllByTagName("Event").stream().map(Event::fromXML).toList();
     return new GameBoard(spaces, patchByTurn, buttons, patches, players, events);
+  }
+  
+  /**
+   * Add 5 distincts random index to the list of special patches index.
+   * 
+   * @return void
+   */
+  public void addSpecialPatches() {
+  	int i = 0;
+  	while (i < 5) {
+    	if (this.specialPatchesIndex.add((int) Math.random())) {
+    		i++;
+    	}
+  	}
   }
 }
