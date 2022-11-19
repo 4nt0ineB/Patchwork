@@ -8,6 +8,7 @@ import java.util.Set;
 
 import model.Action;
 import model.Coordinates;
+import model.MenuOption;
 import model.Patch;
 import model.QuiltBoard;
 import view.Drawable;
@@ -62,6 +63,20 @@ public final class CommandLineInterface implements UserInterface {
     drawSplashScreen();
   }
 
+  public MenuOption selectMenuOption(Set<MenuOption> menuOptions) {
+  	if(scanner.hasNextInt()) {
+      var input = scanner.nextInt();
+      scanner.nextLine();
+      if(input > 0 && input <= menuOptions.size()) {
+        switch (input) {
+        case 1 -> {return MenuOption.BASIC;}
+        case 2 -> {return MenuOption.COMPLETE;}
+				}
+      }
+    }
+  	return null;
+  }
+  
   
   @Override
   public Patch selectPatch(List<Patch> patches) {

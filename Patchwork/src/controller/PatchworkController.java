@@ -3,16 +3,15 @@ package controller;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 import model.Action;
 import model.Coordinates;
+import model.Menu;
 import model.Patch;
 import model.gameboard.GameBoard;
 import util.xml.XMLParser;
 import view.UserInterface;
-import view.cli.Color;
 import view.cli.CommandLineInterface;
 
 public class PatchworkController {
@@ -130,10 +129,36 @@ public class PatchworkController {
     } while (action != Action.BACK);
     return action;
   }
+  
+  
 
   public static void main(String[] args) {
     // var path = Path.of("resources/settings/patchwork_full.xml");
-    var path = Path.of("resources/settings/patchwork_full.xml");
+  	var cli = new CommandLineInterface();
+  	var menu = new Menu(cli);
+  	cli.draw(menu);
+  	cli.drawMessages();
+    cli.display();
+    var optionChoosed = cli.selectMenuOption(menu.getMenuOptions());
+    while (optionChoosed == null) {
+			cli.clear();
+			cli.draw(menu);
+			cli.drawMessages();
+			cli.display();
+			optionChoosed = cli.selectMenuOption(menu.getMenuOptions());
+		}
+    var path = switch(optionChoosed.getBind()) {
+    	case 1 -> {
+    		// Basic Game Mode Choosed
+    		yield Path.of("resources/settings/patchwork_basic.xml");
+    	}
+    	case 2 -> {
+    		// Complete Game Mode Choosed
+    		yield Path.of("resources/settings/patchwork_full.xml");
+    	}
+    default -> {throw new AssertionError("I can't be here must be an error before");}
+    
+    };
     try {
       var xmlParser = new XMLParser();
       var xmlElement = xmlParser.parse(path);
