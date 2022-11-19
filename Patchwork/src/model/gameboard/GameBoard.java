@@ -246,8 +246,9 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
       	var pos = newPosition;
       	var specialPatchesCount = this.specialPatchesIndex.size();
       	// We look if the player will get a special patch on his way 
+      	// Only if his new pos his higher and not equal to an special patch index.
       	// And remove the index so that we can't have twice the same special patch.
-      	this.specialPatchesIndex.removeIf(e -> e <= pos);
+      	this.specialPatchesIndex.removeIf(e -> e < pos);
       	specialPatchesCount = specialPatchesCount - this.specialPatchesIndex.size();
       	
       	for (var i = 0; i < specialPatchesCount; i++) {

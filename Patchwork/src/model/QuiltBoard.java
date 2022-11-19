@@ -12,7 +12,7 @@ import view.cli.DrawableOnCLI;
 public class QuiltBoard implements DrawableOnCLI {
   private final int width;
   private final int height;
-  private final ArrayList<Patch> patches;
+  private ArrayList<Patch> patches = new ArrayList<>();
   
   public QuiltBoard(int width, int height) {
     if (width < 1 || height < 1) {
@@ -20,7 +20,6 @@ public class QuiltBoard implements DrawableOnCLI {
     }
     this.width = width;
     this.height = height;
-    patches = new ArrayList<>();
   }
   
   public List<Patch> patches() {
@@ -60,7 +59,44 @@ public class QuiltBoard implements DrawableOnCLI {
     }
     return true;
   }
-
+  
+  /**
+   * return if quiltBoard contains a 7*7 square of patch without spaces in it
+   * 
+   * @return boolean
+   */
+  public boolean shouldHaveSpecialTile() {
+  	return (this.patches.stream().filter(p -> p.isSpecialTileWorthy()).count() == 0);
+  }
+  
+  /**
+   * function that will merge all patches from our quilt patches list that are neighbour with given patch
+   * but that are not equals to the given patch.
+   * 
+   * @return void
+   */
+  public void mergePatches(Patch patch) {
+  	this.patches = new ArrayList<Patch>(this.patches.stream()
+  			.filter(p -> !p.equals(patch)).filter(p -> p.isNeighbour(patch))
+  			.map(p -> p.mergePatch(patch)).toList());
+  }
+  
+  /**
+   * function that will for each patches of our quilt patches list perform 
+   * the merge with their neighbour so that at the end our 
+   * quilt patch list contains only non neighbour patches.
+   * 
+   * @return boolean
+   */
+  public void mergeAllPatches() {
+  	var iterator = this.patches.iterator();
+  	while (iterator.hasNext()) {
+			Patch patch = (Patch) iterator.next();
+			this.mergePatches(patch);
+		}
+  }
+  
+  
   /**
    * Test if given coordinates is occupied by a cell of a patch on the quilt
    * 

@@ -49,6 +49,26 @@ public record Coordinates(int y, int x) implements XMLSerializable {
   }
   
   /**
+   * Return the distance in X axis between the instance and other Coordinates
+   * @param other Coordinates
+   * @return
+   */
+  public int distanceInX(Coordinates other) {
+    return this.x() - other.x();
+  }
+  
+  
+  /**
+   * Return the distance in Y axis between the instance and other Coordinates
+   * @param other Coordinates
+   * @return
+   */
+  public int distanceInY(Coordinates other) {
+  	return this.y() - other.y();
+  }
+  
+  
+  /**
    * Apply {@link Math#abs} on the each coordinate
    * @return new Coordinates
    */
@@ -110,5 +130,31 @@ public record Coordinates(int y, int x) implements XMLSerializable {
         Integer.parseInt(element.getByTagName("x").content()),
         Integer.parseInt(element.getByTagName("y").content()));
   }
+ 
+  /**
+   * Return if the given coordinate is our neighbour on x value
+   * @param Coordinates other
+   * @return boolean
+   */
+  public boolean neighbourOnX(Coordinates other) {
+  	return this.x() == other.x() - 1 || this.x() == other.x() + 1;
+  }
   
+  /**
+   * Return if the given coordinate is our neighbour on y value
+   * @param Coordinates other
+   * @return boolean
+   */
+  public boolean neighbourOnY(Coordinates other) {
+  	return this.y() == other.y() - 1 || this.y() == other.y() + 1;
+  }
+  
+  /**
+   * Return if the given coordinate is our neighbour
+   * @param Coordinates other
+   * @return boolean
+   */
+  public boolean isNeighbour(Coordinates other) {
+  	return (this.x() == other.y() && this.neighbourOnX(other)) || (this.x() == other.x() && this.neighbourOnY(other));
+  }
 }

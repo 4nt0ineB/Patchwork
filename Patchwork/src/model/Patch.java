@@ -71,8 +71,8 @@ public class Patch implements ButtonValued, DrawableOnCLI {
   }
   
   /**
-   * 
-   * @return
+   * Getter method for moves
+   * @return int
    */
   public int moves() {
     return moves;
@@ -86,11 +86,22 @@ public class Patch implements ButtonValued, DrawableOnCLI {
     return buttons;
   }
   
+  /**
+   * Getter method for price
+   * @return int
+   */
   @Override
   public int value() {
     return price;
   }
   
+  /**
+   * Getter method for CurrentCoordinates
+   * @return Set<Coordinates>
+   */
+  public Set<Coordinates> getCurrentCoordinates(){
+  	return this.rotations.get(this.currentRotation);
+  }
   /**
    * 90° left rotation
    */
@@ -465,9 +476,73 @@ public class Patch implements ButtonValued, DrawableOnCLI {
     return new Patch(price, moves, buttons, coordinatesList);
   }
 
+  /**
+   * Make a special Patch of 1*1
+   * 
+   * @return patch
+   */
   public static Patch getSpecialPatch() {
   	var listCoordinates = new ArrayList<Coordinates>();
   	listCoordinates.add(new Coordinates(0, 0));
   	return new Patch(0, 0, 0, listCoordinates);
   }
+  
+  
+  /**
+   * return if this patch is connected from one of his coordinates to the other patch
+   * @param element
+   * @return
+   */
+  public boolean isNeighbour(Patch other) {
+  	Objects.requireNonNull(other, "Can't verify neighbour if other is null");
+  	for (var otherCoordinate : other.absoluteCoordinates()) {
+  		// if we find one Coordinate that is a neighbour then patches are neighbour 
+  		// from this coordinates so we can return already.
+  		var neighbourCount = this.absoluteCoordinates().stream()
+    	.filter(coordinate -> coordinate.isNeighbour(otherCoordinate)).count();
+  		if (neighbourCount != 0) {
+  			return true;
+  		}
+  	}
+  	return false;
+  }
+  
+  /**
+   * return if this patch is connected from one of his coordinates to the other patch
+   * @param element
+   * @return
+   */
+  public Patch mergePatch(Patch other) {
+  	Objects.requireNonNull(other, "can't merge with null patch");
+  	if (!this.isNeighbour(other)) {
+  		// Can't merge two patches that aren't neighbours because
+  		// that doesn't make sense at all
+  		return null;
+  	}
+  	var mergedList = new ArrayList<Coordinates>();
+  	mergedList.addAll(this.getCurrentCoordinates());
+  	mergedList.addAll(other.getCurrentCoordinates().stream()
+  			.map(coord -> new Coordinates(coord.x() + coord.distanceInX(this.absoluteOrigin), coord.y() + coord.distanceInY(this.absoluteOrigin))).toList());
+  	return new Patch(this.value() + other.value() , this.moves() + other.moves(), this.buttons() + other.buttons(), mergedList);
+  }
+  
+  /**
+   * return if this patch is a 7*7 patch so if it's placed on a quilt board
+   * the player should be given a special tile
+   * 
+   * @return boolean
+   */
+  public boolean isSpecialTileWorthy() {
+  	for (var j = this.maxUpCoord(); j < this.maxDownCoord(); j++) {
+  		for (var i = this.maxLeftCoord(); i < this.maxRightCoord(); i++) {
+  		
+    		// if for every (j, i) (cause coordinates are (y, x)) we have a patch coordinates then it's a 7*7 else return false
+  			if (!this.getCurrentCoordinates().contains(new Coordinates(j, i))) {
+  				return false;
+  			}
+    	}
+  	}
+  	return true;
+  }
+  
 }
