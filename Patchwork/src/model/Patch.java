@@ -465,4 +465,9 @@ public class Patch implements ButtonValued, DrawableOnCLI {
     return new Patch(price, moves, buttons, coordinatesList);
   }
 
+  public static Patch getSpecialPatch() {
+  	var listCoordinates = new ArrayList<Coordinates>();
+  	listCoordinates.add(new Coordinates(0, 0));
+  	return new Patch(0, 0, 0, listCoordinates);
+  }
 }

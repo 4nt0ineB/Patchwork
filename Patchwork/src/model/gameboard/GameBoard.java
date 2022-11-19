@@ -11,6 +11,7 @@ import java.util.Stack;
 import java.util.stream.Collectors;
 
 import model.Action;
+import model.MenuOption;
 import model.Patch;
 import model.Player;
 import model.button.ButtonOwner;
@@ -42,6 +43,8 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
 
   // List of index of all 5 SPECIAL PATCHES (1 * 1 patch in 
   private HashSet<Integer> specialPatchesIndex = new HashSet<>();
+  // Game mode choosen
+  private final MenuOption gameMode;
   /**
    * GameBoard constructor
    * 
@@ -52,7 +55,7 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
    * @param players     the players
    * @param the         list of events for the board
    */
-  public GameBoard(int spaces, int patchByTurn, int buttons, List<Patch> patches, Set<Player> players, List<Event> events) {
+  public GameBoard(int spaces, int patchByTurn, int buttons, List<Patch> patches, Set<Player> players, List<Event> events, MenuOption gameMode) {
     super(buttons);
     Objects.requireNonNull(patches, "List of patches can't be null");
     Objects.requireNonNull(players, "List of players can't be null");
@@ -72,6 +75,11 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
     this.patchManager = new PatchManager(patchByTurn, patches);
     this.players.addAll(players);
     this.events.addAll(events);
+    this.gameMode = gameMode;
+    if (gameMode.getBind() == 2) {
+    	// FULL GAME MODE CHOOSEN
+    	addSpecialPatches();
+    }
   }
   
   /**
@@ -230,9 +238,22 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
    */
   private boolean currentPlayerMove(int newPosition) {
     testPosition(newPosition);
+    
     var move = newPosition - currentPlayer.position();
     if (move > 0) {
       newPosition = Math.min(spaces, newPosition);
+      if (isFullGameMode()) {
+      	var pos = newPosition;
+      	var specialPatchesCount = this.specialPatchesIndex.size();
+      	// We look if the player will get a special patch on his way 
+      	// And remove the index so that we can't have twice the same special patch.
+      	this.specialPatchesIndex.removeIf(e -> e <= pos);
+      	specialPatchesCount = specialPatchesCount - this.specialPatchesIndex.size();
+      	
+      	for (var i = 0; i < specialPatchesCount; i++) {
+      		this.addPatchToPlay(Patch.getSpecialPatch());
+      	}
+      }
       // Check if events on path (only when moving forward !)
       var pos = newPosition;
       var positioned = events.stream()
@@ -399,7 +420,7 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
    * @param element
    * @return
    */
-  public static GameBoard fromXML(XMLElement element) {
+  public static GameBoard fromXML(XMLElement element, MenuOption gameMode) {
     XMLElement.requireNotEmpty(element);
     var spaces = Integer.parseInt(element.getByTagName("spaces").content());
     var patchByTurn = Integer.parseInt(element.getByTagName("patchByTurn").content());
@@ -408,7 +429,7 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
         .getAllByTagName("Player").stream().map(Player::fromXML).collect(Collectors.toSet());
     var patches = element.getByTagName("patchList").getAllByTagName("Patch").stream().map(Patch::fromXML).toList();
     var events = element.getByTagName("eventList").getAllByTagName("Event").stream().map(Event::fromXML).toList();
-    return new GameBoard(spaces, patchByTurn, buttons, patches, players, events);
+    return new GameBoard(spaces, patchByTurn, buttons, patches, players, events, gameMode);
   }
   
   /**
@@ -416,12 +437,25 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
    * 
    * @return void
    */
-  public void addSpecialPatches() {
+  private void addSpecialPatches() {
   	int i = 0;
   	while (i < 5) {
-    	if (this.specialPatchesIndex.add((int) Math.random())) {
+  		
+  		var f = Math.random() / Math.nextDown(1.0);
+  		var x = 1 * (1.0 - f) + spaces * f;
+    	if (this.specialPatchesIndex.add(((int) x))) {
     		i++;
     	}
   	}
+  	System.out.println(this.specialPatchesIndex);
+  	System.out.println(spaces);
   }
+  
+  public boolean isFullGameMode() {
+  	if (this.gameMode.getBind() == 2) {
+  		return true;
+  	}
+  	return false;
+  }
+  
 }

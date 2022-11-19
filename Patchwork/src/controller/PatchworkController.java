@@ -9,6 +9,7 @@ import java.util.Set;
 import model.Action;
 import model.Coordinates;
 import model.Menu;
+import model.MenuOption;
 import model.Patch;
 import model.gameboard.GameBoard;
 import util.xml.XMLParser;
@@ -26,9 +27,9 @@ public class PatchworkController {
    * his game mode 
    *
    * @param menu, cli
-   * @return Path of the choosen game mode
+   * @return Choosen game mode
    */
-  private static Path menuLoop(Menu menu, CommandLineInterface cli) {
+  private static MenuOption menuLoop(Menu menu, CommandLineInterface cli) {
   	Objects.requireNonNull(menu, "Can't do menu loop if menu given is null");
   	Objects.requireNonNull(cli, "Can't do menu loop if cli given is null");
   	cli.draw(menu);
@@ -42,18 +43,7 @@ public class PatchworkController {
 			cli.display();
 			optionChoosed = cli.selectMenuOption(menu.getMenuOptions());
 		}
-    return switch(optionChoosed.getBind()) {
-    	case 1 -> {
-    		// Basic Game Mode Choosed
-    		yield Path.of("resources/settings/patchwork_basic.xml");
-    	}
-    	case 2 -> {
-    		// Complete Game Mode Choosed
-    		yield Path.of("resources/settings/patchwork_full.xml");
-    	}
-    	default -> {throw new AssertionError("I can't be here must be an error before");}
-    
-    };
+    return optionChoosed;
   }
     
   /**
@@ -183,17 +173,25 @@ public class PatchworkController {
     return action;
   }
   
+  public static Path getPathFromGameMode(MenuOption gameMode) {
+  	return switch(gameMode.getBind()) {
+  		case 1 -> {yield Path.of("resources/settings/patchwork_basic.xml");}
+  		case 2 -> {yield Path.of("resources/settings/patchwork_full.xml");}
+  		default -> {throw new AssertionError("Can't be here");}
+  	};
+  }
   
 
   public static void main(String[] args) {
     // var path = Path.of("resources/settings/patchwork_full.xml");
   	var cli = new CommandLineInterface();
   	var menu = new Menu(cli);
-  	var path = menuLoop(menu, cli);
+  	var gameMode = menuLoop(menu, cli);
+  	var path = getPathFromGameMode(gameMode);
     try {
       var xmlParser = new XMLParser();
       var xmlElement = xmlParser.parse(path);
-      var board = GameBoard.fromXML(xmlElement);
+      var board = GameBoard.fromXML(xmlElement, gameMode);
       mainLoop(new CommandLineInterface(), board);
     } catch (IOException e) {
       System.err.println("Error while trying to make game board from " + path);
