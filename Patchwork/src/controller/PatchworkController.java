@@ -3,6 +3,7 @@ package controller;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import model.Action;
@@ -20,10 +21,47 @@ public class PatchworkController {
       Set.of(Action.UP, Action.DOWN, Action.RIGHT, Action.LEFT, Action.ROTATE_LEFT,
           Action.ROTATE_RIGHT));
 
-  private static void menu(UserInterface ui, GameBoard board) {
-    // var actions = List.of(new Action(""));
+  /**
+   * Menu Loop that draw the menu and wait for the user to choose
+   * his game mode 
+   *
+   * @param menu, cli
+   * @return Path of the choosen game mode
+   */
+  private static Path menuLoop(Menu menu, CommandLineInterface cli) {
+  	Objects.requireNonNull(menu, "Can't do menu loop if menu given is null");
+  	Objects.requireNonNull(cli, "Can't do menu loop if cli given is null");
+  	cli.draw(menu);
+  	cli.drawMessages();
+    cli.display();
+    var optionChoosed = cli.selectMenuOption(menu.getMenuOptions());
+    while (optionChoosed == null) {
+			cli.clear();
+			cli.draw(menu);
+			cli.drawMessages();
+			cli.display();
+			optionChoosed = cli.selectMenuOption(menu.getMenuOptions());
+		}
+    return switch(optionChoosed.getBind()) {
+    	case 1 -> {
+    		// Basic Game Mode Choosed
+    		yield Path.of("resources/settings/patchwork_basic.xml");
+    	}
+    	case 2 -> {
+    		// Complete Game Mode Choosed
+    		yield Path.of("resources/settings/patchwork_full.xml");
+    	}
+    	default -> {throw new AssertionError("I can't be here must be an error before");}
+    
+    };
   }
     
+  /**
+   * MainLoop that draw the game and make users play the game
+   *
+   * @param ui, board
+   * @return void
+   */
   private static void mainLoop(UserInterface ui, GameBoard board) {
     var action = Action.DEFAULT;
     board.init();
@@ -56,6 +94,12 @@ public class PatchworkController {
     ui.close();
   }
   
+  /**
+   * Function that do the action the user want
+   *
+   * @param ui, board
+   * @return Action
+   */
   private static Action doActionForTurn(UserInterface ui, GameBoard board) {
     var action = Action.DEFAULT;
     var options = new LinkedHashSet<Action>(board.availableActions());
@@ -79,6 +123,15 @@ public class PatchworkController {
     return action;
   }
   
+  /**
+   * Function that allows user to manipulate the given patch
+   * on his quilt. Moving it in direction he wants if possible
+   * Placing it on his quilt or even going back to the previous
+   * Action
+   *
+   * @param ui, board, patch
+   * @return Action
+   */
   private static Action manipulatePatch(UserInterface ui, GameBoard board, Patch patch) {
     // A list of actions
     var action = Action.DEFAULT;
@@ -136,29 +189,7 @@ public class PatchworkController {
     // var path = Path.of("resources/settings/patchwork_full.xml");
   	var cli = new CommandLineInterface();
   	var menu = new Menu(cli);
-  	cli.draw(menu);
-  	cli.drawMessages();
-    cli.display();
-    var optionChoosed = cli.selectMenuOption(menu.getMenuOptions());
-    while (optionChoosed == null) {
-			cli.clear();
-			cli.draw(menu);
-			cli.drawMessages();
-			cli.display();
-			optionChoosed = cli.selectMenuOption(menu.getMenuOptions());
-		}
-    var path = switch(optionChoosed.getBind()) {
-    	case 1 -> {
-    		// Basic Game Mode Choosed
-    		yield Path.of("resources/settings/patchwork_basic.xml");
-    	}
-    	case 2 -> {
-    		// Complete Game Mode Choosed
-    		yield Path.of("resources/settings/patchwork_full.xml");
-    	}
-    default -> {throw new AssertionError("I can't be here must be an error before");}
-    
-    };
+  	var path = menuLoop(menu, cli);
     try {
       var xmlParser = new XMLParser();
       var xmlElement = xmlParser.parse(path);
