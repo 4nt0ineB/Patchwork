@@ -58,7 +58,7 @@ public class XMLParser {
       fromString(xmlElement);
       read = readFromString("</\\w+>");
       if(read == null) {
-        throw new AssertionError("XML format error. No end-tag found");
+        throw new IllegalArgumentException("XML format error. No end-tag found");
       }
       if(element == null) {
         return xmlElement;
@@ -73,7 +73,7 @@ public class XMLParser {
       read = "";
     }
     if(element == null) {
-      throw new AssertionError("XML format error missing previous tag before" + read.strip());
+      throw new IllegalArgumentException("XML format error missing previous tag before" + read.strip());
     }
     element.setContent(read);
     return null;

@@ -1,10 +1,10 @@
-package model.gameboard.event;
+package model.game.component.gameboard.event;
 
 import java.util.Objects;
-import java.util.function.Function;
+import java.util.function.Predicate;
 
-import model.Patch;
-import model.gameboard.GameBoard;
+import model.game.component.Patch;
+import model.game.component.gameboard.GameBoard;
 import util.xml.XMLElement;
 import view.cli.Color;
 import view.cli.CommandLineInterface;
@@ -12,13 +12,21 @@ import view.cli.DrawableOnCLI;
 
 public class Event implements DrawableOnCLI {
 
-  private final Function<GameBoard, Boolean> effect;
+  private final Predicate<GameBoard> effect;
   private final boolean oneUse;
   private boolean active = true;
   private final int position;
   private EffectType type;
-
-  public Event(EffectType type, boolean oneUse, int position, Function<GameBoard, Boolean> effect) {
+  
+  /**
+   * 
+   * @param type
+   * @param oneUse
+   * @param position negative value for event triggered each turn (not positioned), 
+   * a positive value or equal to zero for the event to be triggered at a specific spaces on the board
+   * @param effect
+   */
+  public Event(EffectType type, boolean oneUse, int position, Predicate<GameBoard> effect) {
     this.type = Objects.requireNonNull(type, "Type can't be null");
     this.effect = Objects.requireNonNull(effect, "Effect can't be null");
     this.oneUse = oneUse;
@@ -37,7 +45,7 @@ public class Event implements DrawableOnCLI {
   }
 
   public void run(GameBoard gameboard) {
-    if (effect.apply(gameboard) && oneUse) {
+    if (effect.test(gameboard) && oneUse) {
       active = false;
     }
   }
@@ -90,13 +98,14 @@ public class Event implements DrawableOnCLI {
     var effect = switch(type) {
       case BUTTON_INCOME ->  Effects.buttonIncome();
       case PATCH_INCOME -> Effects.patchIncome(Patch.fromXML(element.getByTagName("patch")));
-      case SPECIAL_TILE -> {
-          throw new IllegalArgumentException("This type event must be implemented !");
-      }
+      case SPECIAL_TILE -> Effects.specialTile();
        default -> {
           throw new IllegalArgumentException("This type does not exists. ("+ type + ")");
        }
     };
     return new Event(type, oneUse, position, effect);
   }
+
+  
+  
 }

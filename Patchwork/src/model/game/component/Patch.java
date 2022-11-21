@@ -1,4 +1,6 @@
-package model;
+package model.game.component;
+
+import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -7,7 +9,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import model.button.ButtonValued;
+import model.game.InGameAction;
+import model.game.component.button.ButtonValued;
 import util.xml.XMLElement;
 import view.cli.CommandLineInterface;
 import view.cli.DrawableOnCLI;
@@ -96,11 +99,11 @@ public class Patch implements ButtonValued, DrawableOnCLI {
   }
   
   /**
-   * Getter method for CurrentCoordinates
+   * access CurrentCoordinates
    * @return Set<Coordinates>
    */
-  public Set<Coordinates> getCurrentCoordinates(){
-  	return this.rotations.get(this.currentRotation);
+  public Set<Coordinates> currentCoordinates(){
+  	return rotations.get(currentRotation);
   }
   /**
    * 90° left rotation
@@ -123,137 +126,81 @@ public class Patch implements ButtonValued, DrawableOnCLI {
   /**
    * Decrement by one the absolute coordinates along y axis
    */
-  public void moveUp(QuiltBoard qb) {
-  	if (this.canMoveUp(qb)) {
-      absoluteOrigin = absoluteOrigin.sub(new Coordinates(1, 0));		
-  	}
+  public void moveUp() {
+    absoluteOrigin = absoluteOrigin.sub(new Coordinates(1, 0));		
   }
   
   /**
    * Increment by one the absolute coordinates along y axis
    */
-  public void moveDown(QuiltBoard qb) {
-  	if (this.canMoveDown(qb)) {
-  		absoluteOrigin = absoluteOrigin.add(new Coordinates(1, 0));
-  	}
+  public void moveDown() {
+    absoluteOrigin = absoluteOrigin.add(new Coordinates(1, 0));
   }
   
   /**
    * Decrement by one the absolute coordinates along x axis
    */
-  public void moveLeft(QuiltBoard qb) {
-  	if  (this.canMoveLeft(qb)) {
-  		absoluteOrigin = absoluteOrigin.sub(new Coordinates(0, 1));
-  	}
+  public void moveLeft() {
+    absoluteOrigin = absoluteOrigin.sub(new Coordinates(0, 1));
   }
   
   /**
    * Increment by one the absolute coordinates along x axis
    */
-  public void moveRight(QuiltBoard qb) {
-  	if (this.canMoveRight(qb)) {
-  	  absoluteOrigin = absoluteOrigin.add(new Coordinates(0, 1));
-  	}
+  public void moveRight() {
+    absoluteOrigin = absoluteOrigin.add(new Coordinates(0, 1));
   }
   
   /**
    * Says if it's possible for the patch to move up
    * @return
    */
-  public boolean canMoveUp(QuiltBoard qb) {
-  	return (this.maxUpCoord() + this.absoluteOrigin.y() > 0);
+  public boolean canMoveUp(QuiltBoard quilt) {
+  	return currentCoordinates().stream()
+  	    .map(Coordinates::y)
+  	    .min(Integer::compare)
+  	    .get() 
+  	    + absoluteOrigin.y() > 0;
   }
   
   /**
    * Says if it's possible for the patch to move down
    * @return
    */
-  public boolean canMoveDown(QuiltBoard qb) {
-  	return (this.maxDownCoord() + this.absoluteOrigin.y() < qb.height() - 1);
+  public boolean canMoveDown(QuiltBoard quilt) {
+  	return currentCoordinates().stream()
+        .map(Coordinates::y)
+        .max(Integer::compare)
+        .get() 
+        + absoluteOrigin.y() < quilt.height() - 1;
   }
   
   /**
    * Says if it's possible for the patch to move left
    * @return
    */
-  public boolean canMoveLeft(QuiltBoard qb) {
-  	return (this.maxLeftCoord() + this.absoluteOrigin.x() > 0);
+  public boolean canMoveLeft(QuiltBoard quilt) {
+  	return currentCoordinates().stream()
+        .map(Coordinates::x)
+        .min(Integer::compare)
+        .get() 
+        + absoluteOrigin.x() > 0;
   }
   
   /**
    * Says if it's possible for the patch to move right
    * @return
    */
-  public boolean canMoveRight(QuiltBoard qb) {
-  	return (this.maxRightCoord() + this.absoluteOrigin.x() < qb.width() - 1);
+  public boolean canMoveRight(QuiltBoard quilt) {
+  	return currentCoordinates().stream()
+        .map(Coordinates::x)
+        .max(Integer::compare)
+        .get() 
+        + absoluteOrigin.x() < quilt.width() - 1;
   }
   
   /**
-   * Get the most left piece of the Patch
-   * @return
-   */
-  private int maxLeftCoord() {
-  	var maxLeft = 0; // case the absolute origin is the max left
-  	var iterator = this.rotations.get(currentRotation).iterator();
-  	while(iterator.hasNext()) {
-  		var coordinates = iterator.next();
-  		if (maxLeft > coordinates.x()) {
-  			maxLeft = coordinates.x();
-  		}
-  	}
-  	return maxLeft;
-  }
-  
-  /**
-   * Get the most right piece of the Patch
-   * @return
-   */
-  private int maxRightCoord() {
-  	var maxRight = 0; // case the absolute origin is the max right
-  	var iterator = this.rotations.get(currentRotation).iterator();
-  	while(iterator.hasNext()) {
-  		var coordinates = iterator.next();
-  		if (maxRight < coordinates.x()) {
-  			maxRight = coordinates.x();
-  		}
-  	}
-  	return maxRight;
-  }
-  
-  /**
-   * Get the most up piece of the Patch
-   * @return
-   */
-  private int maxUpCoord() {
-  	var maxUp = 0; // case the absolute origin is the max left
-  	var iterator = this.rotations.get(currentRotation).iterator();
-  	while(iterator.hasNext()) {
-  		var coordinates = iterator.next();
-  		if (maxUp > coordinates.y()) {
-  			maxUp = coordinates.y();
-  		}
-  	}
-  	return maxUp;
-  }
-  
-  /**
-   * Get the most down piece of the Patch
-   * @return
-   */
-  private int maxDownCoord() {
-  	var maxDown = 0; // case the absolute origin is the max down
-  	var iterator = this.rotations.get(currentRotation).iterator();
-  	while(iterator.hasNext()) {
-  		var coordinates = iterator.next();
-  		if (maxDown < coordinates.y()) {
-  			maxDown = coordinates.y();
-  		}
-  	}
-  	return maxDown;
-  }
-  
-  /**
-   * Count the number of coordinates in the patch
+   * Count the number of cells in the patch
    * @return
    */
   public int countCells() {
@@ -265,7 +212,8 @@ public class Patch implements ButtonValued, DrawableOnCLI {
    * @return
    */
   public Set<Coordinates> absoluteCoordinates(){
-    return new HashSet<>(rotations.get(currentRotation).stream()
+    return new HashSet<>(
+        rotations.get(currentRotation).stream()
         .map(c -> c.add(absoluteOrigin))
         .toList());
   }
@@ -277,12 +225,7 @@ public class Patch implements ButtonValued, DrawableOnCLI {
    */
   public boolean overlap(Patch patch) {
     Objects.requireNonNull(patch, "Can't test overlapping on null");
-    for(var cell: patch.absoluteCoordinates()) {
-      if(meets(cell)) {
-        return true;
-      }
-    }
-    return false;
+    return absoluteCoordinates().stream().anyMatch(cell -> meets(cell));
   }
   
   /**
@@ -312,7 +255,6 @@ public class Patch implements ButtonValued, DrawableOnCLI {
     }
     var topleft = new Coordinates(0, 0);
     var lowerright = new Coordinates(height, width);
-    
     for(var cell: rotations.get(currentRotation)) {
       var absPos = cell.add(absoluteOrigin);
       if(!absPos.inRectangle(topleft, lowerright)) {
@@ -353,8 +295,12 @@ public class Patch implements ButtonValued, DrawableOnCLI {
     return true;
   }
   
+  public boolean isSquare() {
+    return isSquare(rotations.get(currentRotation));
+  }
+  
   /**
-   * Return the farthest coordinates to origin (0,0)
+   * Return the farthest coordinates from origin (0,0)
    * @param cells
    * @return
    */
@@ -384,7 +330,7 @@ public class Patch implements ButtonValued, DrawableOnCLI {
       for(var i = 1; i < 4; i++) {
         var rotation = prevRotation.stream()
             .map(Coordinates::rotateClockwise)
-            .collect(Collectors.toSet());
+            .collect(toSet());
         if(!rotationsList.contains(rotation)) {
           rotationsList.add(rotation);
           prevRotation = rotation;
@@ -474,75 +420,6 @@ public class Patch implements ButtonValued, DrawableOnCLI {
     var coordinatesList = element.getByTagName("coordinatesList")
         .getAllByTagName("Coordinates").stream().map(Coordinates::fromXML).toList();
     return new Patch(price, moves, buttons, coordinatesList);
-  }
-
-  /**
-   * Make a special Patch of 1*1
-   * 
-   * @return patch
-   */
-  public static Patch getSpecialPatch() {
-  	var listCoordinates = new ArrayList<Coordinates>();
-  	listCoordinates.add(new Coordinates(0, 0));
-  	return new Patch(0, 0, 0, listCoordinates);
-  }
-  
-  
-  /**
-   * return if this patch is connected from one of his coordinates to the other patch
-   * @param element
-   * @return
-   */
-  public boolean isNeighbour(Patch other) {
-  	Objects.requireNonNull(other, "Can't verify neighbour if other is null");
-  	for (var otherCoordinate : other.absoluteCoordinates()) {
-  		// if we find one Coordinate that is a neighbour then patches are neighbour 
-  		// from this coordinates so we can return already.
-  		var neighbourCount = this.absoluteCoordinates().stream()
-    	.filter(coordinate -> coordinate.isNeighbour(otherCoordinate)).count();
-  		if (neighbourCount != 0) {
-  			return true;
-  		}
-  	}
-  	return false;
-  }
-  
-  /**
-   * return if this patch is connected from one of his coordinates to the other patch
-   * @param element
-   * @return
-   */
-  public Patch mergePatch(Patch other) {
-  	Objects.requireNonNull(other, "can't merge with null patch");
-  	if (!this.isNeighbour(other)) {
-  		// Can't merge two patches that aren't neighbours because
-  		// that doesn't make sense at all
-  		return null;
-  	}
-  	var mergedList = new ArrayList<Coordinates>();
-  	mergedList.addAll(this.getCurrentCoordinates());
-  	mergedList.addAll(other.getCurrentCoordinates().stream()
-  			.map(coord -> new Coordinates(coord.x() + coord.distanceInX(this.absoluteOrigin), coord.y() + coord.distanceInY(this.absoluteOrigin))).toList());
-  	return new Patch(this.value() + other.value() , this.moves() + other.moves(), this.buttons() + other.buttons(), mergedList);
-  }
-  
-  /**
-   * return if this patch is a 7*7 patch so if it's placed on a quilt board
-   * the player should be given a special tile
-   * 
-   * @return boolean
-   */
-  public boolean isSpecialTileWorthy() {
-  	for (var j = this.maxUpCoord(); j < this.maxDownCoord(); j++) {
-  		for (var i = this.maxLeftCoord(); i < this.maxRightCoord(); i++) {
-  		
-    		// if for every (j, i) (cause coordinates are (y, x)) we have a patch coordinates then it's a 7*7 else return false
-  			if (!this.getCurrentCoordinates().contains(new Coordinates(j, i))) {
-  				return false;
-  			}
-    	}
-  	}
-  	return true;
   }
   
 }

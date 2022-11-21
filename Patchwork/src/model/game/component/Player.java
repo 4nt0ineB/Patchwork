@@ -1,8 +1,8 @@
-package model;
+package model.game.component;
 
 import java.util.Objects;
 
-import model.button.ButtonOwner;
+import model.game.component.button.ButtonOwner;
 import util.xml.XMLElement;
 import view.cli.CommandLineInterface;
 import view.cli.DrawableOnCLI;
@@ -73,17 +73,10 @@ public class Player extends ButtonOwner implements DrawableOnCLI {
   public void drawOnCLI(CommandLineInterface ui) {
     ui.builder()
     .append(String.format("%5d|", position))
-    .append(" " + name + " - buttons [" + buttons() + "]");
+    .append(" " + name + " - buttons [" + buttons() + "]")
+    .append(specialTile > 0 ? " SpecialTile : " + specialTile : "");
   }
 
-  public static Player fromText(String text) {
-    Objects.requireNonNull(text, "Can't make new player out of null String");
-    var parameters = text.split("\\|");
-    return new Player(parameters[0], 
-        Integer.parseInt(parameters[1]),
-        QuiltBoard.fromText(parameters[2]));
-  }
-  
   public static Player fromXML(XMLElement element) {
     XMLElement.requireNotEmpty(element);
     return new Player(
@@ -92,8 +85,8 @@ public class Player extends ButtonOwner implements DrawableOnCLI {
         QuiltBoard.fromXML(element.getByTagName("QuiltBoard")));
   }
   
-  public void getSpecialTile() {
-  	this.specialTile = 1;
+  public void earnSpecialTile() {
+  	specialTile = 1;
   }
   
   /**
@@ -102,7 +95,7 @@ public class Player extends ButtonOwner implements DrawableOnCLI {
    * @return void
    */
   public int score() {
-  	return this.buttons() + this.specialTile * 7 - (quilt.countEmptySpaces() * 2);
+  	return buttons() + specialTile * 7 - (quilt.countEmptySpaces() * 2);
   }
   
 }

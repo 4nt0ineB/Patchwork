@@ -6,11 +6,10 @@ import java.util.Objects;
 import java.util.Scanner;
 import java.util.Set;
 
-import model.Action;
-import model.Coordinates;
-import model.MenuOption;
-import model.Patch;
-import model.QuiltBoard;
+import controller.KeybindedChoice;
+import model.game.component.Coordinates;
+import model.game.component.Patch;
+import model.game.component.QuiltBoard;
 import view.Drawable;
 import view.UserInterface;
 
@@ -63,21 +62,6 @@ public final class CommandLineInterface implements UserInterface {
     drawSplashScreen();
   }
 
-  public MenuOption selectMenuOption(Set<MenuOption> menuOptions) {
-  	if(scanner.hasNextInt()) {
-      var input = scanner.nextInt();
-      scanner.nextLine();
-      if(input > 0 && input <= menuOptions.size()) {
-        switch (input) {
-        case 1 -> {return MenuOption.BASIC;}
-        case 2 -> {return MenuOption.COMPLETE;}
-				}
-      }
-    }
-  	return null;
-  }
-  
-  
   @Override
   public Patch selectPatch(List<Patch> patches) {
     Objects.requireNonNull(patches);
@@ -157,26 +141,27 @@ public final class CommandLineInterface implements UserInterface {
   }
   
   @Override
-  public Action getPlayerAction(Set<Action> options) {
+  public int getPlayerChoice(Set<KeybindedChoice> choices){
     var localBuilder = new StringBuilder();
     localBuilder
     .append(Color.ANSI_ORANGE)
     .append("\n[Actions]\n")
     .append(Color.ANSI_RESET);
-    options.forEach(option -> 
+    choices.forEach(option -> 
       localBuilder.append(option).append("\n"));
     localBuilder.append("\nChoice ? : ");
     System.out.print(localBuilder);
-    if(scanner.hasNextLine()) {
-      var input = scanner.nextLine();
-      for(var op: options) {
-        if(op.bind().equals(input)) {
-          return op;
+    String input;
+    if(scanner.hasNextLine() 
+        && (input = scanner.nextLine()).length() == 1) {
+      for(var choice: choices) {
+        if(choice.key() == input.charAt(0)) {
+          return choice.key();
         }
       }
     }
     System.out.println("Wrong choice\n");
-    return Action.DEFAULT;
+    return -1;
   }
   
   /**

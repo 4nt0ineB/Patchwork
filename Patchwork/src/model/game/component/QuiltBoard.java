@@ -1,8 +1,13 @@
-package model;
+package model.game.component;
+
+import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import util.xml.XMLElement;
 import view.cli.Color;
@@ -43,7 +48,11 @@ public class QuiltBoard implements DrawableOnCLI {
    */
   public boolean add(Patch patch) {
     Objects.requireNonNull(patch, "can't add null obj as a patch");
-    return canAdd(patch) && patches.add(patch);
+    if(canAdd(patch)) {
+      patches.add(patch);
+      return true;
+    }
+    return false;
   }
 
   public boolean canAdd(Patch patch) {
@@ -60,42 +69,25 @@ public class QuiltBoard implements DrawableOnCLI {
     return true;
   }
   
-  /**
-   * return if quiltBoard contains a 7*7 square of patch without spaces in it
-   * 
-   * @return boolean
-   */
-  public boolean shouldHaveSpecialTile() {
-  	return (this.patches.stream().filter(p -> p.isSpecialTileWorthy()).count() == 0);
+  public boolean hasFilledSquare(int side) {
+    if(side < 1) {
+      throw new IllegalArgumentException("The square must be at least 1x1");
+    }
+    var allCoordinates = patches.stream().
+        flatMap(p -> p.absoluteCoordinates().stream())
+        .collect(toSet());
+    return allCoordinates.stream()
+        .anyMatch(
+            c -> {
+              for(var i = c.y() - side; i < height; i++) {
+                for(var j = c.x() - side; j < width; j++) {
+                  if(!allCoordinates.contains(new Coordinates(i, j))) {
+                    return false;
+                  }
+                }
+              }
+              return true;});
   }
-  
-  /**
-   * function that will merge all patches from our quilt patches list that are neighbour with given patch
-   * but that are not equals to the given patch.
-   * 
-   * @return void
-   */
-  public void mergePatches(Patch patch) {
-  	this.patches = new ArrayList<Patch>(this.patches.stream()
-  			.filter(p -> !p.equals(patch)).filter(p -> p.isNeighbour(patch))
-  			.map(p -> p.mergePatch(patch)).toList());
-  }
-  
-  /**
-   * function that will for each patches of our quilt patches list perform 
-   * the merge with their neighbour so that at the end our 
-   * quilt patch list contains only non neighbour patches.
-   * 
-   * @return boolean
-   */
-  public void mergeAllPatches() {
-  	var iterator = this.patches.iterator();
-  	while (iterator.hasNext()) {
-			Patch patch = (Patch) iterator.next();
-			this.mergePatches(patch);
-		}
-  }
-  
   
   /**
    * Test if given coordinates is occupied by a cell of a patch on the quilt
@@ -136,11 +128,12 @@ public class QuiltBoard implements DrawableOnCLI {
       builder.append("|");
       for (var x = 0; x < width; x++) {
         if (occupied(new Coordinates(y, x))) {
-          builder.append(Color.ANSI_CYAN_BACKGROUND).append("x").append(Color.ANSI_RESET);
+          builder.append(Color.ANSI_CYAN_BACKGROUND).append("x");
         } else {
           builder.append(" ");
         }
       }
+      builder.append(Color.ANSI_RESET);
       builder.append("|\n");
     }
     // bottom
@@ -158,13 +151,6 @@ public class QuiltBoard implements DrawableOnCLI {
    */
   public int buttons() {
     return patches.stream().mapToInt(Patch::buttons).sum();
-  }
-
-  public static QuiltBoard fromText(String text) {
-    Objects.requireNonNull(text, "Can't make new player out of null String");
-    var parameters = text.replaceAll("[\\(\\)]", "").split(",");
-    return new QuiltBoard(Integer.parseInt(parameters[0]), 
-        Integer.parseInt(parameters[1]));
   }
 
   public static QuiltBoard fromXML(XMLElement element) {

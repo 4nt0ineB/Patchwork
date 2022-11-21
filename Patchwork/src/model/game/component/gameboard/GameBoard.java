@@ -1,6 +1,5 @@
-package model.gameboard;
+package model.game.component.gameboard;
 
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -10,12 +9,11 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
-import model.Action;
-import model.MenuOption;
-import model.Patch;
-import model.Player;
-import model.button.ButtonOwner;
-import model.gameboard.event.Event;
+import model.game.InGameAction;
+import model.game.component.Patch;
+import model.game.component.Player;
+import model.game.component.button.ButtonOwner;
+import model.game.component.gameboard.event.Event;
 import util.xml.XMLElement;
 import view.cli.Color;
 import view.cli.CommandLineInterface;
@@ -39,15 +37,8 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
   private Player currentPlayer;
   
   // The actions the player can do during the turn
-  private final LinkedHashSet<Action> availableActions = new LinkedHashSet<>();
+  private final LinkedHashSet<InGameAction> availableActions = new LinkedHashSet<>();
 
-  // List of index of all 5 SPECIAL PATCHES (1 * 1 patch in 
-  private HashSet<Integer> specialPatchesIndex = new HashSet<>();
-  // Game mode choosen
-  private final MenuOption gameMode;
-  //The Special Tile only 1 in the game
-  private int specialTile = 1;
-  
   /**
    * GameBoard constructor
    * 
@@ -58,7 +49,7 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
    * @param players     the players
    * @param the         list of events for the board
    */
-  public GameBoard(int spaces, int patchByTurn, int buttons, List<Patch> patches, Set<Player> players, List<Event> events, MenuOption gameMode) {
+  public GameBoard(int spaces, int patchByTurn, int buttons, List<Patch> patches, Set<Player> players, List<Event> events) {
     super(buttons);
     Objects.requireNonNull(patches, "List of patches can't be null");
     Objects.requireNonNull(players, "List of players can't be null");
@@ -78,11 +69,6 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
     this.patchManager = new PatchManager(patchByTurn, patches);
     this.players.addAll(players);
     this.events.addAll(events);
-    this.gameMode = gameMode;
-    if (gameMode.getBind() == 2) {
-    	// FULL GAME MODE CHOOSEN
-    	addSpecialPatches();
-    }
   }
   
   /**
@@ -94,12 +80,11 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
   }
 
   /**
-   * Return the list of all availables patches (next 3 patches in front of neutral token)
+   * Return the list of all availables patches 
+   * (next 3 patches in front of neutral token)
    * 
    * @return List of patches
    */ 
-  // NO RULES THAT SAYS TO ONLY SHOW THE PURCHASABLE PATCHES 
-  // YOU MUST SHOW EVEN THE PATCHES YOU CAN'T AFFORD ELSE RUINNING THE GAME
   public List<Patch> availablePatches() {
     return patchManager.availablePatches();
   }
@@ -109,7 +94,7 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
    * 
    * @return Set of Action
    */ 
-  public Set<Action> availableActions() {
+  public Set<InGameAction> availableActions() {
     return Set.copyOf(availableActions);
   }
   
@@ -124,7 +109,8 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
 
   /**
    * Select a patch among the next available from those around the board
-   * @exception AssertionError - if the given patch does not exists in the available patches
+   * @exception AssertionError If the given patch 
+   * does not exists in the available patches
    * @param patch
    */
   public void selectPatch(Patch patch) {
@@ -143,8 +129,10 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
   }
 
   /**
-   * Unselect the patch previously selected from those available around the board.
-   * Only patches from the around the board can be unselected.
+   * Unselect the patch previously 
+   * selected from those available around the board.
+   * Only patches from the around 
+   * the board can be unselected.
    */
   public void unselectPatch() {
     // Remove the patch from patches waiting queue as well
@@ -156,7 +144,8 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
   }
 
   /**
-   * Get the next patch that the current player must manipulate to place and buy
+   * Get the next patch that the current 
+   * player must manipulate to place and buy
    * to put on his quilt
    * 
    * @return
@@ -234,40 +223,28 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
   }
 
   /**
-   * Move the current player to the given position. The move will be limited by
-   * boundaries [0, spaces]
-   * @exception IllegalArgumentException - if the position exceeds boundaries
+   * Move the current player to the given position. 
+   * The move will be limited by boundaries [0, spaces]
+   * @exception IllegalArgumentException If the position exceeds boundaries
    * @param newPosition
    */
   private boolean currentPlayerMove(int newPosition) {
     testPosition(newPosition);
-    
     var move = newPosition - currentPlayer.position();
+    if(move == 0) {
+      return false;
+    }
     if (move > 0) {
       newPosition = Math.min(spaces, newPosition);
-      if (isFullGameMode()) {
-      	var pos = newPosition;
-      	var specialPatchesCount = this.specialPatchesIndex.size();
-      	// We look if the player will get a special patch on his way 
-      	// Only if his new pos his higher and not equal to an special patch index.
-      	// And remove the index so that we can't have twice the same special patch.
-      	this.specialPatchesIndex.removeIf(e -> e < pos);
-      	specialPatchesCount = specialPatchesCount - this.specialPatchesIndex.size();
-      	
-      	for (var i = 0; i < specialPatchesCount; i++) {
-      		this.addPatchToPlay(Patch.getSpecialPatch());
-      	}
-      }
       // Check if events on path (only when moving forward !)
       var pos = newPosition;
       var positioned = events.stream()
-          .filter(event -> event.isPositionedBetween(currentPlayer.position() + 1, pos))
+          .filter(event -> event.isPositionedBetween(currentPlayer.position() + 1, pos) 
+              && event.active())
           .toList();
       eventQueue.addAll(positioned);
     } else if (move < 0) {
       newPosition = Math.min(0, newPosition);
-    } else {
-      return false;
     }
     // Important to place the player at the end of the list
     // meaning the order of placement on spaces
@@ -286,7 +263,7 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
    * @return true or false
    */
   public boolean currentPlayerCanAdvance() {
-    return availableActions.contains(Action.ADVANCE);
+    return availableActions.contains(InGameAction.ADVANCE);
   }
 
   /**
@@ -295,18 +272,20 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
    * @return
    */
   public boolean currentPlayerCanSelectPatch() {
-    return availableActions.contains(Action.SELECT_PATCH);
+    return availableActions.contains(InGameAction.SELECT_PATCH);
   }
 
   /**
    * Set the next currentPlayer
    * 
-   * @exception AssertionError if the player is stuck.
+   * @exception AssertionError If the player is stuck.
    * @return
    */
   public boolean nextTurn() {
     // add not positioned events before end of turn
-    eventQueue.addAll(events.stream().filter(event -> event.runEachTurn()).toList()); 
+    eventQueue.addAll(events.stream()
+        .filter(event -> event.runEachTurn() && event.active())
+        .toList()); 
     if (!availableActions.isEmpty() // Player has things to do
         || !eventQueue.isEmpty()    // Remaining event to run for the player
         || !patchesToPlay.isEmpty() // can't change player, the current has patches to deal with
@@ -372,12 +351,12 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
     availableActions.clear();
     if(currentPlayer.position() != spaces 
         && nextPlayerFrom(currentPlayer.position() + 1) != null) {
-      availableActions.add(Action.ADVANCE);    
+      availableActions.add(InGameAction.ADVANCE);    
     }
     if(!patchManager.availablePatches().isEmpty()
        && patchManager.availablePatches()
        .stream().anyMatch(patch -> currentPlayer().canBuy(patch) == true)) {
-      availableActions.add(Action.SELECT_PATCH);
+      availableActions.add(InGameAction.SELECT_PATCH);
     }
   }
 
@@ -399,7 +378,7 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
   }
   
   /**
-   * Add a patch to the waiting 
+   * Add a patch to the waiting stack
    * @param patch
    */
   public void addPatchToPlay(Patch patch) {
@@ -413,9 +392,8 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
    * @return true or false
    */
   public boolean isFinished() {
-    // In short,
-    // the game is finished when the position of the most behind player is the last
-    // space.
+    // In short, the game is finished when the position 
+    // of the latest player is the last space
     return latestPlayer().position() == spaces;
   }
 
@@ -424,7 +402,7 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
    * @param element
    * @return
    */
-  public static GameBoard fromXML(XMLElement element, MenuOption gameMode) {
+  public static GameBoard fromXML(XMLElement element) {
     XMLElement.requireNotEmpty(element);
     var spaces = Integer.parseInt(element.getByTagName("spaces").content());
     var patchByTurn = Integer.parseInt(element.getByTagName("patchByTurn").content());
@@ -433,54 +411,7 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
         .getAllByTagName("Player").stream().map(Player::fromXML).collect(Collectors.toSet());
     var patches = element.getByTagName("patchList").getAllByTagName("Patch").stream().map(Patch::fromXML).toList();
     var events = element.getByTagName("eventList").getAllByTagName("Event").stream().map(Event::fromXML).toList();
-    return new GameBoard(spaces, patchByTurn, buttons, patches, players, events, gameMode);
+    return new GameBoard(spaces, patchByTurn, buttons, patches, players, events);
   }
-  
-  /**
-   * Add 5 distincts random index to the list of special patches index.
-   * 
-   * @return void
-   */
-  private void addSpecialPatches() {
-  	int i = 0;
-  	while (i < 5) {
-  		
-  		var f = Math.random() / Math.nextDown(1.0);
-  		var x = 1 * (1.0 - f) + spaces * f;
-    	if (this.specialPatchesIndex.add(((int) x))) {
-    		i++;
-    	}
-  	}
-  }
-  
-  /**
-   * return if the game mode choosen is the full game mode
-   * 
-   * @return boolean
-   */
-  public boolean isFullGameMode() {
-  	if (this.gameMode.getBind() == 2) {
-  		return true;
-  	}
-  	return false;
-  }
-
-  /**
-   * return if the special Tile is still in the possesion of the game board. 
-   * @return boolean
-   */
-	public boolean specialTile() {
-		return specialTile == 1;
-	}
-	
-	/**
-	 * Give the player the special tile (make the game board special tile to 0)
-   * 
-   * @return void
-   */
-	public void giveSpecialTileToPlayer(Player player) {
-		player.getSpecialTile();
-		this.specialTile = 0;
-	}
   
 }

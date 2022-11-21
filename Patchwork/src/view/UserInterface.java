@@ -3,9 +3,9 @@ package view;
 import java.util.List;
 import java.util.Set;
 
-import model.Action;
-import model.Patch;
-import model.QuiltBoard;
+import controller.KeybindedChoice;
+import model.game.component.Patch;
+import model.game.component.QuiltBoard;
 
 public interface UserInterface {
 
@@ -15,7 +15,7 @@ public interface UserInterface {
   
   Patch selectPatch(List<Patch> patches);
   
-  Action getPlayerAction(Set<Action> options);
+  int getPlayerChoice(Set<KeybindedChoice> choices);
 
   void drawDummyQuilt(QuiltBoard quilt, Patch patch);
 
@@ -28,7 +28,5 @@ public interface UserInterface {
    * Close the interface
    */
   void close();
-
-  
 
 }
