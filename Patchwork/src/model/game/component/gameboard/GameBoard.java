@@ -240,7 +240,7 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
       var pos = newPosition;
       var positioned = events.stream()
           .filter(event -> event.isPositionedBetween(currentPlayer.position() + 1, pos) 
-              && event.active())
+              && event.active() && event.run(this))
           .toList();
       eventQueue.addAll(positioned);
     } else if (move < 0) {
@@ -284,16 +284,17 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
   public boolean nextTurn() {
     // add not positioned events before end of turn
     eventQueue.addAll(events.stream()
-        .filter(event -> event.runEachTurn() && event.active())
+        .filter(event -> event.runEachTurn() && event.active() && event.run(this))
         .toList()); 
     if (!availableActions.isEmpty() // Player has things to do
-        || !eventQueue.isEmpty()    // Remaining event to run for the player
+        // || !eventQueue.isEmpty()    // Remaining event to run for the player
         || !patchesToPlay.isEmpty() // can't change player, the current has patches to deal with
         ) {
       return false;
     }
     currentPlayer = latestPlayer();
     updateActions();
+    eventQueue.clear();
     if (availableActions.isEmpty()) {
       throw new AssertionError("Unwanted game state. Player is stuck. \n"
           + "Probably bad init settings for the game board, or the game is finished.\n"

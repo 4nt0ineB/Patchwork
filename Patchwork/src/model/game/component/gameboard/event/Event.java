@@ -44,10 +44,12 @@ public class Event implements DrawableOnCLI {
     return !runEachTurn() && position >= n && position <= m;
   }
 
-  public void run(GameBoard gameboard) {
+  public boolean run(GameBoard gameboard) {
     if (effect.test(gameboard) && oneUse) {
       active = false;
+      return true;
     }
+    return false;
   }
 
   public Boolean runEachTurn() {

@@ -73,7 +73,7 @@ public class PatchworkController {
         }
       }
       board.eventQueue().forEach(e -> ui.draw(e));
-      board.runWaitingEvents();
+      //board.runWaitingEvents();
     } while (action != InGameAction.QUIT && !board.isFinished());
     ui.close();
   }

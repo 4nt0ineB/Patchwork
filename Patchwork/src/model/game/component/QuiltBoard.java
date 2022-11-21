@@ -79,8 +79,8 @@ public class QuiltBoard implements DrawableOnCLI {
     return allCoordinates.stream()
         .anyMatch(
             c -> {
-              for(var i = c.y() - side; i < height; i++) {
-                for(var j = c.x() - side; j < width; j++) {
+              for(var i = c.y() - side - 1; i < c.y() - side; i++) {
+                for(var j = c.x() - side - 1; j < c.y() - side; j++) {
                   if(!allCoordinates.contains(new Coordinates(i, j))) {
                     return false;
                   }

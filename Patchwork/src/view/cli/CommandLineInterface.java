@@ -92,8 +92,9 @@ public final class CommandLineInterface implements UserInterface {
       if(input > 0 && input <= i) {
         return patches.get(input - 1);
       }
+    }else {
+      scanner.nextLine();
     }
-    scanner.nextLine();
     System.out.println("Wrong choice\n");
     return null;
   }
@@ -145,7 +146,7 @@ public final class CommandLineInterface implements UserInterface {
     var localBuilder = new StringBuilder();
     localBuilder
     .append(Color.ANSI_ORANGE)
-    .append("\n[Actions]\n")
+    .append("\n[Choices]\n")
     .append(Color.ANSI_RESET);
     choices.forEach(option -> 
       localBuilder.append(option).append("\n"));

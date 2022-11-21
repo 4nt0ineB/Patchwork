@@ -225,7 +225,12 @@ public class Patch implements ButtonValued, DrawableOnCLI {
    */
   public boolean overlap(Patch patch) {
     Objects.requireNonNull(patch, "Can't test overlapping on null");
-    return absoluteCoordinates().stream().anyMatch(cell -> meets(cell));
+    for(var cell: patch.absoluteCoordinates()) {
+      if(meets(cell)) {
+        return true;
+      }
+    }
+    return false;
   }
   
   /**
