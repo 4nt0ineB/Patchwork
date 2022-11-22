@@ -1,8 +1,13 @@
-package model;
+package model.game.component;
+
+import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import util.xml.XMLElement;
 import view.cli.Color;
@@ -12,7 +17,7 @@ import view.cli.DrawableOnCLI;
 public class QuiltBoard implements DrawableOnCLI {
   private final int width;
   private final int height;
-  private final ArrayList<Patch> patches;
+  private ArrayList<Patch> patches = new ArrayList<>();
   
   public QuiltBoard(int width, int height) {
     if (width < 1 || height < 1) {
@@ -20,7 +25,6 @@ public class QuiltBoard implements DrawableOnCLI {
     }
     this.width = width;
     this.height = height;
-    patches = new ArrayList<>();
   }
   
   public List<Patch> patches() {
@@ -44,7 +48,11 @@ public class QuiltBoard implements DrawableOnCLI {
    */
   public boolean add(Patch patch) {
     Objects.requireNonNull(patch, "can't add null obj as a patch");
-    return canAdd(patch) && patches.add(patch);
+    if(canAdd(patch)) {
+      patches.add(patch);
+      return true;
+    }
+    return false;
   }
 
   public boolean canAdd(Patch patch) {
@@ -60,7 +68,27 @@ public class QuiltBoard implements DrawableOnCLI {
     }
     return true;
   }
-
+  
+  public boolean hasFilledSquare(int side) {
+    if(side < 1) {
+      throw new IllegalArgumentException("The square must be at least 1x1");
+    }
+    var allCoordinates = patches.stream().
+        flatMap(p -> p.absoluteCoordinates().stream())
+        .collect(toSet());
+    return allCoordinates.stream()
+        .anyMatch(
+            c -> {
+              for(var i = c.y() - side - 1; i < c.y() - side; i++) {
+                for(var j = c.x() - side - 1; j < c.y() - side; j++) {
+                  if(!allCoordinates.contains(new Coordinates(i, j))) {
+                    return false;
+                  }
+                }
+              }
+              return true;});
+  }
+  
   /**
    * Test if given coordinates is occupied by a cell of a patch on the quilt
    * 
@@ -100,11 +128,12 @@ public class QuiltBoard implements DrawableOnCLI {
       builder.append("|");
       for (var x = 0; x < width; x++) {
         if (occupied(new Coordinates(y, x))) {
-          builder.append(Color.ANSI_CYAN_BACKGROUND).append("x").append(Color.ANSI_RESET);
+          builder.append(Color.ANSI_CYAN_BACKGROUND).append("x");
         } else {
           builder.append(" ");
         }
       }
+      builder.append(Color.ANSI_RESET);
       builder.append("|\n");
     }
     // bottom
@@ -122,13 +151,6 @@ public class QuiltBoard implements DrawableOnCLI {
    */
   public int buttons() {
     return patches.stream().mapToInt(Patch::buttons).sum();
-  }
-
-  public static QuiltBoard fromText(String text) {
-    Objects.requireNonNull(text, "Can't make new player out of null String");
-    var parameters = text.replaceAll("[\\(\\)]", "").split(",");
-    return new QuiltBoard(Integer.parseInt(parameters[0]), 
-        Integer.parseInt(parameters[1]));
   }
 
   public static QuiltBoard fromXML(XMLElement element) {

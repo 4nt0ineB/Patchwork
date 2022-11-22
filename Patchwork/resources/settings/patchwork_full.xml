@@ -61,6 +61,11 @@
 			<oneUse>false</oneUse>
 			<position>47</position>
 		</Event>
+		<Event>
+			<type>SPECIAL_TILE</type>
+			<oneUse>true</oneUse>
+			<position>-1</position>
+		</Event>
 	</eventList>
 	<patchList>
 		<Patch>

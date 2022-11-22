@@ -6,6 +6,7 @@ PC version of the Patchwork game in Java
 - complete/enhance javadoc (and beautify with options in build.xml)
 - Ensure loading board settings from files
 - improves actions management ?
+- Play a full game see if it works then merge ?
 
 #  Files
 

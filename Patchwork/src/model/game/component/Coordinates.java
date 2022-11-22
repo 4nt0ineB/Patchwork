@@ -1,4 +1,4 @@
-package model;
+package model.game.component;
 
 import java.util.List;
 
@@ -47,6 +47,26 @@ public record Coordinates(int y, int x) implements XMLSerializable {
   public double distance(Coordinates other) {
     return Math.sqrt(Math.pow(other.x - x, 2) + Math.pow(other.y - y, 2));
   }
+  
+  /**
+   * Return the distance in X axis between the instance and other Coordinates
+   * @param other Coordinates
+   * @return
+   */
+  public int distanceInX(Coordinates other) {
+    return this.x() - other.x();
+  }
+  
+  
+  /**
+   * Return the distance in Y axis between the instance and other Coordinates
+   * @param other Coordinates
+   * @return
+   */
+  public int distanceInY(Coordinates other) {
+  	return this.y() - other.y();
+  }
+  
   
   /**
    * Apply {@link Math#abs} on the each coordinate
@@ -110,5 +130,5 @@ public record Coordinates(int y, int x) implements XMLSerializable {
         Integer.parseInt(element.getByTagName("x").content()),
         Integer.parseInt(element.getByTagName("y").content()));
   }
-  
+ 
 }

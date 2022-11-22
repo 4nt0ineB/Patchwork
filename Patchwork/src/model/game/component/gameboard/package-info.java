@@ -2,4 +2,4 @@
  * Provides the Patchwork game board implementation.
  */
 
-package model.gameboard;
+package model.game.component.gameboard;

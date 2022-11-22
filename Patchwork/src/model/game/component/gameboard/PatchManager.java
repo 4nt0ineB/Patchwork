@@ -1,13 +1,12 @@
-package model.gameboard;
+package model.game.component.gameboard;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import model.Patch;
+import model.game.component.Patch;
 
 public class PatchManager {
 
@@ -25,8 +24,7 @@ public class PatchManager {
     this.nextPatchesRange = nextPatchesRange;
     this.patches = new ArrayList<>(patches);
     Collections.shuffle(this.patches);
-    // -1 because the next patches are those selected after the neutralToken
-    this.neutralToken = minPatch(this.patches) - 1;
+    this.neutralToken = minPatch(this.patches);
     loadNextPatches();
   }
 
@@ -122,7 +120,7 @@ public class PatchManager {
   
   /**
    * Return index of the smallest patch in a list
-   * @Todo can be improved !
+   * @Todo can be improved !   ..?
    * @param patches
    * @return index or -1
    */
@@ -131,6 +129,7 @@ public class PatchManager {
     if(patches.isEmpty()) {
       throw new IllegalArgumentException("Empty list of patches");
     }
+    
     return IntStream.range(0, patches.size()).boxed()
         .min((i, j) -> Integer.compare(patches.get(i).countCells(), patches.get(j).countCells()))
         .get();

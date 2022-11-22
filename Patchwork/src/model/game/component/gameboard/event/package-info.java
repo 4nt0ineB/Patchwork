@@ -5,4 +5,4 @@
  * 
  */
 
-package model.gameboard.event;
+package model.game.component.gameboard.event;

@@ -6,10 +6,10 @@ import java.util.Objects;
 import java.util.Scanner;
 import java.util.Set;
 
-import model.Action;
-import model.Coordinates;
-import model.Patch;
-import model.QuiltBoard;
+import controller.KeybindedChoice;
+import model.game.component.Coordinates;
+import model.game.component.Patch;
+import model.game.component.QuiltBoard;
 import view.Drawable;
 import view.UserInterface;
 
@@ -37,12 +37,17 @@ public final class CommandLineInterface implements UserInterface {
   }
   
   public void drawMessages() {
-    messages.stream().forEachOrdered(message -> {
+    messages.forEach(message -> {
       builder
       .append("\n")
       .append(message)
       .append("\n");
       }); 
+  }
+  
+  @Override
+  public void draw(Drawable drawable) {
+    ((DrawableOnCLI) drawable).drawOnCLI(this);
   }
   
   public void display() {
@@ -57,7 +62,6 @@ public final class CommandLineInterface implements UserInterface {
     drawSplashScreen();
   }
 
-  
   @Override
   public Patch selectPatch(List<Patch> patches) {
     Objects.requireNonNull(patches);
@@ -88,8 +92,9 @@ public final class CommandLineInterface implements UserInterface {
       if(input > 0 && input <= i) {
         return patches.get(input - 1);
       }
+    }else {
+      scanner.nextLine();
     }
-    scanner.nextLine();
     System.out.println("Wrong choice\n");
     return null;
   }
@@ -137,26 +142,27 @@ public final class CommandLineInterface implements UserInterface {
   }
   
   @Override
-  public Action getPlayerAction(Set<Action> options) {
+  public int getPlayerChoice(Set<KeybindedChoice> choices){
     var localBuilder = new StringBuilder();
     localBuilder
     .append(Color.ANSI_ORANGE)
-    .append("\n[Actions]\n")
+    .append("\n[Choices]\n")
     .append(Color.ANSI_RESET);
-    options.stream().forEach(option -> 
+    choices.forEach(option -> 
       localBuilder.append(option).append("\n"));
     localBuilder.append("\nChoice ? : ");
     System.out.print(localBuilder);
-    if(scanner.hasNextLine()) {
-      var input = scanner.nextLine();
-      for(var op: options) {
-        if(op.bind().equals(input)) {
-          return op;
+    String input;
+    if(scanner.hasNextLine() 
+        && (input = scanner.nextLine()).length() == 1) {
+      for(var choice: choices) {
+        if(choice.key() == input.charAt(0)) {
+          return choice.key();
         }
       }
     }
     System.out.println("Wrong choice\n");
-    return Action.DEFAULT;
+    return -1;
   }
   
   /**
@@ -184,10 +190,5 @@ public final class CommandLineInterface implements UserInterface {
         + Color.ANSI_RESET;
     builder.append(splash);
   }
-
-  @Override
-  public void draw(Drawable drawable) {
-    ((DrawableOnCLI) drawable).drawOnCLI(this);
-  }
-
+  
 }

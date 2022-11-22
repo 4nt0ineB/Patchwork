@@ -1,4 +1,4 @@
-package model.gameboard;
+package model.game.component.gameboard;
 
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -9,11 +9,11 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
-import model.Action;
-import model.Patch;
-import model.Player;
-import model.button.ButtonOwner;
-import model.gameboard.event.Event;
+import model.game.InGameAction;
+import model.game.component.Patch;
+import model.game.component.Player;
+import model.game.component.button.ButtonOwner;
+import model.game.component.gameboard.event.Event;
 import util.xml.XMLElement;
 import view.cli.Color;
 import view.cli.CommandLineInterface;
@@ -30,7 +30,6 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
   //All events in game
   private final Queue<Event> events = new LinkedList<>();
   // Patches stack gathering all patches that must be played by the current player during the turn
- 
   private final Stack<Patch> patchesToPlay = new Stack<>();
   // Event queue to process at the end of the turn
   private final Queue<Event> eventQueue = new LinkedList<>();
@@ -38,7 +37,7 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
   private Player currentPlayer;
   
   // The actions the player can do during the turn
-  private final LinkedHashSet<Action> availableActions = new LinkedHashSet<>();
+  private final LinkedHashSet<InGameAction> availableActions = new LinkedHashSet<>();
 
   /**
    * GameBoard constructor
@@ -81,15 +80,21 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
   }
 
   /**
-   * Return a list of only purchasable patches by the current player
+   * Return the list of all availables patches 
+   * (next 3 patches in front of neutral token)
    * 
-   * @return
-   */
+   * @return List of patches
+   */ 
   public List<Patch> availablePatches() {
-    return patchManager.availablePatches().stream().filter(patch -> currentPlayer().canBuy(patch)).toList();
+    return patchManager.availablePatches();
   }
 
-  public Set<Action> availableActions() {
+  /**
+   * Return the set of all availables actions during the turn
+   * 
+   * @return Set of Action
+   */ 
+  public Set<InGameAction> availableActions() {
     return Set.copyOf(availableActions);
   }
   
@@ -104,7 +109,8 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
 
   /**
    * Select a patch among the next available from those around the board
-   * @exception AssertionError - if the given patch does not exists in the available patches
+   * @exception AssertionError If the given patch 
+   * does not exists in the available patches
    * @param patch
    */
   public void selectPatch(Patch patch) {
@@ -123,8 +129,10 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
   }
 
   /**
-   * Unselect the patch previously selected from those available around the board.
-   * Only patches from the around the board can be unselected.
+   * Unselect the patch previously 
+   * selected from those available around the board.
+   * Only patches from the around 
+   * the board can be unselected.
    */
   public void unselectPatch() {
     // Remove the patch from patches waiting queue as well
@@ -136,7 +144,8 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
   }
 
   /**
-   * Get the next patch that the current player must manipulate to place and buy
+   * Get the next patch that the current 
+   * player must manipulate to place and buy
    * to put on his quilt
    * 
    * @return
@@ -214,26 +223,28 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
   }
 
   /**
-   * Move the current player to the given position. The move will be limited by
-   * boundaries [0, spaces]
-   * @exception IllegalArgumentException - if the position exceeds boundaries
+   * Move the current player to the given position. 
+   * The move will be limited by boundaries [0, spaces]
+   * @exception IllegalArgumentException If the position exceeds boundaries
    * @param newPosition
    */
   private boolean currentPlayerMove(int newPosition) {
     testPosition(newPosition);
     var move = newPosition - currentPlayer.position();
+    if(move == 0) {
+      return false;
+    }
     if (move > 0) {
       newPosition = Math.min(spaces, newPosition);
       // Check if events on path (only when moving forward !)
       var pos = newPosition;
       var positioned = events.stream()
-          .filter(event -> event.isPositionedBetween(currentPlayer.position() + 1, pos))
+          .filter(event -> event.isPositionedBetween(currentPlayer.position() + 1, pos) 
+              && event.active() && event.run(this))
           .toList();
       eventQueue.addAll(positioned);
     } else if (move < 0) {
       newPosition = Math.min(0, newPosition);
-    } else {
-      return false;
     }
     // Important to place the player at the end of the list
     // meaning the order of placement on spaces
@@ -252,7 +263,7 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
    * @return true or false
    */
   public boolean currentPlayerCanAdvance() {
-    return availableActions.contains(Action.ADVANCE);
+    return availableActions.contains(InGameAction.ADVANCE);
   }
 
   /**
@@ -261,26 +272,29 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
    * @return
    */
   public boolean currentPlayerCanSelectPatch() {
-    return availableActions.contains(Action.SELECT_PATCH);
+    return availableActions.contains(InGameAction.SELECT_PATCH);
   }
 
   /**
    * Set the next currentPlayer
    * 
-   * @exception AssertionError if the player is stuck.
+   * @exception AssertionError If the player is stuck.
    * @return
    */
   public boolean nextTurn() {
     // add not positioned events before end of turn
-    eventQueue.addAll(events.stream().filter(event -> event.runEachTurn()).toList()); 
+    eventQueue.addAll(events.stream()
+        .filter(event -> event.runEachTurn() && event.active() && event.run(this))
+        .toList()); 
     if (!availableActions.isEmpty() // Player has things to do
-        || !eventQueue.isEmpty()    // Remaining event to run for the player
+        // || !eventQueue.isEmpty()    // Remaining event to run for the player
         || !patchesToPlay.isEmpty() // can't change player, the current has patches to deal with
         ) {
       return false;
     }
     currentPlayer = latestPlayer();
     updateActions();
+    eventQueue.clear();
     if (availableActions.isEmpty()) {
       throw new AssertionError("Unwanted game state. Player is stuck. \n"
           + "Probably bad init settings for the game board, or the game is finished.\n"
@@ -338,12 +352,12 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
     availableActions.clear();
     if(currentPlayer.position() != spaces 
         && nextPlayerFrom(currentPlayer.position() + 1) != null) {
-      availableActions.add(Action.ADVANCE);    
+      availableActions.add(InGameAction.ADVANCE);    
     }
     if(!patchManager.availablePatches().isEmpty()
        && patchManager.availablePatches()
        .stream().anyMatch(patch -> currentPlayer().canBuy(patch) == true)) {
-      availableActions.add(Action.SELECT_PATCH);
+      availableActions.add(InGameAction.SELECT_PATCH);
     }
   }
 
@@ -365,7 +379,7 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
   }
   
   /**
-   * Add a patch to the waiting 
+   * Add a patch to the waiting stack
    * @param patch
    */
   public void addPatchToPlay(Patch patch) {
@@ -379,9 +393,8 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
    * @return true or false
    */
   public boolean isFinished() {
-    // In short,
-    // the game is finished when the position of the most behind player is the last
-    // space.
+    // In short, the game is finished when the position 
+    // of the latest player is the last space
     return latestPlayer().position() == spaces;
   }
 
@@ -401,4 +414,5 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
     var events = element.getByTagName("eventList").getAllByTagName("Event").stream().map(Event::fromXML).toList();
     return new GameBoard(spaces, patchByTurn, buttons, patches, players, events);
   }
+  
 }

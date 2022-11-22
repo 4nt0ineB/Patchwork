@@ -1,4 +1,6 @@
-package model;
+package model.game.component;
+
+import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -7,7 +9,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import model.button.ButtonValued;
+import model.game.InGameAction;
+import model.game.component.button.ButtonValued;
 import util.xml.XMLElement;
 import view.cli.CommandLineInterface;
 import view.cli.DrawableOnCLI;
@@ -71,8 +74,8 @@ public class Patch implements ButtonValued, DrawableOnCLI {
   }
   
   /**
-   * 
-   * @return
+   * Getter method for moves
+   * @return int
    */
   public int moves() {
     return moves;
@@ -86,11 +89,22 @@ public class Patch implements ButtonValued, DrawableOnCLI {
     return buttons;
   }
   
+  /**
+   * Getter method for price
+   * @return int
+   */
   @Override
   public int value() {
     return price;
   }
   
+  /**
+   * access CurrentCoordinates
+   * @return Set<Coordinates>
+   */
+  public Set<Coordinates> currentCoordinates(){
+  	return rotations.get(currentRotation);
+  }
   /**
    * 90° left rotation
    */
@@ -113,7 +127,7 @@ public class Patch implements ButtonValued, DrawableOnCLI {
    * Decrement by one the absolute coordinates along y axis
    */
   public void moveUp() {
-    absoluteOrigin = absoluteOrigin.sub(new Coordinates(1, 0));
+    absoluteOrigin = absoluteOrigin.sub(new Coordinates(1, 0));		
   }
   
   /**
@@ -138,7 +152,55 @@ public class Patch implements ButtonValued, DrawableOnCLI {
   }
   
   /**
-   * Count the number of coordinates in the patch
+   * Says if it's possible for the patch to move up
+   * @return
+   */
+  public boolean canMoveUp(QuiltBoard quilt) {
+  	return currentCoordinates().stream()
+  	    .map(Coordinates::y)
+  	    .min(Integer::compare)
+  	    .get() 
+  	    + absoluteOrigin.y() > 0;
+  }
+  
+  /**
+   * Says if it's possible for the patch to move down
+   * @return
+   */
+  public boolean canMoveDown(QuiltBoard quilt) {
+  	return currentCoordinates().stream()
+        .map(Coordinates::y)
+        .max(Integer::compare)
+        .get() 
+        + absoluteOrigin.y() < quilt.height() - 1;
+  }
+  
+  /**
+   * Says if it's possible for the patch to move left
+   * @return
+   */
+  public boolean canMoveLeft(QuiltBoard quilt) {
+  	return currentCoordinates().stream()
+        .map(Coordinates::x)
+        .min(Integer::compare)
+        .get() 
+        + absoluteOrigin.x() > 0;
+  }
+  
+  /**
+   * Says if it's possible for the patch to move right
+   * @return
+   */
+  public boolean canMoveRight(QuiltBoard quilt) {
+  	return currentCoordinates().stream()
+        .map(Coordinates::x)
+        .max(Integer::compare)
+        .get() 
+        + absoluteOrigin.x() < quilt.width() - 1;
+  }
+  
+  /**
+   * Count the number of cells in the patch
    * @return
    */
   public int countCells() {
@@ -150,7 +212,8 @@ public class Patch implements ButtonValued, DrawableOnCLI {
    * @return
    */
   public Set<Coordinates> absoluteCoordinates(){
-    return new HashSet<>(rotations.get(currentRotation).stream()
+    return new HashSet<>(
+        rotations.get(currentRotation).stream()
         .map(c -> c.add(absoluteOrigin))
         .toList());
   }
@@ -197,7 +260,6 @@ public class Patch implements ButtonValued, DrawableOnCLI {
     }
     var topleft = new Coordinates(0, 0);
     var lowerright = new Coordinates(height, width);
-    
     for(var cell: rotations.get(currentRotation)) {
       var absPos = cell.add(absoluteOrigin);
       if(!absPos.inRectangle(topleft, lowerright)) {
@@ -215,10 +277,10 @@ public class Patch implements ButtonValued, DrawableOnCLI {
   private boolean isSquare(Set<Coordinates> cells) {
     var side = Math.sqrt(cells.size());
     if(side * side != cells.size()) {
-      // number of cells cannot form a square
+      // number of cells not enough for square
       return false;
     }
-    // the vector with which the square must expand from origin to form the expected square
+    // the vector with which the origin must form the expected square
     var vector = farthestCoordinates(cells)
         .mul(new Coordinates(((int) side) - 1, ((int) side) - 1));
     var origin = new Coordinates(0, 0);
@@ -238,8 +300,12 @@ public class Patch implements ButtonValued, DrawableOnCLI {
     return true;
   }
   
+  public boolean isSquare() {
+    return isSquare(rotations.get(currentRotation));
+  }
+  
   /**
-   * Return the farthest coordinates to origin (0,0)
+   * Return the farthest coordinates from origin (0,0)
    * @param cells
    * @return
    */
@@ -269,7 +335,7 @@ public class Patch implements ButtonValued, DrawableOnCLI {
       for(var i = 1; i < 4; i++) {
         var rotation = prevRotation.stream()
             .map(Coordinates::rotateClockwise)
-            .collect(Collectors.toSet());
+            .collect(toSet());
         if(!rotationsList.contains(rotation)) {
           rotationsList.add(rotation);
           prevRotation = rotation;
@@ -320,21 +386,18 @@ public class Patch implements ButtonValued, DrawableOnCLI {
     // We use a conceptual square to deal with absolute coordinates.
     // While the patch doesn't fit in, we expand the square
     // and replace the origin of the patch at the center of it
-    var width = 1;
-    var height = 1;
+    var width = 2;
+    var height = 2;
     while(!this.fits(width, height)) {
       absoluteMoveTo(new Coordinates(height / 2, width / 2));
       width += 1;
       height += 1;
     }
     // draw the patch
-    ui.builder()
-    .append("[Price: ")
-    .append(price)
-    .append(" Moves: ")
-    .append(moves)
-    .append(" Buttons: ")
-    .append(buttons)
+    ui.builder().append("[")
+    .append("Price: ").append(price)
+    .append(", Moves: ").append(moves)
+    .append(", Buttons: ").append(buttons)
     .append("]\n\n");
     for(var y = 0; y < height; y++) {
       ui.builder().append("  ");
@@ -363,5 +426,5 @@ public class Patch implements ButtonValued, DrawableOnCLI {
         .getAllByTagName("Coordinates").stream().map(Coordinates::fromXML).toList();
     return new Patch(price, moves, buttons, coordinatesList);
   }
-
+  
 }

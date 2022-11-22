@@ -81,12 +81,13 @@ public class XMLElement extends ArrayList<XMLElement> {
   }
   
   /**
-   * Build a nested string representation of the XMLElement recursively in a {#link StringBuilder}
+   * Build a nested string representation of the XMLElement, 
+   * recursively, in a {#link StringBuilder}
    * @param builder
    * @param depth
    * @return
    */
-  private String toStringRecursive(StringBuilder builder, int depth) {
+  private String toStringImpl(StringBuilder builder, int depth) {
     for(var i = 0; i < depth; i++) {
       builder.append("  ");
     }
@@ -95,8 +96,8 @@ public class XMLElement extends ArrayList<XMLElement> {
     .append(">");
     if(!isEmpty()) {
       builder.append("\n");
-      this.stream().forEach(element -> {
-        builder.append(element.toStringRecursive(new StringBuilder(), depth + 1));
+      this.forEach(element -> {
+        builder.append(element.toStringImpl(new StringBuilder(), depth + 1));
       });
       for(var i = 0; i < depth; i++) {
         builder.append("  ");
@@ -112,12 +113,13 @@ public class XMLElement extends ArrayList<XMLElement> {
   
   @Override
   public String toString() {
-    return toStringRecursive(new StringBuilder(), 0);
+    return toStringImpl(new StringBuilder(), 0);
   }
   
   /**
-   * Require the XMLElement to be non null with {@link Objects#requireNonNull(Object)
-   * and to contain nested elements or a not empty string for {@link XMLElement#content}
+   * Require the XMLElement to be non null with {@link Objects#requireNonNull(Object)}
+   * and to contain nested elements,
+   * or a not empty string for {@link XMLElement#content}
    * 
    * @param element
    * @param msg

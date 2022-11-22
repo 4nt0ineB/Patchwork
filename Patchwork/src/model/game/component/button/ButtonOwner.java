@@ -1,4 +1,4 @@
-package model.button;
+package model.game.component.button;
 
 import java.util.Objects;
 

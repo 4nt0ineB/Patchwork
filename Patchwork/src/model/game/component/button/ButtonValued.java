@@ -1,4 +1,4 @@
-package model.button;
+package model.game.component.button;
 
 /**
  * Defines API of exchangeable/purchasable items of the game in button
