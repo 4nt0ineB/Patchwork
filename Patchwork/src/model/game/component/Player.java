@@ -7,7 +7,7 @@ import util.xml.XMLElement;
 import view.cli.CommandLineInterface;
 import view.cli.DrawableOnCLI;
 
-public class Player extends ButtonOwner implements DrawableOnCLI {
+public class Player extends ButtonOwner implements DrawableOnCLI, Comparable<Player> {
   
   private final String name;
   private final QuiltBoard quilt;
@@ -96,6 +96,11 @@ public class Player extends ButtonOwner implements DrawableOnCLI {
    */
   public int score() {
   	return buttons() + specialTile * 7 - (quilt.countEmptySpaces() * 2);
+  }
+
+  @Override
+  public int compareTo(Player o) {
+    return Integer.compare(score(), o.score());
   }
   
 }

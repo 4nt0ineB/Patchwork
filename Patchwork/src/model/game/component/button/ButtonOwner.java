@@ -13,7 +13,7 @@ import java.util.Objects;
  *  and shall respect the money circulation principle.
  *
  */
-public abstract class ButtonOwner implements Comparable<ButtonOwner>{
+public abstract class ButtonOwner{
   private int buttons;
   
   public ButtonOwner(int buttons) {
@@ -47,11 +47,6 @@ public abstract class ButtonOwner implements Comparable<ButtonOwner>{
     Objects.requireNonNull(owner, "owner can't be null");
     Objects.requireNonNull(thing, "thing can't be null");
     pay(owner, thing.value());
-  }
-  
-  @Override
-  public int compareTo(ButtonOwner o) {
-    return Integer.compare(buttons, o.buttons);
   }
   
   public int buttons() {

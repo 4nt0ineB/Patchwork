@@ -1,5 +1,6 @@
 package model.game.component.gameboard;
 
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -225,11 +226,9 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
   /**
    * Move the current player to the given position. 
    * The move will be limited by boundaries [0, spaces]
-   * @exception IllegalArgumentException If the position exceeds boundaries
    * @param newPosition
    */
   private boolean currentPlayerMove(int newPosition) {
-    testPosition(newPosition);
     var move = newPosition - currentPlayer.position();
     if(move == 0) {
       return false;
@@ -315,7 +314,6 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
    * @return the player, or null
    */
   private Player nextPlayerFrom(int position) {
-    testPosition(position);
     Player nextPlayer = null;
     var iterator = players.iterator();
     while (iterator.hasNext()) {
@@ -364,18 +362,33 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
   @Override
   public void drawOnCLI(CommandLineInterface ui) {
     var builder = ui.builder();
-    builder.append("[ ---- (Buttons: ")
-    .append(buttons())
-    .append(") - (Patches: ")
-    .append(patchManager.numberOfPatches()).append(") ---- ]\n");
-    for (var player : players) {
-      if (player.equals(currentPlayer())) {
-        builder.append(Color.ANSI_GREEN);
+    if(!isFinished()) {
+      builder.append("[ ---- (Buttons: ")
+      .append(buttons())
+      .append(") - (Patches: ")
+      .append(patchManager.numberOfPatches()).append(") ---- ]\n");
+      for (var player : players) {
+        if (player.equals(currentPlayer())) {
+          builder.append(Color.ANSI_GREEN);
+        }
+        player.drawOnCLI(ui);
+        builder.append(Color.ANSI_RESET).append("\n");
       }
-      player.drawOnCLI(ui);
-      builder.append(Color.ANSI_RESET).append("\n");
+      builder.append("\n");
+    }else {
+      builder.append(Color.ANSI_ORANGE)
+      .append("[ ---- Scores ---- ] \n")
+      .append(Color.ANSI_RESET);
+      var sortedPlayers = players.stream().sorted(Comparator.reverseOrder()).toList();
+      sortedPlayers.forEach(
+          p -> builder.append(p.name()).append(" : ")
+          .append(p.score()).append("\n"));
+      builder.append(Color.ANSI_YELLOW)
+      .append(sortedPlayers.get(0).name())
+      .append(" Wins !\n")
+      .append(Color.ANSI_RESET);
     }
-    builder.append("\n");
+    
   }
   
   /**

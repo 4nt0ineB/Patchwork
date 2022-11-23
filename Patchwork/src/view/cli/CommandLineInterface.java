@@ -173,7 +173,6 @@ public final class CommandLineInterface implements UserInterface {
   @Override
   public void close() {
     scanner.close();
-    System.out.println("Bye.");
   }
 
   @Override

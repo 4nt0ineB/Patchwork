@@ -15,10 +15,6 @@ import view.cli.CommandLineInterface;
 
 public class PatchworkController {
   
-  
-
-  
-  
   /**
    * Menu Loop that draw the menu and wait for the user to choose
    * his game mode 
@@ -54,7 +50,7 @@ public class PatchworkController {
   private static void mainLoop(UserInterface ui, GameBoard board) {
     InGameAction action = InGameAction.DEFAULT;
     board.init();
-    do { // -- Game loop
+    while(action != InGameAction.QUIT && !board.isFinished()) { // -- Game loop
       if(board.nextTurn()){
         ui.clearMessages();
       }
@@ -74,7 +70,14 @@ public class PatchworkController {
       }
       board.eventQueue().forEach(e -> ui.draw(e));
       //board.runWaitingEvents();
-    } while (action != InGameAction.QUIT && !board.isFinished());
+      System.out.println("Fin ? " + board.isFinished());
+    }
+    if(action != InGameAction.QUIT) {
+      ui.clear();
+      ui.draw(board);
+      ui.drawMessages();
+      ui.display(); 
+    }
     ui.close();
   }
   
