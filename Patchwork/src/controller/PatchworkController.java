@@ -69,8 +69,6 @@ public class PatchworkController {
         }
       }
       board.eventQueue().forEach(e -> ui.draw(e));
-      //board.runWaitingEvents();
-      System.out.println("Fin ? " + board.isFinished());
     }
     if(action != InGameAction.QUIT) {
       ui.clear();
@@ -141,12 +139,12 @@ public class PatchworkController {
     var right = new KeybindedChoice('d', "right");
     var left = new KeybindedChoice('q', "left");
     var back = new KeybindedChoice('b', "back");
-    var action = InGameAction.DEFAULT;
     choices.addAll(Set.of(back, rotateR, rotateL));
     // We use a dummy quilt to play with the patch
     var patch = board.nextPatchToPlay();
     var quilt = board.currentPlayer().quilt();
     patch.absoluteMoveTo(new Coordinates(quilt.width() / 2, quilt.height() / 2));
+    var action = InGameAction.DEFAULT;
     do {
       ui.clear();
       ui.draw(board);

@@ -13,17 +13,20 @@ import java.util.stream.Collectors;
 import model.game.InGameAction;
 import model.game.component.Patch;
 import model.game.component.Player;
+import model.game.component.button.ButtonBank;
 import model.game.component.button.ButtonOwner;
+import model.game.component.button.ButtonValued;
 import model.game.component.gameboard.event.Event;
 import util.xml.XMLElement;
 import view.cli.Color;
 import view.cli.CommandLineInterface;
 import view.cli.DrawableOnCLI;
 
-public class GameBoard extends ButtonOwner implements DrawableOnCLI {
+public class GameBoard implements ButtonOwner, DrawableOnCLI {
 
   // Number of squares on the board
   private final int spaces;
+  private final ButtonBank buttonBank;
   // Players indexed by position
   private final LinkedHashSet<Player> players = new LinkedHashSet<>();
   // Patch manager (patches around the board)
@@ -51,7 +54,6 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
    * @param the         list of events for the board
    */
   public GameBoard(int spaces, int patchByTurn, int buttons, List<Patch> patches, Set<Player> players, List<Event> events) {
-    super(buttons);
     Objects.requireNonNull(patches, "List of patches can't be null");
     Objects.requireNonNull(players, "List of players can't be null");
     if (patches.size() < 1) {
@@ -70,6 +72,7 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
     this.patchManager = new PatchManager(patchByTurn, patches);
     this.players.addAll(players);
     this.events.addAll(events);
+    buttonBank = new ButtonBank(buttons);
   }
   
   /**
@@ -215,35 +218,23 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
   }
 
   /**
-   * Test if a given position is allowed
-   * @exception IndexOutOfBoundsException - if the position exceeds boundaries
-   * @param position
-   */
-  private void testPosition(int position) {
-    Objects.checkIndex(position, spaces);
-  }
-
-  /**
    * Move the current player to the given position. 
    * The move will be limited by boundaries [0, spaces]
    * @param newPosition
    */
   private boolean currentPlayerMove(int newPosition) {
-    var move = newPosition - currentPlayer.position();
+    var move = Math.max(0, Math.min(newPosition, spaces));
     if(move == 0) {
       return false;
     }
-    if (move > 0) {
-      newPosition = Math.min(spaces, newPosition);
-      // Check if events on path (only when moving forward !)
+    // Check if events on path (only when moving forward !)
+    if (move - newPosition > 0) { 
       var pos = newPosition;
-      var positioned = events.stream()
+      eventQueue.addAll(events.stream()
           .filter(event -> event.isPositionedBetween(currentPlayer.position() + 1, pos) 
-              && event.active() && event.run(this))
-          .toList();
-      eventQueue.addAll(positioned);
-    } else if (move < 0) {
-      newPosition = Math.min(0, newPosition);
+              && event.active() 
+              && event.run(this))
+          .toList());
     }
     // Important to place the player at the end of the list
     // meaning the order of placement on spaces
@@ -253,8 +244,6 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
     return true;
   }
   
-  
-
   /**
    * Test if the current player can advance on the board The player can advance if
    * he has not reached the end and if a player is ahead of him
@@ -283,7 +272,9 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
   public boolean nextTurn() {
     // add not positioned events before end of turn
     eventQueue.addAll(events.stream()
-        .filter(event -> event.runEachTurn() && event.active() && event.run(this))
+        .filter(event -> event.runEachTurn() 
+            && event.active() 
+            && event.run(this))
         .toList()); 
     if (!availableActions.isEmpty() // Player has things to do
         // || !eventQueue.isEmpty()    // Remaining event to run for the player
@@ -427,5 +418,34 @@ public class GameBoard extends ButtonOwner implements DrawableOnCLI {
     var events = element.getByTagName("eventList").getAllByTagName("Event").stream().map(Event::fromXML).toList();
     return new GameBoard(spaces, patchByTurn, buttons, patches, players, events);
   }
-  
+
+  @Override
+  public boolean canPay(int amount) {
+    return buttonBank.canPay(amount);
+  }
+
+  @Override
+  public boolean canBuy(ButtonValued thing) {
+    return buttonBank.canBuy(thing);
+  }
+
+  @Override
+  public void pay(ButtonOwner owner, int amount) {
+    buttonBank.pay(owner, amount);
+  }
+
+  @Override
+  public void payOwnerFor(ButtonOwner owner, ButtonValued thing) {
+    buttonBank.payOwnerFor(owner, thing);
+  }
+
+  @Override
+  public int buttons() {
+    return buttonBank.buttons();
+  }
+
+  @Override
+  public ButtonBank buttonBank() {
+    return buttonBank;
+  }
 }

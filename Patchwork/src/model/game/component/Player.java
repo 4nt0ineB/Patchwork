@@ -2,20 +2,22 @@ package model.game.component;
 
 import java.util.Objects;
 
+import model.game.component.button.ButtonBank;
 import model.game.component.button.ButtonOwner;
+import model.game.component.button.ButtonValued;
 import util.xml.XMLElement;
 import view.cli.CommandLineInterface;
 import view.cli.DrawableOnCLI;
 
-public class Player extends ButtonOwner implements DrawableOnCLI, Comparable<Player> {
+public class Player implements ButtonOwner, DrawableOnCLI, Comparable<Player> {
   
   private final String name;
   private final QuiltBoard quilt;
   private int position;
   private int specialTile = 0;
+  private final ButtonBank buttonBank;
 
   public Player(String name, int buttons, QuiltBoard quilt) {
-    super(buttons);
     Objects.requireNonNull(name, "The player must have a name");
     if (buttons < 0) {
       throw new IllegalArgumentException("The player can't have debts at start-up");
@@ -23,6 +25,7 @@ public class Player extends ButtonOwner implements DrawableOnCLI, Comparable<Pla
     this.name = name;
     this.quilt = quilt;
     position = 0;
+    buttonBank = new ButtonBank(buttons);
   }
 
   public int position() {
@@ -101,6 +104,36 @@ public class Player extends ButtonOwner implements DrawableOnCLI, Comparable<Pla
   @Override
   public int compareTo(Player o) {
     return Integer.compare(score(), o.score());
+  }
+
+  @Override
+  public boolean canPay(int amount) {
+    return buttonBank.canPay(amount);
+  }
+
+  @Override
+  public boolean canBuy(ButtonValued thing) {
+    return buttonBank.canBuy(thing);
+  }
+
+  @Override
+  public void pay(ButtonOwner owner, int amount) {
+    buttonBank.pay(owner, amount);
+  }
+
+  @Override
+  public void payOwnerFor(ButtonOwner owner, ButtonValued thing) {
+    buttonBank.payOwnerFor(owner, thing);
+  }
+
+  @Override
+  public int buttons() {
+    return buttonBank.buttons();
+  }
+
+  @Override
+  public ButtonBank buttonBank() {
+    return buttonBank;
   }
   
 }

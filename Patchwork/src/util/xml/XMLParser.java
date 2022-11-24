@@ -4,7 +4,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.ParseException;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.function.IntPredicate;
 import java.util.regex.Pattern;
 
@@ -38,16 +40,28 @@ public class XMLParser {
    * Parse a XML formated string to produce a nested XMLElement
    * @param text
    * @return
+   * @throws ParseException 
    */
-  public XMLElement parse(String text) {
+  public XMLElement parse(String text) throws ParseException {
     clear();
     this.text = text;
-    return fromString(null);
+    XMLElement xmlElement;
+    try {
+      xmlElement = fromString(null);
+    }catch(IllegalArgumentException e) {
+      System.err.println(e);
+      throw new ParseException("XML format error. Expected tag not found at", 
+          text.length() - this.text.length());
+    }
+    
+    return xmlElement;
   }
   
   /**
    * Recursive parsing with shared {@link XMLParser#text} string
    * @param element
+   * @throws IllegalArgumentException a tag could'nt be found where it should be
+   * (XML not properly formated)
    * @return
    */
   private XMLElement fromString(XMLElement element) {
@@ -68,12 +82,9 @@ public class XMLParser {
       return null;
     }
     // Plain text inside record
-    read = readFromString("^[^<]+");
-    if(read == null) {
-      read = "";
-    }
+    read = Objects.requireNonNullElse(readFromString("^[^<]+"), "");
     if(element == null) {
-      throw new IllegalArgumentException("XML format error missing previous tag before" + read.strip());
+      throw new IllegalArgumentException("XML format error. Missing previous tag before" + read.strip());
     }
     element.setContent(read);
     return null;

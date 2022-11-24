@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
-public class XMLElement extends ArrayList<XMLElement> {
-  private static final long serialVersionUID = 9004215052565055553L;
+public class XMLElement {
+  private final ArrayList<XMLElement> elements = new ArrayList<>();
   private final String tag;
   private String content = "";
   
@@ -38,7 +38,7 @@ public class XMLElement extends ArrayList<XMLElement> {
    * @return
    */
   public String content() {
-    if(!isEmpty()) {
+    if(!elements.isEmpty()) {
       return "";
     }
     return content;
@@ -55,11 +55,11 @@ public class XMLElement extends ArrayList<XMLElement> {
   /**
    * Return the first record of the XMLElement having the given tag
    * @param tag
-   * @exception NoSuchElementException If a no record with the given tag could be found
+   * @exception NoSuchElementException If no record with the given tag could be found
    * @return 
    */
   public XMLElement getByTagName(String tag){
-    var element = this.stream().filter(e -> e.tag.equals(tag)).findFirst();
+    var element = elements.stream().filter(e -> e.tag.equals(tag)).findFirst();
     if(element.isEmpty()) {
       throw new NoSuchElementException("No tagged record \""+ tag +"\" found");
     }
@@ -72,7 +72,7 @@ public class XMLElement extends ArrayList<XMLElement> {
    * @return
    */
   public List<XMLElement> getAllByTagName(String tag){
-    return this.stream().filter(e -> e.tag().equals(tag)).toList();
+    return elements.stream().filter(e -> e.tag().equals(tag)).toList();
   }
   
   public void setContent(Object content) {
@@ -94,9 +94,9 @@ public class XMLElement extends ArrayList<XMLElement> {
     builder.append("<")
     .append(tag)
     .append(">");
-    if(!isEmpty()) {
+    if(!elements.isEmpty()) {
       builder.append("\n");
-      this.forEach(element -> {
+      elements.forEach(element -> {
         builder.append(element.toStringImpl(new StringBuilder(), depth + 1));
       });
       for(var i = 0; i < depth; i++) {
@@ -116,29 +116,46 @@ public class XMLElement extends ArrayList<XMLElement> {
     return toStringImpl(new StringBuilder(), 0);
   }
   
+  public boolean isEmpty() {
+    return elements.isEmpty() && content.isEmpty();
+  }
+  
   /**
    * Require the XMLElement to be non null with {@link Objects#requireNonNull(Object)}
    * and to contain nested elements,
    * or a not empty string for {@link XMLElement#content}
    * 
    * @param element
-   * @param msg
+   * @param msg Message for to pass if element is empty
+   * @throws NullPointerException if {@code element} is {@code null}
    * @exception IllegalStateException If element is empty, with the given message.
    * @return
    */
   public static XMLElement requireNotEmpty(XMLElement element, String msg) {
-    Objects.requireNonNull(element, "xml can't be null");
-    if(element.isEmpty() && element.content.isEmpty()) {
-      throw new IllegalStateException(msg);
+    Objects.requireNonNull(element, "xml element can't be null");
+    if(element.isEmpty()) {
+      throw new IllegalArgumentException(msg);
     }
     return element;
   }
   
   /**
-   * @see XMLElement#requireNotEmpty(XMLElement, String)
+   * See
+   * {@link XMLElement#requireNotEmpty(XMLElement, String) }
+   * passing default message <br>"The xml element can't be empty".
    */
   public static XMLElement requireNotEmpty(XMLElement element) {
-    return requireNotEmpty(element, "The xml element is empty");
+    return requireNotEmpty(element, "The xml element can't be empty");
+  }
+
+  public void add(XMLElement element) {
+    Objects.requireNonNull(element, "xml element can't be null");
+    elements.add(element);
+  }
+
+  public void addAll(List<XMLElement> of) {
+    Objects.requireNonNull(of, "the list can't be null");
+    elements.addAll(of);
   }
   
 }
