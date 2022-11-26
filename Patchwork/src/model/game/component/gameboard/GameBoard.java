@@ -222,8 +222,7 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
       return false;
     }
     // Check if events on path (only when moving forward !)
-    if (move - currentPlayer.position() > 0) { 
-      System.out.println("Pos : " + currentPlayer.position() + " newPos : " + move);
+    if (move - currentPlayer.position() > 0) {
       eventQueue.addAll(events.stream()
           .filter(event -> event.isPositionedBetween(currentPlayer.position() + 1, move) 
               && event.active() 
