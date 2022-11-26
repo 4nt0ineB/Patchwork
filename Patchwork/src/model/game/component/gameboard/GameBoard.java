@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
-import java.util.Stack;
 import java.util.stream.Collectors;
 
 import model.game.InGameAction;
@@ -34,7 +33,7 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
   //All events in game
   private final Queue<Event> events = new LinkedList<>();
   // Patches stack gathering all patches that must be played by the current player during the turn
-  private final Stack<Patch> patchesToPlay = new Stack<>();
+  private final Queue<Patch> patchesToPlay = new LinkedList<>();
   // Event queue to process at the end of the turn
   private final Queue<Event> eventQueue = new LinkedList<>();
   //Current player is always at the top of the stack
@@ -94,15 +93,6 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
   }
 
   /**
-   * Return the set of all availables actions during the turn
-   * 
-   * @return Set of Action
-   */ 
-  public Set<InGameAction> availableActions() {
-    return Set.copyOf(availableActions);
-  }
-  
-  /**
    * Get the current player of the turn
    * 
    * @return
@@ -121,10 +111,12 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
     patchManager.select(patch);
     // also, add the patch to the patches waiting queue
     addPatchToPlay(patch);
+    System.out.println(patch);
   }
 
   /**
-   * Get the selected patch from those available around the board
+   * Get the selected patch 
+   * from those available around the board
    * 
    * @return
    */
@@ -148,18 +140,19 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
   }
 
   /**
-   * Get the next patch that the current 
+   * Get the next patch the current 
    * player must manipulate to place and buy
-   * to put on his quilt
+   * to put it on his quilt
    * 
    * @return
    */
   public Patch nextPatchToPlay() {
-    if (patchesToPlay.isEmpty()) {
+    if(patchesToPlay.isEmpty()) {
       return null;
     }
     return patchesToPlay.peek();
   }
+  
 
   /**
    * Play the next patch from the patches waiting queue
@@ -175,8 +168,9 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
     if (!currentPlayerPlayPatch(patch)) {
       return false;
     }
-    // The patch have been place on the quilt, we extract it from the waiting queue
-    patch = patchesToPlay.pop();
+    // The patch have been placed on the quilt, 
+    // so we extract it from the waiting queue
+    patch = patchesToPlay.poll();
     // Where does the patch comes from ?
     if (patchManager.availablePatches().contains((patch))) {
       // The patch comes from the neutral token
@@ -228,18 +222,19 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
       return false;
     }
     // Check if events on path (only when moving forward !)
-    if (move - newPosition > 0) { 
-      var pos = newPosition;
+    if (move - currentPlayer.position() > 0) { 
+      System.out.println("Pos : " + currentPlayer.position() + " newPos : " + move);
       eventQueue.addAll(events.stream()
-          .filter(event -> event.isPositionedBetween(currentPlayer.position() + 1, pos) 
+          .filter(event -> event.isPositionedBetween(currentPlayer.position() + 1, move) 
               && event.active() 
               && event.run(this))
+          .peek(System.out::println)
           .toList());
     }
     // Important to place the player at the end of the list
     // meaning the order of placement on spaces
     players.remove(currentPlayer);
-    currentPlayer.move(newPosition);
+    currentPlayer.move(move);
     players.add(currentPlayer);
     return true;
   }
@@ -327,14 +322,6 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
   }
   
   /**
-   * Run all events then clear the queue
-   */
-  public void runWaitingEvents() {
-    eventQueue.stream().forEachOrdered(event -> event.run(this));
-    eventQueue.clear();
-  }
-
-  /**
    * Reset the available actions for the current player
    */
   private void updateActions() {
@@ -379,11 +366,11 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
       .append(" Wins !\n")
       .append(Color.ANSI_RESET);
     }
-    
   }
   
   /**
    * Add a patch to the waiting stack
+   * The added patch <b>must</b> be played. 
    * @param patch
    */
   public void addPatchToPlay(Patch patch) {

@@ -5,9 +5,6 @@ import static java.util.stream.Collectors.toSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import util.xml.XMLElement;
 import view.cli.Color;
@@ -77,16 +74,16 @@ public class QuiltBoard implements DrawableOnCLI {
         flatMap(p -> p.absoluteCoordinates().stream())
         .collect(toSet());
     return allCoordinates.stream()
-        .anyMatch(
-            c -> {
-              for(var i = c.y() - side - 1; i < c.y() - side; i++) {
-                for(var j = c.x() - side - 1; j < c.y() - side; j++) {
+        .anyMatch(c -> {
+              for(var i = c.y(); i < c.y() + side; i++) {
+                for(var j = c.x(); j < c.x() + side; j++) {
                   if(!allCoordinates.contains(new Coordinates(i, j))) {
                     return false;
                   }
                 }
               }
-              return true;});
+              return true;
+        });
   }
   
   /**

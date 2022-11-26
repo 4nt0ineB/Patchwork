@@ -6,11 +6,5 @@ public enum InGameAction {
   BACK,
   QUIT,
   DEFAULT,
-  ROTATE_RIGHT,
-  ROTATE_LEFT,
   PLACE,
-  UP,
-  DOWN,
-  RIGHT,
-  LEFT
 }

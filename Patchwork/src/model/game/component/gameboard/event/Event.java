@@ -99,7 +99,7 @@ public class Event implements DrawableOnCLI {
     var oneUse = Boolean.parseBoolean(element.getByTagName("oneUse").content());
     var effect = switch(type) {
       case BUTTON_INCOME ->  Effects.buttonIncome();
-      case PATCH_INCOME -> Effects.patchIncome(Patch.fromXML(element.getByTagName("patch")));
+      case PATCH_INCOME -> Effects.patchIncome(Patch.fromXML(element.getByTagName("Patch")));
       case SPECIAL_TILE -> Effects.specialTile();
        default -> {
           throw new IllegalArgumentException("This type does not exists. ("+ type + ")");

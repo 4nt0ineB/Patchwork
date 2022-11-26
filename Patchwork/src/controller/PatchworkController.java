@@ -47,9 +47,8 @@ public class PatchworkController {
    * @param ui, board
    * @return void
    */
-  private static void mainLoop(UserInterface ui, GameBoard board) {
+  private static InGameAction mainLoop(UserInterface ui, GameBoard board) {
     InGameAction action = InGameAction.DEFAULT;
-    board.init();
     while(action != InGameAction.QUIT && !board.isFinished()) { // -- Game loop
       if(board.nextTurn()){
         ui.clearMessages();
@@ -68,15 +67,9 @@ public class PatchworkController {
           }
         }
       }
-      board.eventQueue().forEach(e -> ui.draw(e));
+      board.eventQueue().forEach(ui::draw);
     }
-    if(action != InGameAction.QUIT) {
-      ui.clear();
-      ui.draw(board);
-      ui.drawMessages();
-      ui.display(); 
-    }
-    ui.close();
+    return action;
   }
   
   /**
@@ -128,18 +121,12 @@ public class PatchworkController {
    * @return Action
    */
   private static InGameAction manipulatePatch(UserInterface ui, GameBoard board) {
-    // A list of actions
-    // new KeybindChoice('r', "Ragequit", InGameAction.QUIT),
     var choices = new HashSet<KeybindedChoice>();
-    var place = new KeybindedChoice('p', "Buy and place the patch");
-    var rotateR = new KeybindedChoice('a', "rotate right");
-    var rotateL = new KeybindedChoice('z', "rotate left");
-    var up = new KeybindedChoice('s', "up");
-    var down = new KeybindedChoice('w', "down");
-    var right = new KeybindedChoice('d', "right");
-    var left = new KeybindedChoice('q', "left");
-    var back = new KeybindedChoice('b', "back");
-    choices.addAll(Set.of(back, rotateR, rotateL));
+    var basicChoices = Set.of(
+        new KeybindedChoice('b', "back"), 
+        new KeybindedChoice('z', "rotate left"), 
+        new KeybindedChoice('a', "rotate right"));
+    choices.addAll(basicChoices);
     // We use a dummy quilt to play with the patch
     var patch = board.nextPatchToPlay();
     var quilt = board.currentPlayer().quilt();
@@ -151,21 +138,22 @@ public class PatchworkController {
       ui.drawMessages();
       ui.drawDummyQuilt(quilt, patch);
       ui.display();
-      choices.removeAll(Set.of(up, down, left, right, place));
+      choices.clear();
+      choices.addAll(basicChoices);
       if (quilt.canAdd(patch) && board.currentPlayer().canBuy(patch)) {
-        choices.add(place);
+        choices.add(new KeybindedChoice('p', "Buy and place the patch"));
       }
       if (patch.canMoveUp(quilt)) {
-        choices.add(up);
+        choices.add(new KeybindedChoice('s', "up"));
       }
       if (patch.canMoveDown(quilt)) {
-        choices.add(down);
+        choices.add(new KeybindedChoice('w', "down"));
       }
       if (patch.canMoveLeft(quilt)) {
-        choices.add(left);
+        choices.add(new KeybindedChoice('q', "left"));
       }
       if (patch.canMoveRight(quilt)) {
-        choices.add(right);
+        choices.add(new KeybindedChoice('d', "right"));
       }
       switch (ui.getPlayerChoice(choices)) {
         case 's'  -> patch.moveUp();
@@ -179,21 +167,54 @@ public class PatchworkController {
         case -1 -> {}
         default -> { throw new AssertionError("There shouldn't be other choices"); }
       }
-    } while (action != InGameAction.BACK);
+    } while (!action.equals(InGameAction.BACK));
     return action;
   }
+  
+  /**
+   * End game loop
+   * @param ui
+   * @param gameBoard
+   * @return true if want a new game, otherwise false
+   */
+  private static boolean endGame(UserInterface ui, GameBoard gameBoard) {
+    var choices = Set.of(
+        new KeybindedChoice('q', "Quit"), 
+        new KeybindedChoice('n', "New game"));
+    var choice = -1;
+    ui.clear();
+    ui.draw(gameBoard);
+    ui.drawMessages();
+    ui.display(); 
+    do {
+      switch (ui.getPlayerChoice(choices)) {
+        case 'q' -> { return false; }
+        case 'n' -> { return true; } 
+        case -1 -> {}
+        default -> { throw new AssertionError("There shouldn't be other choices"); }
+      };
+    }while(choice == -1);
+    return false;
+  }
+  
 
   public static void main(String[] args) {
+    // chose ui from arg
     var ui = new CommandLineInterface();
     Game game;
-    try {
-      game = Game.fromGameMode(menu(ui));
-    } catch (IOException e) {
-      System.err.println(e.getMessage());
-      System.exit(1);
-      return;
-    }
-    mainLoop(ui, game.gameBoard()); 
+    do {
+      try {
+        game = Game.fromGameMode(menu(ui));
+      } catch (IOException e) {
+        System.err.println(e.getMessage());
+        ui.close();
+        System.exit(1);
+        return;
+      }
+      game.gameBoard().init();
+    }while(!mainLoop(ui, game.gameBoard()).equals(InGameAction.QUIT)
+        && endGame(ui, game.gameBoard()));
+    ui.close();
   }
 
 }

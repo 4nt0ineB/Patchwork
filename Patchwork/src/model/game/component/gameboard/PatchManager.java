@@ -40,9 +40,9 @@ public class PatchManager {
    * @return 
    */
   public Patch extractSelected() {
-    var indexInAvailable = availablePatches.indexOf(selected());
-    var extractedPatch = patches.remove(neutralToken + 1 + indexInAvailable);
-    move(indexInAvailable + 1);
+    var index = availablePatches.indexOf(selected());
+    var extractedPatch = patches.remove((neutralToken + 1 + index) % patches.size());
+    move(index + 1);
     unselect();
     return extractedPatch;
   }
@@ -68,8 +68,7 @@ public class PatchManager {
   /**
    * Select the given patch
    * must be in the available patches
-   * the comparison is made with the address
-   * @throws AssertionError - if the given patch does not exists in the available patches
+   * @throws AssertionError - iT the given patch does not exists in the available patches
    * @param patch
    */
   public void select(Patch patch) {
@@ -82,7 +81,7 @@ public class PatchManager {
   }
   
   /**
-   * Unselect the selected patch
+   * Unselect the selected patch if exists
    */
   public void unselect() {
     selected = null;
@@ -120,9 +119,8 @@ public class PatchManager {
   
   /**
    * Return index of the smallest patch in a list
-   * @Todo can be improved !   ..?
    * @param patches
-   * @return index or -1
+   * @return index
    */
   public static int minPatch(List<Patch> patches) {
     Objects.requireNonNull(patches, "Can't find smallest in null obj");
@@ -130,8 +128,12 @@ public class PatchManager {
       throw new IllegalArgumentException("Empty list of patches");
     }
     
-    return IntStream.range(0, patches.size()).boxed()
-        .min((i, j) -> Integer.compare(patches.get(i).countCells(), patches.get(j).countCells()))
+    return IntStream.range(0, patches.size())
+        .boxed()
+        .min(
+            (i, j) -> 
+            Integer.compare(patches.get(i).countCells(), 
+                patches.get(j).countCells()))
         .get();
   }
 
