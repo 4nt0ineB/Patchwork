@@ -20,6 +20,8 @@ public interface UserInterface {
    */
   void draw(Drawable drawable);
   
+  
+  
   /**
    * Make the user select a patch a given patch list
    * @param patches
