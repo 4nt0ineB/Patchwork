@@ -9,7 +9,6 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import model.game.InGameAction;
 import model.game.component.Patch;
 import model.game.component.Player;
 import model.game.component.button.ButtonBank;
@@ -38,9 +37,7 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
   private final Queue<Event> eventQueue = new LinkedList<>();
   //Current player is always at the top of the stack
   private Player currentPlayer;
-  
-  // The actions the player can do during the turn
-  private final LinkedHashSet<InGameAction> availableActions = new LinkedHashSet<>();
+  private boolean hasPlayedMainAction = false;
 
   /**
    * GameBoard constructor
@@ -79,7 +76,6 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
    */
   public void init() {
     currentPlayer = latestPlayer();
-    updateActions();
   }
 
   /**
@@ -175,15 +171,14 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
     if (patchManager.availablePatches().contains((patch))) {
       // The patch comes from the neutral token
       patch = patchManager.extractSelected();
-      // The player played a patch from around the board
-      // and can no more execute this actions
-      availableActions.clear();
+      // has played a patch from the board, this was a main action
+      hasPlayedMainAction = true; 
     }
     // The patch comes from somewhere else. But we just extracted it already
     return true;
   }
 
-  public boolean currentPlayerPlayPatch(Patch patch) {
+  private boolean currentPlayerPlayPatch(Patch patch) {
     if (!currentPlayer().placePatch(patch)) {
       return false;
     }
@@ -203,11 +198,9 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
     }
     int newPosition = nextPlayerFrom(currentPlayer.position() + 1).position() + 1;
     int buttonIncome = newPosition - currentPlayer.position();
+    hasPlayedMainAction = true;
     if (currentPlayerMove(newPosition)) {
       pay(currentPlayer(), buttonIncome);
-      // The player advance on the board
-      // and can no more execute this actions
-      availableActions.clear();
     }
   }
 
@@ -245,7 +238,8 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
    * @return true or false
    */
   public boolean currentPlayerCanAdvance() {
-    return availableActions.contains(InGameAction.ADVANCE);
+    return !hasPlayedMainAction && currentPlayer.position() != spaces 
+        && nextPlayerFrom(currentPlayer.position() + 1) != null;
   }
 
   /**
@@ -254,7 +248,9 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
    * @return
    */
   public boolean currentPlayerCanSelectPatch() {
-    return availableActions.contains(InGameAction.SELECT_PATCH);
+    return !hasPlayedMainAction &&!patchManager.availablePatches().isEmpty()
+        && patchManager.availablePatches()
+        .stream().anyMatch(patch -> currentPlayer().canBuy(patch) == true);
   }
 
   /**
@@ -270,20 +266,17 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
             && event.active() 
             && event.run(this))
         .toList()); 
-    if (!availableActions.isEmpty() // Player has things to do
-        // || !eventQueue.isEmpty()    // Remaining event to run for the player
-        || !patchesToPlay.isEmpty() // can't change player, the current has patches to deal with
-        ) {
+    if (!hasPlayedMainAction || !patchesToPlay.isEmpty()) { // can't change player, the current has patches to deal with
       return false;
     }
     currentPlayer = latestPlayer();
-    updateActions();
     eventQueue.clear();
-    if (availableActions.isEmpty()) {
-      throw new AssertionError("Unwanted game state. Player is stuck. \n"
-          + "Probably bad init settings for the game board, or the game is finished.\n"
-          + " Also don't forget to init the board.");
-    }
+    hasPlayedMainAction = false;
+//    if (availableActions.isEmpty()) {
+//      throw new AssertionError("Unwanted game state. Player is stuck. \n"
+//          + "Probably bad init settings for the game board, or the game is finished.\n"
+//          + " Also don't forget to init the board.");
+//    }
     return true;
   }
 
@@ -320,21 +313,6 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
     return nextPlayerFrom(0);
   }
   
-  /**
-   * Reset the available actions for the current player
-   */
-  private void updateActions() {
-    availableActions.clear();
-    if(currentPlayer.position() != spaces 
-        && nextPlayerFrom(currentPlayer.position() + 1) != null) {
-      availableActions.add(InGameAction.ADVANCE);    
-    }
-    if(!patchManager.availablePatches().isEmpty()
-       && patchManager.availablePatches()
-       .stream().anyMatch(patch -> currentPlayer().canBuy(patch) == true)) {
-      availableActions.add(InGameAction.SELECT_PATCH);
-    }
-  }
 
   @Override
   public void drawOnCLI(CommandLineInterface ui) {

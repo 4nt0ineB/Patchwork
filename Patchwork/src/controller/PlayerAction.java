@@ -1,6 +1,6 @@
-package model.game;
+package controller;
 
-public enum InGameAction {
+public enum PlayerAction {
   ADVANCE,
   SELECT_PATCH,
   BACK,

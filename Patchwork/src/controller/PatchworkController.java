@@ -7,7 +7,6 @@ import java.util.Set;
 
 import model.game.Game;
 import model.game.GameMode;
-import model.game.InGameAction;
 import model.game.component.Coordinates;
 import model.game.component.gameboard.GameBoard;
 import view.UserInterface;
@@ -47,9 +46,9 @@ public class PatchworkController {
    * @param ui, board
    * @return void
    */
-  private static InGameAction mainLoop(UserInterface ui, GameBoard board) {
-    InGameAction action = InGameAction.DEFAULT;
-    while(action != InGameAction.QUIT && !board.isFinished()) { // -- Game loop
+  private static PlayerAction mainLoop(UserInterface ui, GameBoard board) {
+    PlayerAction action = PlayerAction.DEFAULT;
+    while(action != PlayerAction.QUIT && !board.isFinished()) { // -- Game loop
       if(board.nextTurn()){
         ui.clearMessages();
       }
@@ -59,7 +58,7 @@ public class PatchworkController {
       ui.display();      
       action = doActionForTurn(ui, board);
       while (board.nextPatchToPlay() != null) {
-        switch((InGameAction) manipulatePatch(ui, board)){
+        switch((PlayerAction) manipulatePatch(ui, board)){
           case BACK -> board.unselectPatch(); // Abandon this patch
           case PLACE -> board.playNextPatch(); // Add the patch to the quilt
           default -> {
@@ -78,33 +77,30 @@ public class PatchworkController {
    * @param ui, board
    * @return Action
    */
-  private static InGameAction doActionForTurn(UserInterface ui, GameBoard board) {
-    var action = InGameAction.DEFAULT;
+  private static PlayerAction doActionForTurn(UserInterface ui, GameBoard board) {
+    var action = PlayerAction.DEFAULT;
     var choices = new HashSet<KeybindedChoice>();
-    var advance = new KeybindedChoice('a', "Advance");
-    var select = new KeybindedChoice('s', "Select a patch");
-    var quit = new KeybindedChoice('r', "Ragequit");
     if(board.currentPlayerCanAdvance()) {
-      choices.add(advance);
+      choices.add(new KeybindedChoice('a', "Advance"));
     }
     if(board.currentPlayerCanSelectPatch()) {
-      choices.add(select);
+      choices.add(new KeybindedChoice('s', "Select a patch"));
     }
     if(choices.isEmpty()) {
       return action;
     }
-    choices.add(quit);
+    choices.add(new KeybindedChoice('r', "Ragequit"));
     ui.clear();
     switch (ui.getPlayerChoice(choices)) {
       case 's' -> {
         var patch = ui.selectPatch(board.availablePatches());
         if(patch == null) {
-          return InGameAction.BACK; 
+          return PlayerAction.BACK; 
         }
         board.selectPatch(patch);
       }
       case 'a' -> board.currentPlayerAdvance();
-      case 'r' -> action = InGameAction.QUIT;
+      case 'r' -> action = PlayerAction.QUIT;
       case -1 -> {}
       default -> throw new AssertionError("There shouldn't be other choices");
     }
@@ -120,7 +116,7 @@ public class PatchworkController {
    * @param ui, board, patch
    * @return Action
    */
-  private static InGameAction manipulatePatch(UserInterface ui, GameBoard board) {
+  private static PlayerAction manipulatePatch(UserInterface ui, GameBoard board) {
     var choices = new HashSet<KeybindedChoice>();
     var basicChoices = Set.of(
         new KeybindedChoice('b', "back"), 
@@ -131,7 +127,7 @@ public class PatchworkController {
     var patch = board.nextPatchToPlay();
     var quilt = board.currentPlayer().quilt();
     patch.absoluteMoveTo(new Coordinates(quilt.width() / 2, quilt.height() / 2));
-    var action = InGameAction.DEFAULT;
+    var action = PlayerAction.DEFAULT;
     do {
       ui.clear();
       ui.draw(board);
@@ -162,12 +158,12 @@ public class PatchworkController {
         case 'q' -> patch.moveLeft();
         case 'z' -> patch.rotateLeft();
         case 'a' -> patch.rotateRight();
-        case 'p' -> { return InGameAction.PLACE; }
-        case 'b' -> { action = InGameAction.BACK; }
+        case 'p' -> { return PlayerAction.PLACE; }
+        case 'b' -> { action = PlayerAction.BACK; }
         case -1 -> {}
         default -> { throw new AssertionError("There shouldn't be other choices"); }
       }
-    } while (!action.equals(InGameAction.BACK));
+    } while (!action.equals(PlayerAction.BACK));
     return action;
   }
   
@@ -212,7 +208,7 @@ public class PatchworkController {
         return;
       }
       game.gameBoard().init();
-    }while(!mainLoop(ui, game.gameBoard()).equals(InGameAction.QUIT)
+    }while(!mainLoop(ui, game.gameBoard()).equals(PlayerAction.QUIT)
         && endGame(ui, game.gameBoard()));
     ui.close();
   }

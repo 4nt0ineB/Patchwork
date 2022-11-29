@@ -143,6 +143,7 @@ public final class CommandLineInterface implements UserInterface {
   
   @Override
   public int getPlayerChoice(Set<KeybindedChoice> choices){
+    clear();
     var localBuilder = new StringBuilder();
     localBuilder
     .append(Color.ANSI_ORANGE)
