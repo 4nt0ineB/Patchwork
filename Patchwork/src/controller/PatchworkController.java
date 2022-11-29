@@ -22,15 +22,15 @@ public class PatchworkController {
    * @return Choosen game mode
    */
   private static GameMode menu(UserInterface ui) {
-  	ui.clear();
-  	ui.drawMessages();
-  	ui.display();
   	var choices = new LinkedHashSet<KeybindedChoice>();
   	choices.add(new KeybindedChoice('b', "The basic game"));
   	choices.add(new KeybindedChoice('f', "The full game"));
     GameMode mode = null;
     do {
-     mode = switch(ui.getPlayerChoice(choices)) {
+      ui.clear();
+      ui.drawMessages();
+      ui.display();
+      mode = switch(ui.getPlayerChoice(choices)) {
        case 'b' -> GameMode.PATCHWORK_BASIC;
        case 'f' -> GameMode.PATCHWORK_FULL;
        case -1 -> null;
@@ -91,6 +91,9 @@ public class PatchworkController {
     }
     choices.add(new KeybindedChoice('r', "Ragequit"));
     ui.clear();
+    ui.draw(board);
+    ui.drawMessages();
+    ui.display();
     switch (ui.getPlayerChoice(choices)) {
       case 's' -> {
         var patch = ui.selectPatch(board.availablePatches());

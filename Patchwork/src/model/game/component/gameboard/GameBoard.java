@@ -107,7 +107,6 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
     patchManager.select(patch);
     // also, add the patch to the patches waiting queue
     addPatchToPlay(patch);
-    System.out.println(patch);
   }
 
   /**

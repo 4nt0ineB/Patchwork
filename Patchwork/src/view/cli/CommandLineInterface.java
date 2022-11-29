@@ -57,7 +57,7 @@ public final class CommandLineInterface implements UserInterface {
   @Override
   public void clear() {
     System.out.print("\033[H\033[2J");
-    System.out.flush();
+//    System.out.flush();
     builder.setLength(0);
     drawSplashScreen();
   }
@@ -143,7 +143,6 @@ public final class CommandLineInterface implements UserInterface {
   
   @Override
   public int getPlayerChoice(Set<KeybindedChoice> choices){
-    clear();
     var localBuilder = new StringBuilder();
     localBuilder
     .append(Color.ANSI_ORANGE)
