@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 import model.game.component.Patch;
@@ -29,18 +30,24 @@ public class PatchManager {
   }
 
   /**
-   * @return the selected patch, or null
+   * Get the selected Patch
+   * @return an optional of the selected patch, otherwise an empty Optional
    */
-  public Patch selected() {
-    return selected;
+  public Optional<Patch> selected() {
+    return Optional.ofNullable(selected);
   }
 
   /**
    * Extract the previously selected patch
-   * @return 
+   * @throws AssertionError - if no patch is selected
+   * @return the extracted Patch
    */
   public Patch extractSelected() {
-    var index = availablePatches.indexOf(selected());
+    var patch = selected();
+    if(patch.isEmpty()) {
+      throw new AssertionError("Can't extract a patch if not patch is selected");
+    }
+    var index = availablePatches.indexOf(patch.get());
     var extractedPatch = patches.remove((neutralToken + 1 + index) % patches.size());
     move(index + 1);
     unselect();
@@ -48,7 +55,7 @@ public class PatchManager {
   }
   
   /**
-   * 
+   * Return a list of the availablePatches
    * @return
    */
   public List<Patch> availablePatches() {

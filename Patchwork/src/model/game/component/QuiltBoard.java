@@ -52,6 +52,12 @@ public class QuiltBoard implements DrawableOnCLI {
     return false;
   }
 
+  /**
+   * Test if a patch can be added to the quilt 
+   * considering his absolute position and rotation
+   * @param patch
+   * @return
+   */
   public boolean canAdd(Patch patch) {
     // fits ?
     if (!patch.fits(width - 1, height - 1)) {
@@ -66,6 +72,11 @@ public class QuiltBoard implements DrawableOnCLI {
     return true;
   }
   
+  /**
+   * Test if the quilt has a filled square of size 'side'
+   * @param side
+   * @return 
+   */
   public boolean hasFilledSquare(int side) {
     if(side < 1) {
       throw new IllegalArgumentException("The square must be at least 1x1");
@@ -153,8 +164,7 @@ public class QuiltBoard implements DrawableOnCLI {
   public static QuiltBoard fromXML(XMLElement element) {
     XMLElement.requireNotEmpty(element);
     return new QuiltBoard(Integer.parseInt(element.getByTagName("width").content()),
-        Integer.parseInt(element.getByTagName("height").content())
-        );
+        Integer.parseInt(element.getByTagName("height").content()));
   }
 
 }

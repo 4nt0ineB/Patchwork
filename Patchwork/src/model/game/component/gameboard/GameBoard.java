@@ -5,6 +5,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -109,7 +110,7 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
    * 
    * @return
    */
-  public Patch selectedPatch() {
+  public Optional<Patch> selectedPatch() {
     return patchManager.selected();
   }
 
@@ -122,8 +123,8 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
   public void unselectPatch() {
     // Remove the patch from patches waiting queue as well
     var patch = patchManager.selected();
-    if (patch != null) {
-      patchesToPlay.remove(patch);
+    if (patch.isPresent()) {
+      patchesToPlay.remove(patch.get());
       patchManager.unselect();
     }
   }
@@ -133,13 +134,13 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
    * player must manipulate to place and buy
    * to put it on his quilt
    * 
-   * @return
+   * @return an optional patch
    */
-  public Patch nextPatchToPlay() {
+  public Optional<Patch> nextPatchToPlay() {
     if(patchesToPlay.isEmpty()) {
-      return null;
+      return Optional.empty();
     }
-    return patchesToPlay.peek();
+    return Optional.of(patchesToPlay.peek());
   }
   
 
@@ -264,11 +265,6 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
     currentPlayer = latestPlayer();
     eventQueue.clear();
     hasPlayedMainAction = false;
-//    if (availableActions.isEmpty()) {
-//      throw new AssertionError("Unwanted game state. Player is stuck. \n"
-//          + "Probably bad init settings for the game board, or the game is finished.\n"
-//          + " Also don't forget to init the board.");
-//    }
     return true;
   }
 
@@ -278,7 +274,7 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
 
   /**
    * Search the first next player who can play.
-   * The search starts at a given position.s
+   * The search starts at a given position.
    * 
    * @param position
    * @return the player, or null

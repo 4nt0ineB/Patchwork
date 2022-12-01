@@ -60,7 +60,7 @@ public class PatchworkController {
       ui.drawMessages();
       ui.display();      
       action = doActionForTurn(ui, board);
-      while (board.nextPatchToPlay() != null) {
+      while (board.nextPatchToPlay().isPresent()) {
         switch((PlayerAction) manipulatePatch(ui, board)){
           case BACK -> board.unselectPatch(); // Abandon this patch
           case PLACE -> board.playNextPatch(); // Add the patch to the quilt
@@ -130,7 +130,7 @@ public class PatchworkController {
         new KeybindedChoice('a', "rotate right"));
     choices.addAll(basicChoices);
     // We use a dummy quilt to play with the patch
-    var patch = board.nextPatchToPlay();
+    var patch = board.nextPatchToPlay().get();
     var quilt = board.currentPlayer().quilt();
     patch.absoluteMoveTo(new Coordinates(quilt.width() / 2, quilt.height() / 2));
     var action = PlayerAction.DEFAULT;
