@@ -7,7 +7,7 @@ import view.cli.DrawableOnCLI;
 
 /**
  * Allow to bind a choice to a simple keybind, 
- * such as 'a' 'b' but not ctrl + a
+ * a single character
  */
 public record KeybindedChoice(char key, String description) implements DrawableOnCLI {
   
@@ -36,8 +36,5 @@ public record KeybindedChoice(char key, String description) implements DrawableO
     .append("] ")
     .append(description);
   }
-  
-  
-  
   
 }

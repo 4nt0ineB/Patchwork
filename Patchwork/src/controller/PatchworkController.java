@@ -3,6 +3,7 @@ package controller;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import model.game.Game;
@@ -21,7 +22,7 @@ public class PatchworkController {
    * @param menu, cli
    * @return Choosen game mode
    */
-  private static GameMode menu(UserInterface ui) {
+  public static GameMode menu(UserInterface ui) {
   	var choices = new LinkedHashSet<KeybindedChoice>();
   	choices.add(new KeybindedChoice('b', "The basic game"));
   	choices.add(new KeybindedChoice('f', "The full game"));
@@ -46,8 +47,10 @@ public class PatchworkController {
    * @param ui, board
    * @return void
    */
-  private static PlayerAction mainLoop(UserInterface ui, GameBoard board) {
-    PlayerAction action = PlayerAction.DEFAULT;
+  public static PlayerAction mainLoop(UserInterface ui, GameBoard board) {
+    Objects.requireNonNull(ui, "The interface can't be null");
+    Objects.requireNonNull(ui, "The game board can't be null");
+    var action = PlayerAction.DEFAULT;
     while(action != PlayerAction.QUIT && !board.isFinished()) { // -- Game loop
       if(board.nextTurn()){
         ui.clearMessages();
@@ -80,10 +83,10 @@ public class PatchworkController {
   private static PlayerAction doActionForTurn(UserInterface ui, GameBoard board) {
     var action = PlayerAction.DEFAULT;
     var choices = new HashSet<KeybindedChoice>();
-    if(board.currentPlayerCanAdvance()) {
+    if(board.playerCanAdvance()) {
       choices.add(new KeybindedChoice('a', "Advance"));
     }
-    if(board.currentPlayerCanSelectPatch()) {
+    if(board.playerCanSelectPatch()) {
       choices.add(new KeybindedChoice('s', "Select a patch"));
     }
     if(choices.isEmpty()) {
@@ -97,12 +100,12 @@ public class PatchworkController {
     switch (ui.getPlayerChoice(choices)) {
       case 's' -> {
         var patch = ui.selectPatch(board.availablePatches());
-        if(patch == null) {
-          return PlayerAction.BACK; 
+        if(patch.isPresent()) {
+          board.selectPatch(patch.get());
         }
-        board.selectPatch(patch);
+        return PlayerAction.BACK; 
       }
-      case 'a' -> board.currentPlayerAdvance();
+      case 'a' -> board.playerAdvance();
       case 'r' -> action = PlayerAction.QUIT;
       case -1 -> {}
       default -> throw new AssertionError("There shouldn't be other choices");
@@ -176,7 +179,9 @@ public class PatchworkController {
    * @param gameBoard
    * @return true if want a new game, otherwise false
    */
-  private static boolean endGame(UserInterface ui, GameBoard gameBoard) {
+  public static boolean endGame(UserInterface ui, GameBoard gameBoard) {
+    Objects.requireNonNull(ui, "The interface can't be null");
+    Objects.requireNonNull(ui, "The game board can't be null");
     var choices = Set.of(
         new KeybindedChoice('q', "Quit"), 
         new KeybindedChoice('n', "New game"));
@@ -210,7 +215,6 @@ public class PatchworkController {
         System.exit(1);
         return;
       }
-      game.gameBoard().init();
     }while(!mainLoop(ui, game.gameBoard()).equals(PlayerAction.QUIT)
         && endGame(ui, game.gameBoard()));
     ui.close();

@@ -3,6 +3,7 @@ package view.cli;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Scanner;
 import java.util.Set;
 
@@ -47,6 +48,7 @@ public final class CommandLineInterface implements UserInterface {
   
   @Override
   public void draw(Drawable drawable) {
+    Objects.requireNonNull("The drawable object can't be null");
     ((DrawableOnCLI) drawable).drawOnCLI(this);
   }
   
@@ -63,7 +65,7 @@ public final class CommandLineInterface implements UserInterface {
   }
 
   @Override
-  public Patch selectPatch(List<Patch> patches) {
+  public Optional<Patch> selectPatch(List<Patch> patches) {
     Objects.requireNonNull(patches);
     if(patches.isEmpty()) {
       throw new IllegalArgumentException("Their should be at least 1 patch in the list");
@@ -90,16 +92,18 @@ public final class CommandLineInterface implements UserInterface {
       var input = scanner.nextInt();
       scanner.nextLine();
       if(input > 0 && input <= i) {
-        return patches.get(input - 1);
+        return Optional.of(patches.get(input - 1));
       }
     }else {
       scanner.nextLine();
     }
     System.out.println("Wrong choice\n");
-    return null;
+    return Optional.empty();
   }
   @Override
   public void drawDummyQuilt(QuiltBoard quilt, Patch patch) {
+    Objects.requireNonNull(quilt, "the quilt can't be null");
+    Objects.requireNonNull(patch, "The patch can't be null");
     // top
     builder.append("┌");
     for(var i = 0; i < quilt.width(); i++) {
@@ -143,6 +147,10 @@ public final class CommandLineInterface implements UserInterface {
   
   @Override
   public int getPlayerChoice(Set<KeybindedChoice> choices){
+    Objects.requireNonNull(choices, "the quilt can't be null");
+    if(choices.isEmpty()) {
+      throw new IllegalArgumentException("The set of choices can't be empty");
+    }
     var localBuilder = new StringBuilder();
     localBuilder
     .append(Color.ANSI_ORANGE)

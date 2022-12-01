@@ -69,12 +69,6 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
     this.players.addAll(players);
     this.events.addAll(events);
     buttonBank = new ButtonBank(buttons);
-  }
-  
-  /**
-   * Must be called before running a game
-   */
-  public void init() {
     currentPlayer = latestPlayer();
   }
 
@@ -160,7 +154,7 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
       return false;
     }
     // or else the patch comes from somewhere else
-    if (!currentPlayerPlayPatch(patch)) {
+    if (!playerPlayPatch(patch)) {
       return false;
     }
     // The patch have been placed on the quilt, 
@@ -177,13 +171,13 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
     return true;
   }
 
-  private boolean currentPlayerPlayPatch(Patch patch) {
+  private boolean playerPlayPatch(Patch patch) {
     if (!currentPlayer().placePatch(patch)) {
       return false;
     }
     currentPlayer.payOwnerFor(this, patch);
     // Moves
-    currentPlayerMove(currentPlayer.position() + patch.moves());
+    playerMove(currentPlayer.position() + patch.moves());
     return true;
   }
 
@@ -191,14 +185,14 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
    * Advance the current player to the space in front of the next player. This
    * action lead to button income proportional of number of crossed spaces.
    */
-  public void currentPlayerAdvance() {
-    if (!currentPlayerCanAdvance()) {
+  public void playerAdvance() {
+    if (!playerCanAdvance()) {
       return;
     }
     int newPosition = nextPlayerFrom(currentPlayer.position() + 1).position() + 1;
     int buttonIncome = newPosition - currentPlayer.position();
     hasPlayedMainAction = true;
-    if (currentPlayerMove(newPosition)) {
+    if (playerMove(newPosition)) {
       pay(currentPlayer(), buttonIncome);
     }
   }
@@ -208,7 +202,7 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
    * The move will be limited by boundaries [0, spaces]
    * @param newPosition
    */
-  private boolean currentPlayerMove(int newPosition) {
+  private boolean playerMove(int newPosition) {
     var move = Math.max(0, Math.min(newPosition, spaces));
     if(move == 0) {
       return false;
@@ -219,7 +213,6 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
           .filter(event -> event.isPositionedBetween(currentPlayer.position() + 1, move) 
               && event.active() 
               && event.run(this))
-          .peek(System.out::println)
           .toList());
     }
     // Important to place the player at the end of the list
@@ -236,7 +229,7 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
    * 
    * @return true or false
    */
-  public boolean currentPlayerCanAdvance() {
+  public boolean playerCanAdvance() {
     return !hasPlayedMainAction && currentPlayer.position() != spaces 
         && nextPlayerFrom(currentPlayer.position() + 1) != null;
   }
@@ -246,7 +239,7 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
    * 
    * @return
    */
-  public boolean currentPlayerCanSelectPatch() {
+  public boolean playerCanSelectPatch() {
     return !hasPlayedMainAction &&!patchManager.availablePatches().isEmpty()
         && patchManager.availablePatches()
         .stream().anyMatch(patch -> currentPlayer().canBuy(patch) == true);
@@ -315,6 +308,7 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
 
   @Override
   public void drawOnCLI(CommandLineInterface ui) {
+    Objects.requireNonNull(ui, "The user interface can't be null");
     var builder = ui.builder();
     if(!isFinished()) {
       builder.append("[ ---- (Buttons: ")

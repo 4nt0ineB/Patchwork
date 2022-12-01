@@ -1,6 +1,7 @@
 package view;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import controller.KeybindedChoice;
@@ -27,7 +28,7 @@ public interface UserInterface {
    * @param patches
    * @return the selected patch or null
    */
-  Patch selectPatch(List<Patch> patches);
+  Optional<Patch> selectPatch(List<Patch> patches);
   
   /**
    * Make the user select a choice among a list of choices
