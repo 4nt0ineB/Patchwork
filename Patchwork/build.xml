@@ -8,7 +8,7 @@
 	<property name="classes" location="classes"/>
 	<property name="doc" location="docs/doc"/>
 	<property name="lib" location="lib"/>
-	<property name="main-class"  value="controller.PatchworkController"/>
+	<property name="main-class"  value="fr.uge.patchwork.controller.PatchworkController"/>
 	<property name="jar-path" location="Patchwork.jar"/>
 	
 	<target name="init">
