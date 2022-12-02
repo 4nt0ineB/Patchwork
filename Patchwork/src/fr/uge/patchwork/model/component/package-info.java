@@ -1,4 +1,4 @@
 /**
  * Provides the Patchwork game main components.
  */
-package fr.uge.patchwork.model.game.component;
+package fr.uge.patchwork.model.component;

@@ -1,4 +1,4 @@
-package fr.uge.patchwork.model.game.component.button;
+package fr.uge.patchwork.model.component.button;
 
 import java.util.Objects;
 

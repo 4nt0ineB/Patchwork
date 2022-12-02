@@ -1,4 +1,4 @@
-package fr.uge.patchwork.model.game.component;
+package fr.uge.patchwork.model.component;
 
 import static java.util.stream.Collectors.toSet;
 
@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import fr.uge.patchwork.model.game.component.button.ButtonValued;
+import fr.uge.patchwork.model.component.button.ButtonValued;
 import fr.uge.patchwork.util.xml.XMLElement;
 import fr.uge.patchwork.view.cli.CommandLineInterface;
 import fr.uge.patchwork.view.cli.DrawableOnCLI;

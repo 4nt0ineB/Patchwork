@@ -6,10 +6,10 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import fr.uge.patchwork.model.game.Game;
-import fr.uge.patchwork.model.game.GameMode;
-import fr.uge.patchwork.model.game.component.Coordinates;
-import fr.uge.patchwork.model.game.component.gameboard.GameBoard;
+import fr.uge.patchwork.model.Game;
+import fr.uge.patchwork.model.GameMode;
+import fr.uge.patchwork.model.component.Coordinates;
+import fr.uge.patchwork.model.component.gameboard.GameBoard;
 import fr.uge.patchwork.view.UserInterface;
 import fr.uge.patchwork.view.cli.CommandLineInterface;
 

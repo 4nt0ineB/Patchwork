@@ -1,4 +1,4 @@
-package fr.uge.patchwork.model.game.component.gameboard;
+package fr.uge.patchwork.model.component.gameboard;
 
 import java.util.Comparator;
 import java.util.LinkedHashSet;
@@ -10,12 +10,12 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import fr.uge.patchwork.model.game.component.Patch;
-import fr.uge.patchwork.model.game.component.Player;
-import fr.uge.patchwork.model.game.component.button.ButtonBank;
-import fr.uge.patchwork.model.game.component.button.ButtonOwner;
-import fr.uge.patchwork.model.game.component.button.ButtonValued;
-import fr.uge.patchwork.model.game.component.gameboard.event.Event;
+import fr.uge.patchwork.model.component.Patch;
+import fr.uge.patchwork.model.component.Player;
+import fr.uge.patchwork.model.component.button.ButtonBank;
+import fr.uge.patchwork.model.component.button.ButtonOwner;
+import fr.uge.patchwork.model.component.button.ButtonValued;
+import fr.uge.patchwork.model.component.gameboard.event.Event;
 import fr.uge.patchwork.util.xml.XMLElement;
 import fr.uge.patchwork.view.cli.Color;
 import fr.uge.patchwork.view.cli.CommandLineInterface;

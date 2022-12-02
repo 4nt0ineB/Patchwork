@@ -1,28 +1,17 @@
-package fr.uge.patchwork.model.game;
+package fr.uge.patchwork.model;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Objects;
 
-import fr.uge.patchwork.model.game.component.gameboard.GameBoard;
+import fr.uge.patchwork.model.component.gameboard.GameBoard;
 import fr.uge.patchwork.util.xml.XMLParser;
 
-public class Game {
+public record Game(GameMode gameMode, GameBoard gameBoard) {
   
-  private final GameMode gameMode;
-  private final GameBoard gameBoard;
-  
-  private Game(GameMode gameMode, GameBoard gameBoard) {
-    this.gameMode = Objects.requireNonNull(gameMode, "The game mode can't be null");
-    this.gameBoard = Objects.requireNonNull(gameBoard, "The game board can't be null");
-  }
-  
-  public GameMode gameMode() {
-    return gameMode;
-  }
-  
-  public GameBoard gameBoard() {
-    return gameBoard;
+  public Game {
+    Objects.requireNonNull(gameMode, "The game mode can't be null");
+    Objects.requireNonNull(gameBoard, "The game board can't be null");
   }
   
   // public void save() ?

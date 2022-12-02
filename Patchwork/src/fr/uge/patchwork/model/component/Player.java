@@ -1,10 +1,10 @@
-package fr.uge.patchwork.model.game.component;
+package fr.uge.patchwork.model.component;
 
 import java.util.Objects;
 
-import fr.uge.patchwork.model.game.component.button.ButtonBank;
-import fr.uge.patchwork.model.game.component.button.ButtonOwner;
-import fr.uge.patchwork.model.game.component.button.ButtonValued;
+import fr.uge.patchwork.model.component.button.ButtonBank;
+import fr.uge.patchwork.model.component.button.ButtonOwner;
+import fr.uge.patchwork.model.component.button.ButtonValued;
 import fr.uge.patchwork.util.xml.XMLElement;
 import fr.uge.patchwork.view.cli.CommandLineInterface;
 import fr.uge.patchwork.view.cli.DrawableOnCLI;

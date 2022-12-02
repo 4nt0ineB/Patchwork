@@ -5,8 +5,8 @@ import java.util.Optional;
 import java.util.Set;
 
 import fr.uge.patchwork.controller.KeybindedChoice;
-import fr.uge.patchwork.model.game.component.Patch;
-import fr.uge.patchwork.model.game.component.QuiltBoard;
+import fr.uge.patchwork.model.component.Patch;
+import fr.uge.patchwork.model.component.QuiltBoard;
 
 public interface UserInterface {
   

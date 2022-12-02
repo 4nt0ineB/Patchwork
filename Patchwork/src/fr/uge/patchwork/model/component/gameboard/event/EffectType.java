@@ -1,4 +1,4 @@
-package fr.uge.patchwork.model.game.component.gameboard.event;
+package fr.uge.patchwork.model.component.gameboard.event;
 
 public enum EffectType {
   BUTTON_INCOME,

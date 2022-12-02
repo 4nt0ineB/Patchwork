@@ -1,10 +1,10 @@
-package fr.uge.patchwork.model.game.component.gameboard.event;
+package fr.uge.patchwork.model.component.gameboard.event;
 
 import java.util.Objects;
 import java.util.function.Predicate;
 
-import fr.uge.patchwork.model.game.component.Patch;
-import fr.uge.patchwork.model.game.component.gameboard.GameBoard;
+import fr.uge.patchwork.model.component.Patch;
+import fr.uge.patchwork.model.component.gameboard.GameBoard;
 import fr.uge.patchwork.util.xml.XMLElement;
 import fr.uge.patchwork.view.cli.Color;
 import fr.uge.patchwork.view.cli.CommandLineInterface;

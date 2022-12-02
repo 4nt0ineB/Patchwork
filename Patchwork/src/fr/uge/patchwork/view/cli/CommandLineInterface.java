@@ -8,9 +8,9 @@ import java.util.Scanner;
 import java.util.Set;
 
 import fr.uge.patchwork.controller.KeybindedChoice;
-import fr.uge.patchwork.model.game.component.Coordinates;
-import fr.uge.patchwork.model.game.component.Patch;
-import fr.uge.patchwork.model.game.component.QuiltBoard;
+import fr.uge.patchwork.model.component.Coordinates;
+import fr.uge.patchwork.model.component.Patch;
+import fr.uge.patchwork.model.component.QuiltBoard;
 import fr.uge.patchwork.view.Drawable;
 import fr.uge.patchwork.view.UserInterface;
 

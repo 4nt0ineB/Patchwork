@@ -1,4 +1,4 @@
-package fr.uge.patchwork.model.game.component.gameboard;
+package fr.uge.patchwork.model.component.gameboard;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -7,7 +7,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
-import fr.uge.patchwork.model.game.component.Patch;
+import fr.uge.patchwork.model.component.Patch;
 
 class PatchManager {
 

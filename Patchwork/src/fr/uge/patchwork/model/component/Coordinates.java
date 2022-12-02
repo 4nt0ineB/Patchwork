@@ -1,4 +1,4 @@
-package fr.uge.patchwork.model.game.component;
+package fr.uge.patchwork.model.component;
 
 import java.util.List;
 
