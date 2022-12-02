@@ -1,0 +1,27 @@
+
+
+GameBoard
+	init()
+	currentPlayer()
+	playerAdvance()
+	playerCanAdvance()
+	playerCanSelectPatch()
+	availablePatches()
+	selectPatch()
+	unselectPatch()
+	playNextPatch()
+	nextTurn()
+	isFinished()
+	addPatchToPlay()
+	
+	
+	
+	
+	ButtonOwner --
+	buttons()
+	canBuy()
+	CanPay()
+	buttonBank()
+	
+	
+	
