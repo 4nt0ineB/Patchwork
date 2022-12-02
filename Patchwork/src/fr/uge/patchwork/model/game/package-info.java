@@ -1,0 +1,1 @@
+package fr.uge.patchwork.model.game;
