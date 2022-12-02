@@ -52,6 +52,10 @@ public class Event implements DrawableOnCLI {
   	return type == EffectType.PATCH_INCOME;
   }
 
+  public boolean isButtonIncome() {
+  	return type == EffectType.BUTTON_INCOME;
+  }
+
   public boolean run(GameBoard gameboard) {
     if (effect.test(gameboard) && oneUse) {
       active = false;

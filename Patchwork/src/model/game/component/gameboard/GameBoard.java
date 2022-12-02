@@ -322,7 +322,14 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
 	      	.forEach(e -> builder.append("" + e.position())
 	      									.append(" "));
 	      builder.append(") ---- ]\n");
+	      builder.append("[ ---- (Button Tiles: ");
+	      events.stream()
+	      	.filter(e -> e.isButtonIncome())
+	      	.forEach(e -> builder.append("" + e.position())
+	      									.append(" "));
+	      builder.append(") ---- ]\n");
       }
+      builder.append("\n");
       for (var player : players) {
         if (player.equals(currentPlayer())) {
           builder.append(Color.ANSI_GREEN);
