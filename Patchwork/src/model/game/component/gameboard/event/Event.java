@@ -43,6 +43,14 @@ public class Event implements DrawableOnCLI {
   public Boolean isPositionedBetween(int n, int m) {
     return !runEachTurn() && position >= n && position <= m;
   }
+  
+  public int position() {
+  	return position;
+  }
+  
+  public boolean isPatchIncome() {
+  	return type == EffectType.PATCH_INCOME;
+  }
 
   public boolean run(GameBoard gameboard) {
     if (effect.test(gameboard) && oneUse) {

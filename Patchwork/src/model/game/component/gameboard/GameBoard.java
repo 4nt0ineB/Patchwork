@@ -231,8 +231,10 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
    * @return true or false
    */
   public boolean playerCanAdvance() {
-    return !hasPlayedMainAction && currentPlayer.position() != spaces 
-        && nextPlayerFrom(currentPlayer.position() + 1) != null;
+  	/* In the first turn of the game the player can advance even if he can afford a patch because the
+  	 * other player is in front of him (on the same place but below him so in front of him) */
+    return (!hasPlayedMainAction && currentPlayer.position() != spaces 
+        && nextPlayerFrom(currentPlayer.position() + 1) != null);
   }
 
   /**
@@ -311,6 +313,16 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
       .append(buttons())
       .append(") - (Patches: ")
       .append(patchManager.numberOfPatches()).append(") ---- ]\n");
+      /*User needs to see what are the tiles where the patches income are so he can
+       * prepare a strategy.*/ 
+      if (!events.isEmpty()) {
+	      builder.append("[ ---- (Patch Tiles: ");
+	      events.stream()
+	      	.filter(e -> e.isPatchIncome())
+	      	.forEach(e -> builder.append("" + e.position())
+	      									.append(" "));
+	      builder.append(") ---- ]\n");
+      }
       for (var player : players) {
         if (player.equals(currentPlayer())) {
           builder.append(Color.ANSI_GREEN);
