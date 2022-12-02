@@ -54,11 +54,8 @@ public class PatchworkController {
     while(action != PlayerAction.QUIT && !board.isFinished()) { // -- Game loop
       if(board.nextTurn()){
         ui.clearMessages();
-      }
-      ui.clear();
-      ui.draw(board);
-      ui.drawMessages();
-      ui.display();      
+      }    
+      /*board already drawn in this function so it was printing it twice*/
       action = doActionForTurn(ui, board);
       while (board.nextPatchToPlay().isPresent()) {
         switch((PlayerAction) manipulatePatch(ui, board)){
