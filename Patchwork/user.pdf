@@ -1,0 +1,86 @@
+PATCHWORK GAME
+
+En premier lieu avant de pouvoir commencer a jouer au Patchwork,
+il vous faudra lancer le jeu grâce a la commande suivante :
+    java -jar Patchwork.jar
+
+Voila maintenant que vous savez lancer le jeu on peut commencer les
+explications.
+
+Au lancement du jeu vous vous trouvez face au menu de debut où vous
+allez choisir votre mode de jeu préferentiel.
+
+Voici un rapide apercu des 2 modes de jeu :
+    Mode Basique : Permet de jouer au Patchwork à 2 joueurs.
+        Dans ce mode de jeu les pièces de cuir (carrés 1 x 1 du plateau de jeu) ainsi 
+        que la tuile bonus ne sont pas présents. Tous les Patch sont des
+        carrés 2 x 2 et il existe seulement 2 types de Patch différents.
+        Il y a 20 Patchs dans ce mode.
+
+    Mode Complet : Ce mode de jeu représente le jeu Patchwork au complet.
+        Tous les patchs du jeu du Patchwork sont présents ainsi que les pièces 
+        de cuir et la tuile bonus. En clair toutes les fonctionnalités que vous
+        connaissez dans le jeu sont présentes.
+
+Apres ce bref résumé vous pouvez donc maintenant choisir le mode de jeu
+qui vous convient pour ce faire appuyez sur la touche :
+    b pour le mode de jeu basique.
+    f pour le mode de jeu complet.
+
+Apres que vous ayez choisi votre mode de jeu, le jeu se charge et la partie
+commence !
+
+Voici les informations du jeu affichées : 
+    Buttons : Le nombre de bouttons présents dans la réserve du jeu.
+    Patches : Le nombre de patch achetables restants.
+    Patch Tiles : Les positions (ou les cases) où sont présents les pièces de cuir sur le plateau de jeu.
+    Button Tiles : Les positions (ou les cases) où sont présents les cases qui vous donnent un boutton sur le plateau de jeu.
+
+Viens ensuite les informations sur les joueurs :
+    En premier vous pouvez voir les positions des 2 joueurs grace au premier nombre.
+    En second vous avez le nombre de bouttons restants dans la cagnotte personnel du joueur avec le chiffre apres "buttons".
+    En dernier vous pouvez connaitre le joueur qui est en train de jouer grâce à la couleur.
+    Le joueur qui a un colori vert est celui qui joue.
+
+Apres avoir pris conscience de toutes ces informations, vous pouvez effectuer
+votre action comme suit :
+
+Appuyer sur la touche s :
+
+    Vous permet de regarder la liste des patchs que vous avez le droit d'acheter
+    si vous en avez les moyens.
+
+    Voici les informations des patchs :
+        Price : Le prix en bouttons du patch.
+        Moves : En achetant ce patch vous avancerez de ce nombre.
+        Buttons : Nombre de bouttons présents sur le Patch.
+
+    Pour acheter un patch il vous suffit d'entrer le chiffre
+    correspondant au patch que vous voulez.
+
+    Votre choix de Patch maintenant fait vous vous retrouvez maintenant
+    sur votre grille de Patchwork.
+
+    Voici la liste des actions possibles en appuyant sur la touche correspondante :
+        Deplacer le Patch sur la grille :
+            s pour faire monter le patch 
+            w pour faire descendre le patch
+            q pour deplacer le patch vers la gauche
+            d pour déplacer le patch vers la droite
+        
+        Effectuer une rotation du Patch :
+            z pour faire une rotation dans le sens horaire
+            a pour faire une rotation dans le sens anti-horaire
+
+        Acheter le Patch ou revenir en arriere :
+            p pour acheter definitivement le Patch et le placer sur la grille
+            b pour revenir en arriere au menu principal
+
+
+Appuyer sur la touche a :
+    Vous fait avancer sur le plateau de jeu jusqu'à la case juste devant 
+    le pion adverse en vous faisant gagner le nombre de cases déplacés en bouttons
+    ainsi que vous donne des pièces de cuir si vous passez sur une lors de votre avancée.
+
+Appuyer sur la touche r :
+    Vous permet de quitter le jeu.
