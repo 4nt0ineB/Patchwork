@@ -215,6 +215,8 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
               && event.active() 
               && event.run(this))
           .toList());
+      // Remove the event from events list if oneUse and of type PATCH_INCOME 
+      events.removeIf(e -> e.oneUse() && e.isPatchIncome() && e.isPositionedBetween(currentPlayer.position() + 1, move));
     }
     // Important to place the player at the end of the list
     // meaning the order of placement on spaces
@@ -313,8 +315,8 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
       .append(buttons())
       .append(") - (Patches: ")
       .append(patchManager.numberOfPatches()).append(") ---- ]\n");
-      /*User needs to see what are the tiles where the patches income are so he can
-       * prepare a strategy.*/ 
+      /*User needs to see what are the tiles where the patches income and buttons income
+       *  are so he can prepare a proper strategy.*/ 
       if (!events.isEmpty()) {
 	      builder.append("[ ---- (Patch Tiles: ");
 	      events.stream()

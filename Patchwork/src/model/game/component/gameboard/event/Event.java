@@ -48,6 +48,10 @@ public class Event implements DrawableOnCLI {
   	return position;
   }
   
+  public boolean oneUse() {
+  	return oneUse;
+  }
+  
   public boolean isPatchIncome() {
   	return type == EffectType.PATCH_INCOME;
   }
