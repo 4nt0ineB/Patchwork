@@ -14,6 +14,11 @@ import fr.uge.patchwork.model.component.QuiltBoard;
 import fr.uge.patchwork.view.Drawable;
 import fr.uge.patchwork.view.UserInterface;
 
+/**
+ * 
+ * Implementation of a patchwork game command line interface
+ *
+ */
 public final class CommandLineInterface implements UserInterface {
   
   // Should be a singleton then ? Because there is only one System.in
@@ -24,6 +29,11 @@ public final class CommandLineInterface implements UserInterface {
   private final StringBuilder builder = new StringBuilder();
   private final LinkedHashSet<String> messages = new LinkedHashSet<>();
   
+  /**
+   * Access the string builder of the command line interface
+   * having the same purpose of a "window", on which text content can be printed
+   * @return
+   */
   public StringBuilder builder() {
     return builder;
   }
@@ -176,7 +186,7 @@ public final class CommandLineInterface implements UserInterface {
   /**
    * Close the interface: <br>
    * 
-   * close scanner on {@link System.in}
+   * close scanner on {@link System#in}
    */
   @Override
   public void close() {

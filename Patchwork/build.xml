@@ -3,7 +3,6 @@
     	Patchwork in Java by Antoine Bastos and Yann Roux--Daugrois
   	</description>
 
-	
 	<property name="src" location="src"/>
 	<property name="classes" location="classes"/>
 	<property name="doc" location="docs/doc"/>

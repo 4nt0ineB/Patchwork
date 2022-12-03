@@ -4,7 +4,7 @@
  * <p>
  * The classes provides such a API useful for serializing objects into XML format.
  * <p>
- * The XML standard used, follows this example:
+ * The XML standard used follows this example:
  *
  * <pre>
  *  &lt;tagname&gt;
@@ -13,11 +13,9 @@
  *  &lt;/tagname&gt;
  * </pre>
  * 
- * - Only one record (the root record) by input (String, file, stream, ...).<br>
+ * - Only one record (the root record) in a given input (String, file, stream, ...).<br>
  * - The root contain nested records.<br>
  * - A record can carry one text content XOR one to many records.
- * 
- * 
  * 
  *
  */

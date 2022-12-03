@@ -3,14 +3,7 @@ package fr.uge.patchwork.model.component.button;
 import java.util.Objects;
 
 /**
- * 
- * Defines in game entities behavior
- * able to exchange buttons (as money)
- * 
- *  <p>
- *  The money of the game (the buttons) must circulate through button owner hands.
- *  Therefore money can't be created out of nothing 
- *  and shall respect the money circulation principle.
+ * Implementation of button bank
  *
  */
 public class ButtonBank implements ButtonOwner {

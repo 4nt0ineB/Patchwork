@@ -23,6 +23,16 @@ import fr.uge.patchwork.view.cli.Color;
 import fr.uge.patchwork.view.cli.CommandLineInterface;
 import fr.uge.patchwork.view.cli.DrawableOnCLI;
 
+/**
+ * 
+ * Implementation of the game board
+ * 
+ *  <p>
+ * Provides API to run a patchwork game.
+ * It handle players management, events, buttons circulation.
+ * 
+ *
+ */
 public class GameBoard implements ButtonOwner, DrawableOnCLI {
 
   // Number of squares on the board
@@ -45,14 +55,14 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
   /**
    * GameBoard constructor
    * 
-   * @param patchByTurn max number of patches available each turn for the current
-   *                    player
+   * @param patchByTurn max number of patches available each turn for the current player
    * @param spaces      the number of spaces on the board
    * @param patches     the patches around the board at the beginning
    * @param players     the players
    * @param the         list of events for the board
    */
-  public GameBoard(int spaces, int patchByTurn, int buttons, List<Patch> patches, Set<Player> players, List<Event> events) {
+  public GameBoard(int spaces, int patchByTurn, int buttons, 
+      List<Patch> patches, Set<Player> players, List<Event> events) {
     Objects.requireNonNull(patches, "List of patches can't be null");
     Objects.requireNonNull(players, "List of players can't be null");
     if (patches.size() < 1) {
@@ -67,7 +77,7 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
     if (spaces < 1) {
       throw new IllegalArgumentException("The number of spaces on the board can't be lower than 1");
     }
-    this.spaces = spaces - 1; // spaces => space no 0 to no spaces - 1
+    this.spaces = spaces - 1; // 54 spaces => [0;53]
     this.patchManager = new PatchManager(patchByTurn, patches);
     this.players.addAll(players);
     this.events.addAll(events);
@@ -88,7 +98,7 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
   /**
    * Get the current player of the turn
    * 
-   * @return
+   * @return the current player of the turn
    */
   public Player currentPlayer() {
     return currentPlayer;
@@ -98,7 +108,7 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
    * Select a patch among the next available from those around the board
    * @exception AssertionError If the given patch 
    * does not exists in the available patches
-   * @param patch
+   * @param patch the patch to select
    */
   public void selectPatch(Patch patch) {
     patchManager.select(patch);
@@ -110,7 +120,7 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
    * Get the selected patch 
    * from those available around the board
    * 
-   * @return
+   * @return an optional patch of the selected patch
    */
   public Optional<Patch> selectedPatch() {
     return patchManager.selected();
@@ -149,7 +159,7 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
   /**
    * Play the next patch from the patches waiting queue
    * 
-   * @return
+   * @return true if next patch in the queue could be played, otherwise false 
    */
   public boolean playNextPatch() {
     var patch = patchesToPlay.peek();
@@ -234,11 +244,13 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
    * Test if the current player can advance on the board The player can advance if
    * he has not reached the end and if a player is ahead of him
    * 
-   * @return true or false
+   * @return true if the player can advance on the board, otherwise false 
    */
   public boolean playerCanAdvance() {
-  	/* In the first turn of the game the player can advance even if he can afford a patch because the
-  	 * other player is in front of him (on the same place but below him so in front of him) */
+  	/* In the first turn of the game the player can 
+  	 * advance even if he can afford a patch because the
+  	 * other player is in front of him 
+  	 * (on the same place but below him so in front of him) */
     return !hasPlayedMainAction 
         && currentPlayer.position() != spaces 
         && (nextPlayerFrom(currentPlayer.position() + 1) != null
@@ -246,9 +258,9 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
   }
 
   /**
-   * Test if the current player can choose a patch()
+   * Test if the current player can select a patch
    * 
-   * @return
+   * @return true if the player can select a patch, otherwise false 
    */
   public boolean playerCanSelectPatch() {
     return !hasPlayedMainAction 
@@ -261,7 +273,7 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
    * Set the next currentPlayer
    * 
    * @exception AssertionError If the player is stuck.
-   * @return
+   * @return true if the player changed, otherwise false
    */
   public boolean nextTurn() {
     // add not positioned events before end of turn
@@ -270,7 +282,9 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
             && event.active() 
             && event.run(this))
         .toList()); 
-    if (!hasPlayedMainAction || !patchesToPlay.isEmpty()) { // can't change player, the current has patches to deal with
+    // we can't change the current player if he has patches to deal with
+    // are a main action to perform
+    if (!hasPlayedMainAction || !patchesToPlay.isEmpty()) { 
       return false;
     }
     currentPlayer = latestPlayer();
@@ -280,7 +294,11 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
     hasPlayedMainAction = false;
     return true;
   }
-
+  
+  /**
+   * Get the list of triggered and queued event of the current turn
+   * @return a list of triggered event during the turn
+   */
   public List<Event> eventQueue() {
     return eventQueue.stream().toList();
   }
@@ -314,7 +332,11 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
     return players.stream().filter(p -> p.position() == position).count();
   }
   
-  public Player latestPlayer() {
+  /**
+   * Get the furthest behind player on the board
+   * @return
+   */
+  private Player latestPlayer() {
     return nextPlayerFrom(0);
   }
   
@@ -373,7 +395,7 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
   /**
    * Add a patch to the waiting stack
    * The added patch <b>must</b> be played. 
-   * @param patch
+   * @param patch the patch to add to the patch waiting queue
    */
   public void addPatchToPlay(Patch patch) {
     Objects.requireNonNull(patch, "The patch can't be null");
@@ -393,8 +415,8 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
 
   /**
    * Make new game board from a XMLElement
-   * @param element
-   * @return
+   * @param element the XLM DOM from which to build the game board
+   * @return a new game board object
    */
   public static GameBoard fromXML(XMLElement element) {
     XMLElement.requireNotEmpty(element);

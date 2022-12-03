@@ -1,5 +1,8 @@
 package fr.uge.patchwork.view.cli;
 
+/**
+ * Provides ANSI colors
+ */
 public enum Color {
   ANSI_ITALIC("\u001B[3m"), 
   ANSI_BOLD("\u001B[1m"), 
@@ -36,6 +39,14 @@ public enum Color {
       return str;
   }
   
+  /**
+   * Make a 8-bit color ANSI escape sequence for 
+   * given rgb values
+   * @param r red
+   * @param g green 
+   * @param b blue
+   * @return an ansi escape squence
+   */
   public static String rgb(int r, int g, int b) {
     return "\033[38;2;"+ (r & 0xFF) +";"+ (g & 0xFF) +";"+ (b & 0xFF) +"m";
   }

@@ -10,10 +10,21 @@ import fr.uge.patchwork.view.cli.Color;
 import fr.uge.patchwork.view.cli.CommandLineInterface;
 import fr.uge.patchwork.view.cli.DrawableOnCLI;
 
+/**
+ * 
+ * Implement an event on the game board
+ * 
+ * <p>
+ * The event are triggered depending of their position 
+ *
+ */
 public class Event implements DrawableOnCLI {
 
+  // The action to perform during the event
   private final Predicate<GameBoard> effect;
+  // indicate if the event is a one use event
   private final boolean oneUse;
+  // by default an event is active
   private boolean active = true;
   private final int position;
   private EffectType type;
@@ -22,8 +33,8 @@ public class Event implements DrawableOnCLI {
    * 
    * @param type
    * @param oneUse
-   * @param position negative value for event triggered each turn (not positioned), 
-   * a positive value or equal to zero for the event to be triggered at a specific spaces on the board
+   * @param position a strictly negative value for an event to be triggered each turn like a routine (not positioned), or
+   * a positive value for the event to be triggered at a specific space on the board
    * @param effect
    */
   public Event(EffectType type, boolean oneUse, int position, Predicate<GameBoard> effect) {

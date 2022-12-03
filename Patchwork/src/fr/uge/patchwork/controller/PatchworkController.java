@@ -19,7 +19,7 @@ public class PatchworkController {
    * Menu Loop that draw the menu and wait for the user to choose
    * his game mode 
    *
-   * @param menu, cli
+   * @param ui the user interface
    * @return Choosen game mode
    */
   public static GameMode menu(UserInterface ui) {
@@ -44,9 +44,10 @@ public class PatchworkController {
   /**
    * MainLoop that draw the game and make users play the game
    *
-   * @param ui, board
-   * @return true if ends normally, otherwise false if 
-   * the player asked to quit during the game
+   * @param ui the user interface
+   * @param board the game board
+   * @return true if ends normally, 
+   * otherwise false, if the player asked to quit during the game
    */
   public static boolean run(UserInterface ui, GameBoard board) {
     Objects.requireNonNull(ui, "The interface can't be null");
@@ -75,7 +76,8 @@ public class PatchworkController {
   /**
    * Function that do the action the user select
    *
-   * @param ui, board
+   * @param ui the user interface
+   * @param board the game board
    * @return Action
    */
   private static PlayerAction doActionForTurn(UserInterface ui, GameBoard board) {
@@ -117,7 +119,8 @@ public class PatchworkController {
    * Placing it on his quilt or even going back to the previous
    * Action
    *
-   * @param ui, board, patch
+   * @param ui 
+   * @param board
    * @return Action
    */
   private static PlayerAction manipulatePatch(UserInterface ui, GameBoard board) {
@@ -201,21 +204,21 @@ public class PatchworkController {
   
 
   public static void main(String[] args) {
-    // chose ui from arg
-    var ui = new CommandLineInterface();
+    // chose ui from arg in phase 3
+    var userInterface = new CommandLineInterface();
     Game game;
     do {
       try {
-        game = Game.fromGameMode(menu(ui));
+        game = Game.fromGameMode(menu(userInterface));
       } catch (IOException e) {
         System.err.println(e.getMessage());
-        ui.close();
+        userInterface.close();
         System.exit(1);
         return;
       }
-    }while(run(ui, game.gameBoard())
-        && endGame(ui, game.gameBoard()));
-    ui.close();
+    }while(run(userInterface, game.gameBoard())
+        && endGame(userInterface, game.gameBoard()));
+    userInterface.close();
   }
 
 }

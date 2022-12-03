@@ -36,9 +36,9 @@ public class Patch implements ButtonValued, DrawableOnCLI {
   /**
    * Patch constructor
    * @param buttons number of buttons associated with the patch, for potential button income
-   * @param move the number of move a player can do after placing the path on his quilt
+   * @param moves the number of move a player can do after placing the path on his quilt
    * @param price the price of the patch
-   * @param Point list of cells (Point) of the patch. 
+   * @param coordinates list of cells (Point) of the patch. 
    * The (y=0,x=0) coordinate is relative origin of the patch
    * For example, this patch :
    * <pre>
@@ -72,25 +72,20 @@ public class Patch implements ButtonValued, DrawableOnCLI {
   }
   
   /**
-   * Getter method for moves
-   * @return int
+   * @return the number of moves granted
    */
   public int moves() {
     return moves;
   }
   
   /**
-   * Return the amount of button on the patch
-   * @return 
+   * @return the amount of button on the patch
    */
   public int buttons() {
     return buttons;
   }
   
-  /**
-   * Getter method for price
-   * @return int
-   */
+
   @Override
   public int value() {
     return price;
@@ -98,7 +93,7 @@ public class Patch implements ButtonValued, DrawableOnCLI {
   
   /**
    * access CurrentCoordinates
-   * @return Set<Coordinates>
+   * @return
    */
   public Set<Coordinates> currentCoordinates(){
   	return rotations.get(currentRotation);
