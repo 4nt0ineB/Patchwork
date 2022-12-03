@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import fr.uge.patchwork.model.component.Patch;
@@ -15,6 +16,7 @@ import fr.uge.patchwork.model.component.Player;
 import fr.uge.patchwork.model.component.button.ButtonBank;
 import fr.uge.patchwork.model.component.button.ButtonOwner;
 import fr.uge.patchwork.model.component.button.ButtonValued;
+import fr.uge.patchwork.model.component.gameboard.event.EffectType;
 import fr.uge.patchwork.model.component.gameboard.event.Event;
 import fr.uge.patchwork.util.xml.XMLElement;
 import fr.uge.patchwork.view.cli.Color;
@@ -190,7 +192,11 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
     if (!playerCanAdvance()) {
       return;
     }
-    int newPosition = nextPlayerFrom(currentPlayer.position() + 1).position() + 1;
+    int newPosition = currentPlayer.position() + 1;
+    Player nextPlayer = nextPlayerFrom(newPosition);
+    if(nextPlayer != null) { // player ahead
+      newPosition = nextPlayer.position() + 1;
+    }
     int buttonIncome = newPosition - currentPlayer.position();
     hasPlayedMainAction = true;
     if (playerMove(newPosition)) {
@@ -215,8 +221,6 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
               && event.active() 
               && event.run(this))
           .toList());
-      // Remove the event from events list if oneUse and of type PATCH_INCOME 
-      events.removeIf(e -> e.oneUse() && e.isPatchIncome() && e.isPositionedBetween(currentPlayer.position() + 1, move));
     }
     // Important to place the player at the end of the list
     // meaning the order of placement on spaces
@@ -235,8 +239,10 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
   public boolean playerCanAdvance() {
   	/* In the first turn of the game the player can advance even if he can afford a patch because the
   	 * other player is in front of him (on the same place but below him so in front of him) */
-    return (!hasPlayedMainAction && currentPlayer.position() != spaces 
-        && nextPlayerFrom(currentPlayer.position() + 1) != null);
+    return !hasPlayedMainAction 
+        && currentPlayer.position() != spaces 
+        && (nextPlayerFrom(currentPlayer.position() + 1) != null
+        || countPlayersAt(currentPlayer.position()) > 1);
   }
 
   /**
@@ -245,7 +251,8 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
    * @return
    */
   public boolean playerCanSelectPatch() {
-    return !hasPlayedMainAction &&!patchManager.availablePatches().isEmpty()
+    return !hasPlayedMainAction 
+        &&!patchManager.availablePatches().isEmpty()
         && patchManager.availablePatches()
         .stream().anyMatch(patch -> currentPlayer().canBuy(patch) == true);
   }
@@ -268,6 +275,8 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
     }
     currentPlayer = latestPlayer();
     eventQueue.clear();
+    // Remove all unactive events
+    events.removeIf(Predicate.not(Event::active));
     hasPlayedMainAction = false;
     return true;
   }
@@ -301,58 +310,64 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
     return nextPlayer;
   }
 
+  private long countPlayersAt(int position) {
+    return players.stream().filter(p -> p.position() == position).count();
+  }
+  
   public Player latestPlayer() {
     return nextPlayerFrom(0);
   }
   
-
   @Override
   public void drawOnCLI(CommandLineInterface ui) {
     Objects.requireNonNull(ui, "The user interface can't be null");
+    if(isFinished()) {
+      drawScoreBoard(ui);
+      return;
+    }
     var builder = ui.builder();
-    if(!isFinished()) {
-      builder.append("[ ---- (Buttons: ")
-      .append(buttons())
-      .append(") - (Patches: ")
-      .append(patchManager.numberOfPatches()).append(") ---- ]\n");
-      /*User needs to see what are the tiles where the patches income and buttons income
-       *  are so he can prepare a proper strategy.*/ 
+    builder.append("[ ---- (Buttons: ")
+    .append(buttons())
+    .append(") - (Patches: ")
+    .append(patchManager.numberOfPatches()).append(") ---- ]\n");
+    /*User needs to see what are the tiles where the patches income and buttons income
+     *  are so he can prepare a proper strategy.*/ 
       if (!events.isEmpty()) {
 	      builder.append("[ ---- (Patch Tiles: ");
 	      events.stream()
-	      	.filter(e -> e.isPatchIncome())
-	      	.forEach(e -> builder.append("" + e.position())
-	      									.append(" "));
+	      	.filter(e -> e.type().equals(EffectType.PATCH_INCOME))
+	      	.forEach(e -> builder.append(e.position()).append(" "));
 	      builder.append(") ---- ]\n");
 	      builder.append("[ ---- (Button Tiles: ");
 	      events.stream()
-	      	.filter(e -> e.isButtonIncome())
-	      	.forEach(e -> builder.append("" + e.position())
-	      									.append(" "));
+	      	.filter(e -> e.type().equals(EffectType.BUTTON_INCOME))
+	      	.forEach(e -> builder.append(e.position()).append(" "));
 	      builder.append(") ---- ]\n");
-      }
-      builder.append("\n");
-      for (var player : players) {
-        if (player.equals(currentPlayer())) {
-          builder.append(Color.ANSI_GREEN);
-        }
-        player.drawOnCLI(ui);
-        builder.append(Color.ANSI_RESET).append("\n");
-      }
-      builder.append("\n");
-    }else {
-      builder.append(Color.ANSI_ORANGE)
-      .append("[ ---- Scores ---- ] \n")
-      .append(Color.ANSI_RESET);
-      var sortedPlayers = players.stream().sorted(Comparator.reverseOrder()).toList();
-      sortedPlayers.forEach(
-          p -> builder.append(p.name()).append(" : ")
-          .append(p.score()).append("\n"));
-      builder.append(Color.ANSI_YELLOW)
-      .append(sortedPlayers.get(0).name())
-      .append(" Wins !\n")
-      .append(Color.ANSI_RESET);
     }
+    builder.append("\n");
+    for (var player : players) {
+      if (player.equals(currentPlayer())) {
+        builder.append(Color.ANSI_GREEN);
+      }
+      player.drawOnCLI(ui);
+      builder.append(Color.ANSI_RESET).append("\n");
+    }
+    builder.append("\n");
+  }
+  
+  private void drawScoreBoard(CommandLineInterface ui) {
+    var builder = ui.builder();
+    builder.append(Color.ANSI_ORANGE)
+    .append("[ ---- Scores ---- ] \n")
+    .append(Color.ANSI_RESET);
+    var sortedPlayers = players.stream().sorted(Comparator.reverseOrder()).toList();
+    sortedPlayers.forEach(
+        p -> builder.append(p.name()).append(" : ")
+        .append(p.score()).append("\n"));
+    builder.append(Color.ANSI_YELLOW)
+    .append(sortedPlayers.get(0).name())
+    .append(" Wins !\n")
+    .append(Color.ANSI_RESET);
   }
   
   /**

@@ -52,12 +52,8 @@ public class Event implements DrawableOnCLI {
   	return oneUse;
   }
   
-  public boolean isPatchIncome() {
-  	return type == EffectType.PATCH_INCOME;
-  }
-
-  public boolean isButtonIncome() {
-  	return type == EffectType.BUTTON_INCOME;
+  public EffectType type() {
+    return type;
   }
 
   public boolean run(GameBoard gameboard) {
