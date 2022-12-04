@@ -1,0 +1,50 @@
+<project name="Patchwork" basedir="." default="jar">
+	<description>
+    	Patchwork in Java by Antoine Bastos and Yann Roux--Daugrois
+  	</description>
+
+	<property name="src" location="src"/>
+	<property name="classes" location="classes"/>
+	<property name="doc" location="docs/doc"/>
+	<property name="lib" location="lib"/>
+	<property name="main-class"  value="fr.uge.patchwork.controller.PatchworkController"/>
+	<property name="jar-path" location="Patchwork.jar"/>
+	
+	<target name="init">
+		<mkdir dir="${classes}"/>
+	</target>
+
+	<target name="compile" depends="init">
+		<javac srcdir="${src}" destdir="${classes}"/>
+	</target>
+	
+	<target name="jar" depends="compile">
+		<jar destfile="${jar-path}" basedir="${classes}">
+			<manifest>
+				<attribute name="Main-Class" value="${main-class}"/>
+			</manifest>
+		</jar>
+	</target>
+	
+	<target name="run" depends="jar">
+		<!-- fork : to run in an other JVM than ant -->
+        <java fork="true" jar="${jar-path}" />
+    </target>
+	
+	<target name="javadoc">
+		<javadoc 
+		version="true"
+			sourcepath="${src}" 
+			destdir="${doc}"
+			Overview="src/overview.html"/>
+	</target>
+	
+	<target name="clean">
+		<delete dir="${classes}"/>
+		<delete dir="${doc}"/>
+		<delete file="${jar-path}"/>
+	</target>
+	
+	
+	
+</project>

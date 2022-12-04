@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"fr.uge.clickygame","l":"Cell"},{"p":"fr.uge.clickygame","l":"Coordinates"},{"p":"fr.uge.zen5.demo","l":"Demo"},{"p":"fr.uge.clickygame","l":"SimpleGameController"},{"p":"fr.uge.clickygame","l":"SimpleGameData"},{"p":"fr.uge.clickygame","l":"SimpleGameView"}];updateSearchResults();
