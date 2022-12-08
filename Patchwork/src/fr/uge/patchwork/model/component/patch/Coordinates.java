@@ -1,11 +1,6 @@
-package fr.uge.patchwork.model.component;
+package fr.uge.patchwork.model.component.patch;
 
-import java.util.List;
-
-import fr.uge.patchwork.util.xml.XMLElement;
-import fr.uge.patchwork.util.xml.XMLSerializable;
-
-public record Coordinates(int y, int x) implements XMLSerializable {
+public record Coordinates(int y, int x) {
   
   @Override
   public String toString() {
@@ -54,7 +49,7 @@ public record Coordinates(int y, int x) implements XMLSerializable {
    * @return
    */
   public int distanceInX(Coordinates other) {
-    return this.x() - other.x();
+    return x - other.x;
   }
   
   
@@ -64,7 +59,7 @@ public record Coordinates(int y, int x) implements XMLSerializable {
    * @return
    */
   public int distanceInY(Coordinates other) {
-  	return this.y() - other.y();
+  	return y - other.y;
   }
   
   
@@ -89,9 +84,17 @@ public record Coordinates(int y, int x) implements XMLSerializable {
    * @return
    */
   public Coordinates rotateAntiClockwise() {
-    return new Coordinates(1 * x(), -1 * y);
+    return new Coordinates(1 * x, -1 * y);
   }
   
+  
+  /**
+   * Transform the coordinates by swapping the x and y
+   * @return
+   */
+  public Coordinates swap() {
+    return new Coordinates(x, y);
+  }
   
   /**
    * Check if coordinates are in a rectangle formed by two pairs of coordinates.
@@ -108,27 +111,5 @@ public record Coordinates(int y, int x) implements XMLSerializable {
         && y <= c2.y
         ;
   }
-  
-  @Override
-  public XMLElement toXML() {
-    var coordinatesElement = new XMLElement("Coordinates");
-    coordinatesElement.addAll(List.of(
-        new XMLElement("x", x), 
-        new XMLElement("y", y)));
-    return coordinatesElement;
-  }
-
-  /**
-   * Make new Coordinates from a XMLElement
-   * @param element XMLElement
-   * @exception IllegalStateException If the XMLElement is empty
-   * @return
-   */
-  public static Coordinates fromXML(XMLElement element) {
-    XMLElement.requireNotEmpty(element);
-    return new Coordinates(
-        Integer.parseInt(element.getByTagName("x").content()),
-        Integer.parseInt(element.getByTagName("y").content()));
-  }
- 
+   
 }

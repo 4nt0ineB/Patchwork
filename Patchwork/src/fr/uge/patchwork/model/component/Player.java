@@ -5,7 +5,6 @@ import java.util.Objects;
 import fr.uge.patchwork.model.component.patch.LeatherPatch;
 import fr.uge.patchwork.model.component.patch.Patch;
 import fr.uge.patchwork.model.component.patch.RegularPatch;
-import fr.uge.patchwork.util.xml.XMLElement;
 import fr.uge.patchwork.view.cli.CommandLineInterface;
 import fr.uge.patchwork.view.cli.DrawableOnCLI;
 
@@ -24,6 +23,7 @@ public class Player implements DrawableOnCLI, Comparable<Player> {
     }
     this.name = name;
     this.quilt = quilt;
+    this.buttons = buttons;
   }
 
   public int position() {
@@ -97,14 +97,6 @@ public class Player implements DrawableOnCLI, Comparable<Player> {
     .append(String.format("%5d|", position))
     .append(" " + name + " - buttons [" + buttons + "]")
     .append(specialTile > 0 ? " SpecialTile : " + specialTile : "");
-  }
-
-  public static Player fromXML(XMLElement element) {
-    XMLElement.requireNotEmpty(element);
-    return new Player(
-        element.getByTagName("name").content(),
-        Integer.parseInt(element.getByTagName("buttons").content()),
-        QuiltBoard.fromXML(element.getByTagName("QuiltBoard")));
   }
   
   public void earnSpecialTile() {

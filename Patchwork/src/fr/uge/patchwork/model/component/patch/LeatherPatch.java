@@ -2,7 +2,6 @@ package fr.uge.patchwork.model.component.patch;
 
 import java.util.Set;
 
-import fr.uge.patchwork.model.component.Coordinates;
 import fr.uge.patchwork.view.cli.CommandLineInterface;
 import fr.uge.patchwork.view.cli.DrawableOnCLI;
 
@@ -21,6 +20,12 @@ public final class LeatherPatch implements Patch, DrawableOnCLI {
   
   public Form form() {
     return patch.form();
+  }
+  
+
+  @Override
+  public void flip() {
+    patch.flip(); 
   }
 
   @Override
@@ -60,17 +65,17 @@ public final class LeatherPatch implements Patch, DrawableOnCLI {
 
   @Override
   public boolean canMoveDown(int maxY) {
-    return patch.canMoveUp(maxY);
+    return patch.canMoveDown(maxY);
   }
 
   @Override
   public boolean canMoveLeft(int minX) {
-    return patch.canMoveUp(minX);
+    return patch.canMoveLeft(minX);
   }
 
   @Override
   public boolean canMoveRight(int maxX) {
-    return patch.canMoveUp(maxX);
+    return patch.canMoveRight(maxX);
   }
 
   @Override
@@ -80,7 +85,7 @@ public final class LeatherPatch implements Patch, DrawableOnCLI {
 
   @Override
   public boolean overlap(Patch patch) {
-    return patch.overlap(patch);
+    return this.patch.overlap(patch);
   }
 
   @Override
@@ -102,5 +107,6 @@ public final class LeatherPatch implements Patch, DrawableOnCLI {
   public void drawOnCLI(CommandLineInterface ui) {
     patch.drawOnCLI(ui);
   }
+
   
 }

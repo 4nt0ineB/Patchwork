@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import fr.uge.patchwork.model.component.Coordinates;
 import fr.uge.patchwork.view.cli.CommandLineInterface;
 import fr.uge.patchwork.view.cli.DrawableOnCLI;
 
@@ -47,6 +46,11 @@ public final class Patch2D implements Patch, DrawableOnCLI {
     return form;
   }
 
+  @Override
+  public void flip() {
+    form = form.flip();
+  }
+  
   /**
    * 90° left rotation
    */
@@ -102,7 +106,10 @@ public final class Patch2D implements Patch, DrawableOnCLI {
    */
   @Override
   public boolean canMoveUp(int miny) {
-    return form.coordinates().stream().map(Coordinates::y).min(Integer::compare).get() + absoluteOrigin.y() > miny;
+    return form.coordinates()
+        .stream().map(Coordinates::y)
+        .min(Integer::compare)
+        .get() + absoluteOrigin.y() > miny;
   }
 
   /**
@@ -112,7 +119,10 @@ public final class Patch2D implements Patch, DrawableOnCLI {
    */
   @Override
   public boolean canMoveDown(int maxY) {
-    return form.coordinates().stream().map(Coordinates::y).max(Integer::compare).get() + absoluteOrigin.y() < maxY - 1;
+    return form.coordinates().stream()
+        .map(Coordinates::y)
+        .max(Integer::compare)
+        .get() + absoluteOrigin.y() < maxY - 1;
   }
 
   /**
@@ -122,7 +132,10 @@ public final class Patch2D implements Patch, DrawableOnCLI {
    */
   @Override
   public boolean canMoveLeft(int minX) {
-    return form.coordinates().stream().map(Coordinates::x).min(Integer::compare).get() + absoluteOrigin.x() > minX;
+    return form.coordinates().stream()
+        .map(Coordinates::x)
+        .min(Integer::compare)
+        .get() + absoluteOrigin.x() > minX;
   }
 
   /**
@@ -132,7 +145,10 @@ public final class Patch2D implements Patch, DrawableOnCLI {
    */
   @Override
   public boolean canMoveRight(int maxX) {
-    return form.coordinates().stream().map(Coordinates::x).max(Integer::compare).get() + absoluteOrigin.x() < maxX - 1;
+    return form.coordinates().stream()
+        .map(Coordinates::x)
+        .max(Integer::compare)
+        .get() + absoluteOrigin.x() < maxX - 1;
   }
 
   /**
@@ -155,7 +171,7 @@ public final class Patch2D implements Patch, DrawableOnCLI {
   public boolean overlap(Patch patch) {
     Objects.requireNonNull(patch, "Can't test overlapping on null");
     for (var cell : absoluteCoordinates()) {
-      if (meets(cell)) {
+      if (patch.meets(cell)) {
         return true;
       }
     }

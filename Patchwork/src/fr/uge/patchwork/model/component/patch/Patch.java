@@ -2,76 +2,79 @@ package fr.uge.patchwork.model.component.patch;
 
 import java.util.Set;
 
-import fr.uge.patchwork.model.component.Coordinates;
-
 public sealed interface Patch permits Patch2D, RegularPatch, LeatherPatch {
   
   Form form();
 
+  void flip();
+  
   /**
    * 90° left rotation
    */
-  public void rotateLeft();
+  void rotateLeft();
+  
   /**
    * 90° right rotation
    */
-  public void rotateRight();
+  void rotateRight();
+  
   /**
    * Decrement by one the absolute coordinates along y axis
    */
-  public void moveUp();
+  void moveUp();
   
   /**
    * Increment by one the absolute coordinates along y axis
    */
-  public void moveDown();
+  void moveDown();
   
   /**
    * Decrement by one the absolute coordinates along x axis
    */
-  public void moveLeft();
+  void moveLeft();
   
   /**
    * Increment by one the absolute coordinates along x axis
    */
-  public void moveRight();
+  void moveRight();
   
   /**
    * Says if it's possible for the patch to move up
    * @return
    */
-  public boolean canMoveUp(int miny);
+  boolean canMoveUp(int miny);
   
   /**
    * Says if it's possible for the patch to move down
    * @return
    */
-  public boolean canMoveDown(int maxY);
+  boolean canMoveDown(int maxY);
+  
   /**
    * Says if it's possible for the patch to move left
    * @return
    */
-  public boolean canMoveLeft(int minX);
+  boolean canMoveLeft(int minX);
   
   /**
    * Says if it's possible for the patch to move right
    * @return
    */
-  public boolean canMoveRight(int maxX);
+  boolean canMoveRight(int maxX);
   
   
   /**
    * Return a set of the absolute positions of the patch cells
    * @return
    */
-  public Set<Coordinates> absoluteCoordinates();
+  Set<Coordinates> absoluteCoordinates();
   
   /**
    * Return true if patch overlap an other patch
    * @param patch
    * @return true if overlap, else false 
    */
-  public boolean overlap(Patch patch);
+  boolean overlap(Patch patch);
   
   /**
    * check if the absolute coordinates of the 
@@ -84,7 +87,7 @@ public sealed interface Patch permits Patch2D, RegularPatch, LeatherPatch {
    * @param height
    * @return false if its not fitting, else true
    */
-  public boolean fits(int width, int height);
+  boolean fits(int width, int height);
   
   /**
    * Check if any coordinates in a list
@@ -92,11 +95,12 @@ public sealed interface Patch permits Patch2D, RegularPatch, LeatherPatch {
    * @param coordinates
    * @return
    */
-  public boolean meets(Coordinates coordinates);
+  boolean meets(Coordinates coordinates);
    
   /**
    * Move the absolute origin of the patch to the given coordinates
    * @param coordinates
    */
-  public void absoluteMoveTo(Coordinates coordinates);
+  void absoluteMoveTo(Coordinates coordinates);
+
 }

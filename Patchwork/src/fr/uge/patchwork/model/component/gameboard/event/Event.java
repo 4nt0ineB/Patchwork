@@ -1,7 +1,4 @@
 package fr.uge.patchwork.model.component.gameboard.event;
-
-import fr.uge.patchwork.util.xml.XMLElement;
-
 /**
  * 
  * Implement an event on the game board
@@ -41,18 +38,4 @@ public record Event(EventType type, int position) {
         + (position > -1 ? "Position: " + position + ", " : ", " ) 
         + "}";
   }
-
-  /**
-   * Make a new Event from a XMLElement
-   * @param element XMLELement 
-   * @exception IllegalStateException If the XMLElement is empty
-   * @return
-   */
-  public static Event fromXML(XMLElement element) {
-    XMLElement.requireNotEmpty(element);
-    var type = EventType.valueOf(element.getByTagName("type").content());
-    var position = Integer.parseInt(element.getByTagName("position").content());
-    return new Event(type, position);
-  }
-  
 }

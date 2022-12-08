@@ -1,0 +1,152 @@
+2,2,0
+xox
+
+2,3,0
+xxx
+ o
+xxx
+
+2,1,0
+ x
+xo
+ xx
+ x
+
+2,2,0
+xx
+xo
+ x
+
+1,2,0
+xxx
+o
+xx
+
+1,3,0
+xo
+ x
+
+1,2,0
+ xx
+ o
+ x
+xx
+
+4,2,0
+xxx
+ oxx
+
+2,2,0
+xox
+ x
+
+3,1,0
+ x
+xo
+
+3,4,1
+x
+x
+ox
+x
+
+0,3,1
+  x
+xxox
+  x
+
+1,4,1
+  x
+xxoxx
+  x
+
+3,2,1
+ x
+xo
+x
+
+5,3,1
+ x
+xox
+xxx
+ x
+
+4,2,1
+x
+o
+xx
+
+1,5,1
+x  x
+xoxx
+
+7,1,1
+xxoxx
+
+10,3,2
+x
+x
+o
+xx
+
+7,2,2
+x
+xoxx
+x
+
+3,3,1
+xxox
+
+2,3,1
+ oxx
+xx
+
+5,5,2
+  x
+xox
+  x
+
+3,6,2
+xx
+ ox
+xx
+
+5,4,2
+ x
+xox
+ x
+
+10,5,3
+xx
+xo
+ x
+ x
+
+7,4,2
+x
+ox
+xx
+x
+
+6,5,2
+ox
+xx
+
+7,6,3
+xo
+ xx
+
+8,6,3
+  x
+xox
+xx
+
+10,4,3
+  x
+ ox
+xx
+
+4,6,2
+  x
+xox
+

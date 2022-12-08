@@ -1,10 +1,13 @@
 package fr.uge.patchwork.model.component.patch;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import fr.uge.patchwork.model.component.Coordinates;
-import fr.uge.patchwork.util.xml.XMLElement;
 import fr.uge.patchwork.view.cli.CommandLineInterface;
 import fr.uge.patchwork.view.cli.DrawableOnCLI;
 
@@ -72,21 +75,6 @@ public final class RegularPatch implements Patch, DrawableOnCLI {
     return Objects.hash(buttons, moves, price, patch);
   }
   
-  /**
-   * Make new patch from a XMLElement
-   * @param element
-   * @return
-   */
-  public static RegularPatch fromXML(XMLElement element) {
-    XMLElement.requireNotEmpty(element);
-    var price = Integer.parseInt(element.getByTagName("price").content());
-    var moves = Integer.parseInt(element.getByTagName("moves").content());
-    var buttons = Integer.parseInt(element.getByTagName("buttons").content());
-    var coordinatesList = element.getByTagName("coordinatesList")
-        .getAllByTagName("Coordinates").stream().map(Coordinates::fromXML).toList();
-    return new RegularPatch(price, moves, buttons, coordinatesList);
-  }
-
   @Override
   public void drawOnCLI(CommandLineInterface ui) {
     ui.builder().append("[")
@@ -100,6 +88,11 @@ public final class RegularPatch implements Patch, DrawableOnCLI {
   @Override
   public Form form() {
     return patch.form();
+  }
+  
+  @Override
+  public void flip() {
+    patch.flip();
   }
   
   @Override
@@ -139,17 +132,17 @@ public final class RegularPatch implements Patch, DrawableOnCLI {
 
   @Override
   public boolean canMoveDown(int maxY) {
-    return patch.canMoveUp(maxY);
+    return patch.canMoveDown(maxY);
   }
 
   @Override
   public boolean canMoveLeft(int minX) {
-    return patch.canMoveUp(minX);
+    return patch.canMoveLeft(minX);
   }
 
   @Override
   public boolean canMoveRight(int maxX) {
-    return patch.canMoveUp(maxX);
+    return patch.canMoveRight(maxX);
   }
 
   @Override
@@ -159,7 +152,7 @@ public final class RegularPatch implements Patch, DrawableOnCLI {
 
   @Override
   public boolean overlap(Patch patch) {
-    return patch.overlap(patch);
+    return this.patch.overlap(patch);
   }
 
   @Override
@@ -176,5 +169,39 @@ public final class RegularPatch implements Patch, DrawableOnCLI {
   public void absoluteMoveTo(Coordinates coordinates) {
     patch.absoluteMoveTo(coordinates);
   }
+   
+  
+  public static List<RegularPatch> fromFile(Path path) throws IOException{
+    var patches = new ArrayList<RegularPatch>();
+    try (var reader = Files.newBufferedReader(path)) {
+      String line;
+      while((line = reader.readLine()) != null) {
+        if(!line.isBlank()) {
+          var values = line.split(",");
+          var price = Integer.parseInt(values[0]);
+          var moves = Integer.parseInt(values[1]);
+          var buttons = Integer.parseInt(values[2]);
+          var endOfDeclaration = false;
+          var formAsTxt = "";
+          do {
+            line = reader.readLine();
+            if(line == null || line.isBlank()) {
+              endOfDeclaration = true;
+            }else {
+              formAsTxt += line + "\n";
+            }
+          }while(!endOfDeclaration);
+          patches.add(
+              new RegularPatch(price, 
+                  moves, 
+                  buttons,
+                  Form.fromText(formAsTxt)));
+        }
+      }
+    }
+    return patches;
+  }
+  
+  
   
 }

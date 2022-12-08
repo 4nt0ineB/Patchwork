@@ -22,7 +22,9 @@ public interface UserInterface {
    */
   void draw(Drawable drawable);
   
+  void drawMessage(String txt, Color color);
   
+  void drawMessage(String txt);
   
   /**
    * Make the user select a patch a given patch list

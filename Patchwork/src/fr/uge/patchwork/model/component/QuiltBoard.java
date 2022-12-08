@@ -6,11 +6,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import fr.uge.patchwork.model.component.patch.Coordinates;
 import fr.uge.patchwork.model.component.patch.Form;
 import fr.uge.patchwork.model.component.patch.Patch;
 import fr.uge.patchwork.model.component.patch.RegularPatch;
-import fr.uge.patchwork.util.xml.XMLElement;
-import fr.uge.patchwork.view.cli.Color;
+import fr.uge.patchwork.view.cli.CLIColor;
 import fr.uge.patchwork.view.cli.CommandLineInterface;
 import fr.uge.patchwork.view.cli.DrawableOnCLI;
 
@@ -79,6 +79,7 @@ public class QuiltBoard implements DrawableOnCLI {
     // Overlap ?
     for (var p : patches()) {
       if (patch.overlap(p)) {
+        
         return false;
       }
     }
@@ -153,12 +154,12 @@ public class QuiltBoard implements DrawableOnCLI {
       builder.append("|");
       for (var x = 0; x < width; x++) {
         if (occupied(new Coordinates(y, x))) {
-          builder.append(Color.ANSI_CYAN_BACKGROUND).append("x");
+          builder.append(CLIColor.ANSI_CYAN_BACKGROUND).append("x");
         } else {
           builder.append(" ");
         }
       }
-      builder.append(Color.ANSI_RESET);
+      builder.append(CLIColor.ANSI_RESET);
       builder.append("|\n");
     }
     // bottom
@@ -177,11 +178,4 @@ public class QuiltBoard implements DrawableOnCLI {
   public int buttons() {
     return buttons;
   }
-
-  public static QuiltBoard fromXML(XMLElement element) {
-    XMLElement.requireNotEmpty(element);
-    return new QuiltBoard(Integer.parseInt(element.getByTagName("width").content()),
-        Integer.parseInt(element.getByTagName("height").content()));
-  }
-
 }

@@ -8,14 +8,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import fr.uge.patchwork.model.component.Player;
 import fr.uge.patchwork.model.component.gameboard.event.Event;
 import fr.uge.patchwork.model.component.gameboard.event.EventType;
-import fr.uge.patchwork.model.component.patch.RegularPatch;
-import fr.uge.patchwork.util.xml.XMLElement;
-import fr.uge.patchwork.view.cli.Color;
+import fr.uge.patchwork.view.cli.CLIColor;
 import fr.uge.patchwork.view.cli.CommandLineInterface;
 import fr.uge.patchwork.view.cli.DrawableOnCLI;
 
@@ -183,17 +180,17 @@ public class TrackBoard implements DrawableOnCLI {
   
   private void drawScoreBoard(CommandLineInterface ui) {
     var builder = ui.builder();
-    builder.append(Color.ANSI_ORANGE)
+    builder.append(CLIColor.ANSI_ORANGE)
     .append("[ ---- Scores ---- ] \n")
-    .append(Color.ANSI_RESET);
+    .append(CLIColor.ANSI_RESET);
     var sortedPlayers = players.stream().sorted(Comparator.reverseOrder()).toList();
     sortedPlayers.forEach(
         p -> builder.append(p.name()).append(" : ")
         .append(p.score()).append("\n"));
-    builder.append(Color.ANSI_YELLOW)
+    builder.append(CLIColor.ANSI_YELLOW)
     .append(sortedPlayers.get(0).name())
     .append(" Wins !\n")
-    .append(Color.ANSI_RESET);
+    .append(CLIColor.ANSI_RESET);
   }
 
   /**
@@ -205,26 +202,5 @@ public class TrackBoard implements DrawableOnCLI {
     // In short, the game is finished when the position 
     // of the latest player is the last space
     return latestPlayer().position() == spaces;
-  }
-
-  /**
-   * Make new game board from a XMLElement
-   * @param element the XLM DOM from which to build the game board
-   * @return a new game board object
-   */
-  public static TrackBoard fromXML(XMLElement element) {
-    XMLElement.requireNotEmpty(element);
-    var spaces = Integer.parseInt(element.getByTagName("spaces").content());
-    var patchByTurn = Integer.parseInt(element.getByTagName("patchByTurn").content());
-    var buttons = Integer.parseInt(element.getByTagName("buttons").content());
-    var players = element.getByTagName("playerList")
-        .getAllByTagName("Player").stream().map(Player::fromXML).collect(Collectors.toSet());
-    var patches = element.getByTagName("patchList").getAllByTagName("Patch").stream().map(RegularPatch::fromXML).toList();
-    var events = element.getByTagName("eventList").getAllByTagName("Event").stream().map(Event::fromXML).toList();
-    return new TrackBoard(spaces, patchByTurn, buttons, patches, players, events);
-  }
-
-
-
-  
+  }  
 }

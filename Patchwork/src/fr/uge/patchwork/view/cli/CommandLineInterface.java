@@ -8,9 +8,11 @@ import java.util.Scanner;
 import java.util.Set;
 
 import fr.uge.patchwork.controller.KeybindedChoice;
-import fr.uge.patchwork.model.component.Coordinates;
 import fr.uge.patchwork.model.component.QuiltBoard;
+import fr.uge.patchwork.model.component.patch.Coordinates;
+import fr.uge.patchwork.model.component.patch.Patch;
 import fr.uge.patchwork.model.component.patch.RegularPatch;
+import fr.uge.patchwork.view.Color;
 import fr.uge.patchwork.view.Drawable;
 import fr.uge.patchwork.view.UserInterface;
 
@@ -94,9 +96,9 @@ public final class CommandLineInterface implements UserInterface {
     // Menu
     var localBuilder = new StringBuilder();
     localBuilder
-    .append(Color.ANSI_ORANGE)
+    .append(CLIColor.ANSI_ORANGE)
     .append("\nChoose : ")
-    .append(Color.ANSI_RESET);
+    .append(CLIColor.ANSI_RESET);
     System.out.print(localBuilder);
     if(scanner.hasNextInt()) {
       var input = scanner.nextInt();
@@ -110,8 +112,9 @@ public final class CommandLineInterface implements UserInterface {
     System.out.println("Wrong choice\n");
     return Optional.empty();
   }
+  
   @Override
-  public void drawDummyQuilt(QuiltBoard quilt, RegularPatch patch) {
+  public void drawDummyQuilt(QuiltBoard quilt, Patch patch) {
     Objects.requireNonNull(quilt, "the quilt can't be null");
     Objects.requireNonNull(patch, "The patch can't be null");
     // top
@@ -127,22 +130,22 @@ public final class CommandLineInterface implements UserInterface {
         var isPatchHere = patch.meets(new Coordinates(y, x));
         if(quilt.occupied(new Coordinates(y, x))) {
           if(isPatchHere){
-            builder.append(Color.ANSI_RED_BACKGROUND)
+            builder.append(CLIColor.ANSI_RED_BACKGROUND)
             .append("░")
-            .append(Color.ANSI_RESET);
+            .append(CLIColor.ANSI_RESET);
           }else {
-            builder.append(Color.ANSI_CYAN_BACKGROUND)
+            builder.append(CLIColor.ANSI_CYAN_BACKGROUND)
             .append("▒")
-            .append(Color.ANSI_RESET);
+            .append(CLIColor.ANSI_RESET);
           }
         }else {
           if(isPatchHere) {
-            builder.append(Color.ANSI_YELLOW_BACKGROUND)
+            builder.append(CLIColor.ANSI_YELLOW_BACKGROUND)
             .append("▓");
           }else {
             builder.append(" ");
           }
-          builder.append(Color.ANSI_RESET);
+          builder.append(CLIColor.ANSI_RESET);
         }
       }
       builder.append("|\n");
@@ -163,9 +166,9 @@ public final class CommandLineInterface implements UserInterface {
     }
     var localBuilder = new StringBuilder();
     localBuilder
-    .append(Color.ANSI_ORANGE)
+    .append(CLIColor.ANSI_ORANGE)
     .append("\n[Choices]\n")
-    .append(Color.ANSI_RESET);
+    .append(CLIColor.ANSI_RESET);
     choices.forEach(option -> 
       localBuilder.append(option).append("\n"));
     localBuilder.append("\nChoice ? : ");
@@ -195,17 +198,30 @@ public final class CommandLineInterface implements UserInterface {
 
   @Override
   public void drawSplashScreen() {
-    var splash = Color.ANSI_BOLD + "  _____      _       _                       _    \n"
+    var splash = CLIColor.ANSI_BOLD + "  _____      _       _                       _    \n"
         + " |  __ \\    | |     | |                     | |   \n"
         + " | |__) |_ _| |_ ___| |____      _____  _ __| | __\n"
         + " |  ___/ _` | __/ __| '_ \\ \\ /\\ / / _ \\| '__| |/ /\n"
         + " | |  | (_| | || (__| | | \\ V  V / (_) | |  |   < \n"
         + " |_|   \\__,_|\\__\\___|_| |_|\\_/\\_/ \\___/|_|  |_|\\_\\\n"
-        + Color.ANSI_GREEN + "└─────────────────────────────────────────────────┘"
-        + Color.rgb(2, 77, 24) +  "v2.0\n" + Color.ANSI_RESET
+        + CLIColor.ANSI_GREEN + "└─────────────────────────────────────────────────┘"
+        + CLIColor.rgb(2, 77, 24) +  "v2.0\n" + CLIColor.ANSI_RESET
         + "\n"
-        + Color.ANSI_RESET;
+        + CLIColor.ANSI_RESET;
     builder.append(splash);
+  }
+
+  @Override
+  public void drawMessage(String txt, Color color) {
+    Objects.requireNonNull(txt);
+    builder.append(CLIColor.fromColor(color));
+    drawMessage(txt);
+  }
+  
+  @Override
+  public void drawMessage(String txt) {
+    Objects.requireNonNull(txt);
+    builder.append(txt).append(CLIColor.ANSI_RESET);
   }
   
 }

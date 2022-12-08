@@ -1,9 +1,13 @@
 package fr.uge.patchwork.view.cli;
 
+import java.util.Objects;
+
+import fr.uge.patchwork.view.Color;
+
 /**
  * Provides ANSI colors
  */
-public enum Color {
+public enum CLIColor {
   ANSI_ITALIC("\u001B[3m"), 
   ANSI_BOLD("\u001B[1m"), 
   ANSI_RESET("\u001B[0m"),
@@ -30,7 +34,7 @@ public enum Color {
   
   private final String str;
   
-  Color(String str) {
+  CLIColor(String str) {
       this.str = str;
   }
   
@@ -50,4 +54,10 @@ public enum Color {
   public static String rgb(int r, int g, int b) {
     return "\033[38;2;"+ (r & 0xFF) +";"+ (g & 0xFF) +";"+ (b & 0xFF) +"m";
   }
+  
+  public static String fromColor(Color color) {
+    Objects.requireNonNull(color);
+    return rgb(color.r(),color.g(), color.b());
+  }
+  
 }
