@@ -121,7 +121,7 @@ public class PatchworkController {
       var event = triggeredEvents.peek();
       switch(event.type()) {
         case BUTTON_INCOME -> {
-          ui.drawMessage("You receive some buttons!", new Color(46, 112, 219));
+          ui.drawMessage("You receive some buttons!", new Color(46, 112, 219)); // don't work do other way
           int amount = player.quilt().buttons();
           if(amount != 0) {
             player.addButtons(amount);
