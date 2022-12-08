@@ -7,17 +7,17 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
-import fr.uge.patchwork.model.component.Patch;
+import fr.uge.patchwork.model.component.patch.RegularPatch;
 
 class PatchManager {
 
   private int neutralToken;
   private int nextPatchesRange;
-  private final ArrayList<Patch> patches;
-  private final ArrayList<Patch> availablePatches = new ArrayList<>();
-  private Patch selected;
+  private final ArrayList<RegularPatch> patches;
+  private final ArrayList<RegularPatch> availablePatches = new ArrayList<>();
+  private RegularPatch selected;
 
-  public PatchManager(int nextPatchesRange, List<Patch> patches) {
+  public PatchManager(int nextPatchesRange, List<RegularPatch> patches) {
     Objects.requireNonNull(patches, "The list of patch can't be null");
     if (nextPatchesRange < 1) {
       throw new IllegalArgumentException("The number of possible next patches available can't be less than 1");
@@ -33,7 +33,7 @@ class PatchManager {
    * Get the selected Patch
    * @return an optional of the selected patch, otherwise an empty Optional
    */
-  public Optional<Patch> selected() {
+  public Optional<RegularPatch> selected() {
     return Optional.ofNullable(selected);
   }
 
@@ -42,7 +42,7 @@ class PatchManager {
    * @throws AssertionError - if no patch is selected
    * @return the extracted Patch
    */
-  public Patch extractSelected() {
+  public RegularPatch extractSelected() {
     var patch = selected();
     if(patch.isEmpty()) {
       throw new AssertionError("Can't extract a patch if not patch is selected");
@@ -58,7 +58,7 @@ class PatchManager {
    * Return a list of the availablePatches
    * @return
    */
-  public List<Patch> availablePatches() {
+  public List<RegularPatch> availablePatches() {
     return List.copyOf(availablePatches);
   }
   
@@ -78,7 +78,7 @@ class PatchManager {
    * @throws AssertionError - iT the given patch does not exists in the available patches
    * @param patch
    */
-  public void select(Patch patch) {
+  public void select(RegularPatch patch) {
     Objects.requireNonNull(patch, "Can't select with null patch");
     if(!availablePatches.contains(patch)) {
       throw new IllegalArgumentException("This patch is not present in those available");
@@ -101,7 +101,7 @@ class PatchManager {
    * @param index
    * @return the patch or null
    */
-  private Patch loopAndGetPatch(int index) {
+  private RegularPatch loopAndGetPatch(int index) {
     return patches.get(index % patches.size());
   }
 
@@ -129,7 +129,7 @@ class PatchManager {
    * @param patches
    * @return index
    */
-  public static int minPatch(List<Patch> patches) {
+  public static int minPatch(List<RegularPatch> patches) {
     Objects.requireNonNull(patches, "Can't find smallest in null obj");
     if(patches.isEmpty()) {
       throw new IllegalArgumentException("Empty list of patches");

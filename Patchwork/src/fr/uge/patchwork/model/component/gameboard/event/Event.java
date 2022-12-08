@@ -3,8 +3,8 @@ package fr.uge.patchwork.model.component.gameboard.event;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-import fr.uge.patchwork.model.component.Patch;
 import fr.uge.patchwork.model.component.gameboard.GameBoard;
+import fr.uge.patchwork.model.component.patch.RegularPatch;
 import fr.uge.patchwork.util.xml.XMLElement;
 import fr.uge.patchwork.view.cli.Color;
 import fr.uge.patchwork.view.cli.CommandLineInterface;
@@ -122,7 +122,7 @@ public class Event implements DrawableOnCLI {
     var oneUse = Boolean.parseBoolean(element.getByTagName("oneUse").content());
     var effect = switch(type) {
       case BUTTON_INCOME ->  Effects.buttonIncome();
-      case PATCH_INCOME -> Effects.patchIncome(Patch.fromXML(element.getByTagName("Patch")));
+      case PATCH_INCOME -> Effects.patchIncome(RegularPatch.fromXML(element.getByTagName("Patch")));
       case SPECIAL_TILE -> Effects.specialTile();
        default -> {
           throw new IllegalArgumentException("This type does not exists. ("+ type + ")");

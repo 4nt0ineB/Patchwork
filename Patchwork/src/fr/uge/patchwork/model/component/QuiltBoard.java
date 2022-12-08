@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import fr.uge.patchwork.model.component.patch.RegularPatch;
 import fr.uge.patchwork.util.xml.XMLElement;
 import fr.uge.patchwork.view.cli.Color;
 import fr.uge.patchwork.view.cli.CommandLineInterface;
@@ -14,7 +15,7 @@ import fr.uge.patchwork.view.cli.DrawableOnCLI;
 public class QuiltBoard implements DrawableOnCLI {
   private final int width;
   private final int height;
-  private ArrayList<Patch> patches = new ArrayList<>();
+  private ArrayList<RegularPatch> patches = new ArrayList<>();
   
   public QuiltBoard(int width, int height) {
     if (width < 1 || height < 1) {
@@ -24,7 +25,7 @@ public class QuiltBoard implements DrawableOnCLI {
     this.height = height;
   }
   
-  public List<Patch> patches() {
+  public List<RegularPatch> patches() {
     return patches;
   }
 
@@ -43,7 +44,7 @@ public class QuiltBoard implements DrawableOnCLI {
    * @return false if the given patch exceeds the borders or overlap a patch
    *         already on the Quilt, else true
    */
-  public boolean add(Patch patch) {
+  public boolean add(RegularPatch patch) {
     Objects.requireNonNull(patch, "can't add null obj as a patch");
     if(canAdd(patch)) {
       patches.add(patch);
@@ -58,7 +59,7 @@ public class QuiltBoard implements DrawableOnCLI {
    * @param patch
    * @return
    */
-  public boolean canAdd(Patch patch) {
+  public boolean canAdd(RegularPatch patch) {
     // fits ?
     if (!patch.fits(width - 1, height - 1)) {
       return false;
@@ -158,7 +159,7 @@ public class QuiltBoard implements DrawableOnCLI {
    * @return the sum
    */
   public int buttons() {
-    return patches.stream().mapToInt(Patch::buttons).sum();
+    return patches.stream().mapToInt(RegularPatch::buttons).sum();
   }
 
   public static QuiltBoard fromXML(XMLElement element) {

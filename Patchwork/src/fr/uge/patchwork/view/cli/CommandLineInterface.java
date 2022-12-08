@@ -9,8 +9,8 @@ import java.util.Set;
 
 import fr.uge.patchwork.controller.KeybindedChoice;
 import fr.uge.patchwork.model.component.Coordinates;
-import fr.uge.patchwork.model.component.Patch;
 import fr.uge.patchwork.model.component.QuiltBoard;
+import fr.uge.patchwork.model.component.patch.RegularPatch;
 import fr.uge.patchwork.view.Drawable;
 import fr.uge.patchwork.view.UserInterface;
 
@@ -75,7 +75,7 @@ public final class CommandLineInterface implements UserInterface {
   }
 
   @Override
-  public Optional<Patch> selectPatch(List<Patch> patches) {
+  public Optional<RegularPatch> selectPatch(List<RegularPatch> patches) {
     Objects.requireNonNull(patches);
     if(patches.isEmpty()) {
       throw new IllegalArgumentException("Their should be at least 1 patch in the list");
@@ -111,7 +111,7 @@ public final class CommandLineInterface implements UserInterface {
     return Optional.empty();
   }
   @Override
-  public void drawDummyQuilt(QuiltBoard quilt, Patch patch) {
+  public void drawDummyQuilt(QuiltBoard quilt, RegularPatch patch) {
     Objects.requireNonNull(quilt, "the quilt can't be null");
     Objects.requireNonNull(patch, "The patch can't be null");
     // top

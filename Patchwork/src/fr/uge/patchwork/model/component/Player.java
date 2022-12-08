@@ -5,6 +5,7 @@ import java.util.Objects;
 import fr.uge.patchwork.model.component.button.ButtonBank;
 import fr.uge.patchwork.model.component.button.ButtonOwner;
 import fr.uge.patchwork.model.component.button.ButtonValued;
+import fr.uge.patchwork.model.component.patch.RegularPatch;
 import fr.uge.patchwork.util.xml.XMLElement;
 import fr.uge.patchwork.view.cli.CommandLineInterface;
 import fr.uge.patchwork.view.cli.DrawableOnCLI;
@@ -51,7 +52,7 @@ public class Player implements ButtonOwner, DrawableOnCLI, Comparable<Player> {
    * @param patch
    * @return true or false
    */
-  public boolean placePatch(Patch patch) {
+  public boolean placePatch(RegularPatch patch) {
     Objects.requireNonNull(patch, "The patch can't be null");
     return quilt.add(patch);
   }

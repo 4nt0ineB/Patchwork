@@ -5,8 +5,8 @@ import java.util.Optional;
 import java.util.Set;
 
 import fr.uge.patchwork.controller.KeybindedChoice;
-import fr.uge.patchwork.model.component.Patch;
 import fr.uge.patchwork.model.component.QuiltBoard;
+import fr.uge.patchwork.model.component.patch.RegularPatch;
 
 public interface UserInterface {
   
@@ -28,7 +28,7 @@ public interface UserInterface {
    * @param patches
    * @return the selected patch or null
    */
-  Optional<Patch> selectPatch(List<Patch> patches);
+  Optional<RegularPatch> selectPatch(List<RegularPatch> patches);
   
   /**
    * Make the user select a choice among a list of choices
@@ -43,7 +43,7 @@ public interface UserInterface {
    * @param quilt
    * @param patch
    */
-  void drawDummyQuilt(QuiltBoard quilt, Patch patch);
+  void drawDummyQuilt(QuiltBoard quilt, RegularPatch patch);
   
   /**
    * 

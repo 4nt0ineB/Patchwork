@@ -11,13 +11,13 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import fr.uge.patchwork.model.component.Patch;
 import fr.uge.patchwork.model.component.Player;
 import fr.uge.patchwork.model.component.button.ButtonBank;
 import fr.uge.patchwork.model.component.button.ButtonOwner;
 import fr.uge.patchwork.model.component.button.ButtonValued;
 import fr.uge.patchwork.model.component.gameboard.event.EffectType;
 import fr.uge.patchwork.model.component.gameboard.event.Event;
+import fr.uge.patchwork.model.component.patch.RegularPatch;
 import fr.uge.patchwork.util.xml.XMLElement;
 import fr.uge.patchwork.view.cli.Color;
 import fr.uge.patchwork.view.cli.CommandLineInterface;
@@ -45,7 +45,7 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
   //All events in game
   private final Queue<Event> events = new LinkedList<>();
   // Patches stack gathering all patches that must be played by the current player during the turn
-  private final Queue<Patch> patchesToPlay = new LinkedList<>();
+  private final Queue<RegularPatch> patchesToPlay = new LinkedList<>();
   // Event queue to process at the end of the turn
   private final Queue<Event> eventQueue = new LinkedList<>();
   //Current player is always at the top of the stack
@@ -62,7 +62,7 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
    * @param the         list of events for the board
    */
   public GameBoard(int spaces, int patchByTurn, int buttons, 
-      List<Patch> patches, Set<Player> players, List<Event> events) {
+      List<RegularPatch> patches, Set<Player> players, List<Event> events) {
     Objects.requireNonNull(patches, "List of patches can't be null");
     Objects.requireNonNull(players, "List of players can't be null");
     if (patches.size() < 1) {
@@ -91,7 +91,7 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
    * 
    * @return List of patches
    */ 
-  public List<Patch> availablePatches() {
+  public List<RegularPatch> availablePatches() {
     return patchManager.availablePatches();
   }
 
@@ -110,7 +110,7 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
    * does not exists in the available patches
    * @param patch the patch to select
    */
-  public void selectPatch(Patch patch) {
+  public void selectPatch(RegularPatch patch) {
     patchManager.select(patch);
     // also, add the patch to the patches waiting queue
     addPatchToPlay(patch);
@@ -122,7 +122,7 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
    * 
    * @return an optional patch of the selected patch
    */
-  public Optional<Patch> selectedPatch() {
+  public Optional<RegularPatch> selectedPatch() {
     return patchManager.selected();
   }
 
@@ -148,7 +148,7 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
    * 
    * @return an optional patch
    */
-  public Optional<Patch> nextPatchToPlay() {
+  public Optional<RegularPatch> nextPatchToPlay() {
     if(patchesToPlay.isEmpty()) {
       return Optional.empty();
     }
@@ -184,7 +184,7 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
     return true;
   }
 
-  private boolean playerPlayPatch(Patch patch) {
+  private boolean playerPlayPatch(RegularPatch patch) {
     if (!currentPlayer().placePatch(patch)) {
       return false;
     }
@@ -397,7 +397,7 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
    * The added patch <b>must</b> be played. 
    * @param patch the patch to add to the patch waiting queue
    */
-  public void addPatchToPlay(Patch patch) {
+  public void addPatchToPlay(RegularPatch patch) {
     Objects.requireNonNull(patch, "The patch can't be null");
     patchesToPlay.add(patch);
   }
@@ -425,7 +425,7 @@ public class GameBoard implements ButtonOwner, DrawableOnCLI {
     var buttons = Integer.parseInt(element.getByTagName("buttons").content());
     var players = element.getByTagName("playerList")
         .getAllByTagName("Player").stream().map(Player::fromXML).collect(Collectors.toSet());
-    var patches = element.getByTagName("patchList").getAllByTagName("Patch").stream().map(Patch::fromXML).toList();
+    var patches = element.getByTagName("patchList").getAllByTagName("Patch").stream().map(RegularPatch::fromXML).toList();
     var events = element.getByTagName("eventList").getAllByTagName("Event").stream().map(Event::fromXML).toList();
     return new GameBoard(spaces, patchByTurn, buttons, patches, players, events);
   }

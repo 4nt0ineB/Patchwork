@@ -3,8 +3,8 @@ package fr.uge.patchwork.model.component.gameboard.event;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-import fr.uge.patchwork.model.component.Patch;
 import fr.uge.patchwork.model.component.gameboard.GameBoard;
+import fr.uge.patchwork.model.component.patch.RegularPatch;
 
 /**
  * 
@@ -34,7 +34,7 @@ public final class Effects {
    * @param patch The patch to drop
    * @return
    */
-  public static Predicate<GameBoard> patchIncome(Patch patch) {
+  public static Predicate<GameBoard> patchIncome(RegularPatch patch) {
     Objects.requireNonNull(patch, "Patch can't be null");
     return (GameBoard board) -> {
       board.addPatchToPlay(patch);
