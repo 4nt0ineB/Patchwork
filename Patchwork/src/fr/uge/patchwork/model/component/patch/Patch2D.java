@@ -152,7 +152,7 @@ public final class Patch2D implements Patch, DrawableOnCLI {
    * @return true if overlap, else false
    */
   @Override
-  public boolean overlap(RegularPatch patch) {
+  public boolean overlap(Patch patch) {
     Objects.requireNonNull(patch, "Can't test overlapping on null");
     for (var cell : absoluteCoordinates()) {
       if (meets(cell)) {

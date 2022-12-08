@@ -35,7 +35,7 @@ public record Form(Set<Coordinates> coordinates) {
         .collect(toSet()));
   }
   
-  private int countCoordinates() {
+  public int countCoordinates() {
     return coordinates.size();
   }
   

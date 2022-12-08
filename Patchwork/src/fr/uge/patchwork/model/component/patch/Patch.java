@@ -71,7 +71,7 @@ public sealed interface Patch permits Patch2D, RegularPatch, LeatherPatch {
    * @param patch
    * @return true if overlap, else false 
    */
-  public boolean overlap(RegularPatch patch);
+  public boolean overlap(Patch patch);
   
   /**
    * check if the absolute coordinates of the 

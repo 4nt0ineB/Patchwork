@@ -79,7 +79,7 @@ public final class LeatherPatch implements Patch, DrawableOnCLI {
   }
 
   @Override
-  public boolean overlap(RegularPatch patch) {
+  public boolean overlap(Patch patch) {
     return patch.overlap(patch);
   }
 
@@ -102,6 +102,5 @@ public final class LeatherPatch implements Patch, DrawableOnCLI {
   public void drawOnCLI(CommandLineInterface ui) {
     patch.drawOnCLI(ui);
   }
-  
   
 }

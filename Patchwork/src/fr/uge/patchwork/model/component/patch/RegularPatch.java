@@ -158,7 +158,7 @@ public final class RegularPatch implements Patch, DrawableOnCLI {
   }
 
   @Override
-  public boolean overlap(RegularPatch patch) {
+  public boolean overlap(Patch patch) {
     return patch.overlap(patch);
   }
 
