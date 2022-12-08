@@ -56,11 +56,13 @@ public class QuiltBoard implements DrawableOnCLI {
    * @return false if the given patch exceeds the borders or overlap a patch
    *         already on the Quilt, else true
    */
-  public void add(RegularPatch patch) {
+  public boolean add(RegularPatch patch) {
     Objects.requireNonNull(patch, "can't add null obj as a patch");
     if(add((Patch) patch)) {
       buttons += patch.buttons();
+      return true;
     }
+    return false;
   }
 
   /**

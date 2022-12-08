@@ -1,8 +1,6 @@
 package fr.uge.patchwork.model.component.gameboard.event;
 
-public enum EffectType {
+public enum EventType {
   BUTTON_INCOME,
-  PATCH_INCOME,
-  SPECIAL_TILE,
-  INFO
+  PATCH_INCOME
 }

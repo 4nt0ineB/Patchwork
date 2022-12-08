@@ -9,37 +9,13 @@ import java.util.Set;
 import fr.uge.patchwork.model.Game;
 import fr.uge.patchwork.model.GameMode;
 import fr.uge.patchwork.model.component.Coordinates;
-import fr.uge.patchwork.model.component.gameboard.GameBoard;
+import fr.uge.patchwork.model.component.gameboard.TrackBoard;
 import fr.uge.patchwork.view.UserInterface;
 import fr.uge.patchwork.view.cli.CommandLineInterface;
 
 public class PatchworkController {
   
-  /**
-   * Menu Loop that draw the menu and wait for the user to choose
-   * his game mode 
-   *
-   * @param ui the user interface
-   * @return Choosen game mode
-   */
-  public static GameMode menu(UserInterface ui) {
-  	var choices = new LinkedHashSet<KeybindedChoice>();
-  	choices.add(new KeybindedChoice('b', "The basic game"));
-  	choices.add(new KeybindedChoice('f', "The full game"));
-    GameMode mode = null;
-    do {
-      ui.clear();
-      ui.drawMessages();
-      ui.display();
-      mode = switch(ui.getPlayerChoice(choices)) {
-       case 'b' -> GameMode.PATCHWORK_BASIC;
-       case 'f' -> GameMode.PATCHWORK_FULL;
-       case -1 -> null;
-       default -> throw new AssertionError("there shoulnd't be other possiblities");
-     };
-    }while(mode == null);
-    return mode;
-  }
+
     
   /**
    * MainLoop that draw the game and make users play the game
@@ -49,7 +25,7 @@ public class PatchworkController {
    * @return true if ends normally, 
    * otherwise false, if the player asked to quit during the game
    */
-  public static boolean run(UserInterface ui, GameBoard board) {
+  public static boolean run(UserInterface ui, TrackBoard board) {
     Objects.requireNonNull(ui, "The interface can't be null");
     Objects.requireNonNull(ui, "The game board can't be null");
     var action = PlayerAction.DEFAULT;
@@ -80,7 +56,7 @@ public class PatchworkController {
    * @param board the game board
    * @return Action
    */
-  private static PlayerAction doActionForTurn(UserInterface ui, GameBoard board) {
+  private static PlayerAction doActionForTurn(UserInterface ui, TrackBoard board) {
     var action = PlayerAction.DEFAULT;
     var choices = new HashSet<KeybindedChoice>();
     if(board.playerCanAdvance()) {
@@ -123,7 +99,7 @@ public class PatchworkController {
    * @param board
    * @return Action
    */
-  private static PlayerAction manipulatePatch(UserInterface ui, GameBoard board) {
+  private static PlayerAction manipulatePatch(UserInterface ui, TrackBoard board) {
     var choices = new HashSet<KeybindedChoice>();
     var basicChoices = Set.of(
         new KeybindedChoice('b', "back"), 
@@ -174,33 +150,7 @@ public class PatchworkController {
     return action;
   }
   
-  /**
-   * End game loop
-   * @param ui
-   * @param gameBoard
-   * @return true if want a new game, otherwise false
-   */
-  public static boolean endGame(UserInterface ui, GameBoard gameBoard) {
-    Objects.requireNonNull(ui, "The interface can't be null");
-    Objects.requireNonNull(ui, "The game board can't be null");
-    var choices = Set.of(
-        new KeybindedChoice('q', "Quit"), 
-        new KeybindedChoice('n', "New game"));
-    var choice = -1;
-    ui.clear();
-    ui.draw(gameBoard);
-    ui.drawMessages();
-    ui.display(); 
-    do {
-      switch (ui.getPlayerChoice(choices)) {
-        case 'q' -> { return false; }
-        case 'n' -> { return true; } 
-        case -1 -> {}
-        default -> { throw new AssertionError("There shouldn't be other choices"); }
-      };
-    }while(choice == -1);
-    return false;
-  }
+  
   
 
   public static void main(String[] args) {

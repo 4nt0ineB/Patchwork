@@ -4,14 +4,17 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Objects;
 
-import fr.uge.patchwork.model.component.gameboard.GameBoard;
+import fr.uge.patchwork.model.component.gameboard.PatchManager;
+import fr.uge.patchwork.model.component.gameboard.TrackBoard;
 import fr.uge.patchwork.util.xml.XMLParser;
 
-public record Game(GameMode gameMode, GameBoard gameBoard) {
+public record Game(GameMode gameMode, TrackBoard trackBoard, 
+    PatchManager patchManager) {
   
   public Game {
     Objects.requireNonNull(gameMode, "The game mode can't be null");
-    Objects.requireNonNull(gameBoard, "The game board can't be null");
+    Objects.requireNonNull(trackBoard, "The track board can't be null");
+    Objects.requireNonNull(patchManager, "The patche manager can't be null");
   }
   
   // public void save() ?
@@ -26,8 +29,8 @@ public record Game(GameMode gameMode, GameBoard gameBoard) {
     };
     var xmlParser = new XMLParser();
     var xmlElement = xmlParser.parse(path);
-    var board = GameBoard.fromXML(xmlElement);
-    return new Game(gameMode, board);
+    var board = TrackBoard.fromXML(xmlElement);
+    return new Game(gameMode, board, null);
   }
   
 }

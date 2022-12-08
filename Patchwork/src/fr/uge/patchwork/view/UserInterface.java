@@ -6,6 +6,7 @@ import java.util.Set;
 
 import fr.uge.patchwork.controller.KeybindedChoice;
 import fr.uge.patchwork.model.component.QuiltBoard;
+import fr.uge.patchwork.model.component.patch.Patch;
 import fr.uge.patchwork.model.component.patch.RegularPatch;
 
 public interface UserInterface {
@@ -43,7 +44,7 @@ public interface UserInterface {
    * @param quilt
    * @param patch
    */
-  void drawDummyQuilt(QuiltBoard quilt, RegularPatch patch);
+  void drawDummyQuilt(QuiltBoard quilt, Patch patch);
   
   /**
    * 
