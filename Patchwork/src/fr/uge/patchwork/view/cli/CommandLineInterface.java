@@ -65,12 +65,48 @@ public final class CommandLineInterface implements UserInterface {
   }
   
   @Override
+  public void draw(KeybindedChoice choice) {
+    builder()
+    .append("[").append(choice.key()).append("] ")
+    .append(choice.description());
+  }
+  
+  @Override
   public void draw(Player player) {
     Objects.requireNonNull(player, "The player can't be null");
     builder()
     .append(String.format("%5d|", player.position()))
     .append(" " + player.name() + " - buttons [" + player.buttons() + "]")
     .append(player.specialTile() ? " (SpecialTile) " : "");
+  }
+  
+  @Override
+  public void draw(QuiltBoard quilt) {
+    // top
+    builder.append("┌");
+    for (var i = 0; i < quilt.width(); i++) {
+      builder.append("─");
+    }
+    builder.append("┐\n");
+    // body
+    for (var y = 0; y < quilt.height(); y++) {
+      builder.append("|");
+      for (var x = 0; x < quilt.width(); x++) {
+        if (quilt.occupied(new Coordinates(y, x))) {
+          builder.append(CLIColor.ANSI_CYAN_BACKGROUND).append("x");
+        } else {
+          builder.append(" ");
+        }
+      }
+      builder.append(CLIColor.ANSI_RESET);
+      builder.append("|\n");
+    }
+    // bottom
+    builder.append("└");
+    for (var i = 0; i < quilt.width(); i++) {
+      builder.append("─");
+    }
+    builder.append("┘");
   }
   
   @Override

@@ -8,9 +8,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import fr.uge.patchwork.view.cli.CommandLineInterface;
-import fr.uge.patchwork.view.cli.DrawableOnCLI;
-
 /**
  * 
  * Provides an implementation of a patch

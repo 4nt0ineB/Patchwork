@@ -22,15 +22,18 @@ public interface UserInterface {
   
   void draw(Player player);
   
+  void draw(QuiltBoard quilt);
+  
+  void draw(KeybindedChoice choice);
+  
   void draw(TrackBoard trackboard);
+  void drawScoreBoard(TrackBoard trackboard);
   
   void draw(PatchManager patchmanager);
   
   void draw(Patch2D patch);
   
   void draw(RegularPatch patch);
-  
-  void drawScoreBoard(TrackBoard trackboard);
   
   void drawMessage(String txt, Color color);
   

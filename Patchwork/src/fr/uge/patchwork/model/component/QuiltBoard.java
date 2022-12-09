@@ -10,11 +10,8 @@ import fr.uge.patchwork.model.component.patch.Coordinates;
 import fr.uge.patchwork.model.component.patch.Form;
 import fr.uge.patchwork.model.component.patch.Patch;
 import fr.uge.patchwork.model.component.patch.RegularPatch;
-import fr.uge.patchwork.view.cli.CLIColor;
-import fr.uge.patchwork.view.cli.CommandLineInterface;
-import fr.uge.patchwork.view.cli.DrawableOnCLI;
 
-public class QuiltBoard implements DrawableOnCLI {
+public class QuiltBoard {
   private final int width;
   private final int height;
   private ArrayList<Patch> patches = new ArrayList<>();
@@ -138,37 +135,6 @@ public class QuiltBoard implements DrawableOnCLI {
         .map(Patch::form)
         .mapToInt(Form::countCoordinates)
         .sum();
-  }
-
-  @Override
-  public void drawOnCLI(CommandLineInterface ui) {
-    var builder = ui.builder();
-    // top
-    builder.append("┌");
-    for (var i = 0; i < width; i++) {
-      builder.append("─");
-    }
-    builder.append("┐\n");
-    // body
-    for (var y = 0; y < height; y++) {
-      builder.append("|");
-      for (var x = 0; x < width; x++) {
-        if (occupied(new Coordinates(y, x))) {
-          builder.append(CLIColor.ANSI_CYAN_BACKGROUND).append("x");
-        } else {
-          builder.append(" ");
-        }
-      }
-      builder.append(CLIColor.ANSI_RESET);
-      builder.append("|\n");
-    }
-    // bottom
-    builder.append("└");
-    for (var i = 0; i < width; i++) {
-      builder.append("─");
-    }
-    builder.append("┘");
-    System.out.println(builder);
   }
   
   /**
