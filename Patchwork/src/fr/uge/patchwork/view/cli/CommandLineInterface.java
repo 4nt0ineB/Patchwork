@@ -1,5 +1,7 @@
 package fr.uge.patchwork.view.cli;
 
+import static java.util.Comparator.reverseOrder;
+
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
@@ -8,12 +10,16 @@ import java.util.Scanner;
 import java.util.Set;
 
 import fr.uge.patchwork.controller.KeybindedChoice;
+import fr.uge.patchwork.model.component.Player;
 import fr.uge.patchwork.model.component.QuiltBoard;
+import fr.uge.patchwork.model.component.gameboard.PatchManager;
+import fr.uge.patchwork.model.component.gameboard.TrackBoard;
+import fr.uge.patchwork.model.component.gameboard.event.EventType;
 import fr.uge.patchwork.model.component.patch.Coordinates;
 import fr.uge.patchwork.model.component.patch.Patch;
+import fr.uge.patchwork.model.component.patch.Patch2D;
 import fr.uge.patchwork.model.component.patch.RegularPatch;
 import fr.uge.patchwork.view.Color;
-import fr.uge.patchwork.view.Drawable;
 import fr.uge.patchwork.view.UserInterface;
 
 /**
@@ -59,9 +65,65 @@ public final class CommandLineInterface implements UserInterface {
   }
   
   @Override
-  public void draw(Drawable drawable) {
-    Objects.requireNonNull("The drawable object can't be null");
-    ((DrawableOnCLI) drawable).drawOnCLI(this);
+  public void draw(Player player) {
+    Objects.requireNonNull(player, "The player can't be null");
+    builder()
+    .append(String.format("%5d|", player.position()))
+    .append(" " + player.name() + " - buttons [" + player.buttons() + "]")
+    .append(player.specialTile() ? " (SpecialTile) " : "");
+  }
+  
+  @Override
+  public void draw(TrackBoard trackboard) {
+    Objects.requireNonNull(trackboard, "The track board can't be null");
+    /*User needs to see what are the tiles where the patches income and buttons income
+     *  are so he can prepare a proper strategy.*/
+    var events = trackboard.events();
+    if (!events.isEmpty()) {
+        builder.append("[ ---- (Patch Tiles: ");
+        events.stream()
+          .filter(e -> e.type().equals(EventType.PATCH_INCOME))
+          .forEach(e -> builder.append(e.position()).append(" "));
+        builder.append(") ---- ]\n");
+        builder.append("[ ---- (Button Tiles: ");
+        events.stream()
+          .filter(e -> e.type().equals(EventType.BUTTON_INCOME))
+          .forEach(e -> builder.append(e.position()).append(" "));
+          builder.append(") ---- ]\n");
+    }
+    builder.append("\n");
+    for (var player : trackboard.players()) {
+      if(player.equals(trackboard.latestPlayer())) {
+        builder.append(CLIColor.ANSI_GREEN);
+      }
+      draw(player);
+      builder.append(CLIColor.ANSI_RESET).append("\n");
+    }
+    builder.append("\n");
+  }
+  
+  @Override
+  public void drawScoreBoard(TrackBoard trackboard) {
+    Objects.requireNonNull(trackboard, "The track board can't be null");
+    builder.append(CLIColor.ANSI_ORANGE)
+    .append("[ ---- Scores ---- ] \n")
+    .append(CLIColor.ANSI_RESET);
+    var sortedPlayers = trackboard.players().stream()
+        .sorted(reverseOrder())
+        .peek(p -> builder.append(p.name())
+            .append(" : ")
+            .append(p.score())
+            .append("\n"))
+        .toList();
+    builder.append(CLIColor.ANSI_YELLOW)
+    .append(sortedPlayers.get(0).name())
+    .append(" Wins !\n")
+    .append(CLIColor.ANSI_RESET);
+  }
+
+  @Override
+  public void draw(PatchManager patchmanager) {
+    Objects.requireNonNull(patchmanager, "The patch manager can't be null");
   }
   
   public void display() {
@@ -71,9 +133,43 @@ public final class CommandLineInterface implements UserInterface {
   @Override
   public void clear() {
     System.out.print("\033[H\033[2J");
-//    System.out.flush();
+    // System.out.flush();
     builder.setLength(0);
     drawSplashScreen();
+  }
+  
+  public void draw(Patch2D patch) {
+    // We use a conceptual square to deal with absolute coordinates.
+    // While the patch doesn't fit in, we expand the square
+    // and replace the origin of the patch at the center of it
+    var width = 2;
+    var height = 2;
+    while (!patch.fits(width, height)) {
+      patch.absoluteMoveTo(new Coordinates(height / 2, width / 2));
+      width += 1;
+      height += 1;
+    }
+    // draw the patch
+    for (var y = 0; y < height; y++) {
+      builder().append("  ");
+      for (var x = 0; x < width; x++) {
+        if (patch.absoluteCoordinates().contains(new Coordinates(y, x))) {
+          builder().append("x");
+        } else {
+          builder().append(" ");
+        }
+      }
+      builder().append("\n");
+    }
+  }
+  
+  public void draw(RegularPatch patch) {
+    builder().append("[")
+    .append("Price: ").append(patch.price())
+    .append(", Moves: ").append(patch.moves())
+    .append(", Buttons: ").append(patch.buttons())
+    .append("]\n\n");
+    draw(patch.patch2D());
   }
 
   @Override
@@ -89,7 +185,7 @@ public final class CommandLineInterface implements UserInterface {
     for(var patch: patches) {
       i++;
       builder.append(i + ". ");
-      patch.drawOnCLI(this);
+      draw(patch);
       builder.append("\n");
     }
     display();
@@ -223,5 +319,7 @@ public final class CommandLineInterface implements UserInterface {
     Objects.requireNonNull(txt);
     builder.append(txt).append(CLIColor.ANSI_RESET);
   }
+
+  
   
 }

@@ -16,7 +16,7 @@ import fr.uge.patchwork.view.cli.DrawableOnCLI;
  * Provides an implementation of a patch
  *
  */
-public final class RegularPatch implements Patch, DrawableOnCLI {
+public final class RegularPatch implements Patch {
   
   // buttons in case of income
   private final int buttons; 
@@ -60,6 +60,10 @@ public final class RegularPatch implements Patch, DrawableOnCLI {
     return price;
   }
   
+  public Patch2D patch2D() {
+    return patch;
+  }
+  
   @Override
   public String toString() {
     return 
@@ -73,16 +77,6 @@ public final class RegularPatch implements Patch, DrawableOnCLI {
   @Override
   public int hashCode() {
     return Objects.hash(buttons, moves, price, patch);
-  }
-  
-  @Override
-  public void drawOnCLI(CommandLineInterface ui) {
-    ui.builder().append("[")
-    .append("Price: ").append(price)
-    .append(", Moves: ").append(moves)
-    .append(", Buttons: ").append(buttons)
-    .append("]\n\n");
-    patch.drawOnCLI(ui);
   }
 
   @Override

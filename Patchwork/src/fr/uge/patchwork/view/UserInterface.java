@@ -5,8 +5,12 @@ import java.util.Optional;
 import java.util.Set;
 
 import fr.uge.patchwork.controller.KeybindedChoice;
+import fr.uge.patchwork.model.component.Player;
 import fr.uge.patchwork.model.component.QuiltBoard;
+import fr.uge.patchwork.model.component.gameboard.PatchManager;
+import fr.uge.patchwork.model.component.gameboard.TrackBoard;
 import fr.uge.patchwork.model.component.patch.Patch;
+import fr.uge.patchwork.model.component.patch.Patch2D;
 import fr.uge.patchwork.model.component.patch.RegularPatch;
 
 public interface UserInterface {
@@ -15,12 +19,18 @@ public interface UserInterface {
    * Draw the game splash screen
    */
   void drawSplashScreen();
-
-  /**
-   * Draw a drawable object on the interface
-   * @param drawable
-   */
-  void draw(Drawable drawable);
+  
+  void draw(Player player);
+  
+  void draw(TrackBoard trackboard);
+  
+  void draw(PatchManager patchmanager);
+  
+  void draw(Patch2D patch);
+  
+  void draw(RegularPatch patch);
+  
+  void drawScoreBoard(TrackBoard trackboard);
   
   void drawMessage(String txt, Color color);
   

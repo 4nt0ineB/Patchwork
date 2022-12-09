@@ -87,14 +87,12 @@ public class PatchworkController {
    * @return true if want a new game, otherwise false
    */
   public boolean endGame() {
-    Objects.requireNonNull(ui, "The interface can't be null");
-    Objects.requireNonNull(ui, "The game board can't be null");
     var choices = Set.of(
         new KeybindedChoice('q', "Quit"), 
         new KeybindedChoice('n', "New game"));
     var choice = -1;
     ui.clear();
-    ui.draw(game.trackBoard());
+    ui.drawScoreBoard(game.trackBoard());
     ui.drawMessages();
     ui.display(); 
     do {
@@ -107,6 +105,7 @@ public class PatchworkController {
     }while(choice == -1);
     return false;
   }
+  
   
   private void updateView() {
     ui.clear();
@@ -174,19 +173,18 @@ public class PatchworkController {
     return true;
   }
   
-  private Set<KeybindedChoice> availableActions(){
-    var choices = new HashSet<KeybindedChoice>();
-    if(game.trackBoard().playerCanAdvance(player)) {
-      choices.add(new KeybindedChoice('a', "Advance"));
+  /**
+   * Advance the current player to the space in front of the next player. This
+   * action lead to button income proportional of number of crossed spaces.
+   */
+  public void advancePlayer() {
+    int moves = 1;
+    Player nextPlayer = game.trackBoard().nextPlayerFrom(player.position() + moves);
+    if(nextPlayer != null) { // player ahead
+      moves = nextPlayer.position() + 1 - player.position();
     }
-    var patches = game.patchManager().patches(3);
-    if(!patches.isEmpty() &&
-        patches.stream()
-        .anyMatch(patch -> player.buttons() >= patch.price())) {
-      choices.add(new KeybindedChoice('s', "Select a patch"));
-    }
-    choices.add(new KeybindedChoice('r', "Ragequit"));
-    return choices;
+    triggeredEvents.addAll(game.trackBoard().movePlayer(player, moves));
+    player.addButtons(moves);
   }
   
   /**
@@ -226,6 +224,21 @@ public class PatchworkController {
     return false;
   }
   
+  private Set<KeybindedChoice> availableActions(){
+    var choices = new HashSet<KeybindedChoice>();
+    if(game.trackBoard().playerCanAdvance(player)) {
+      choices.add(new KeybindedChoice('a', "Advance"));
+    }
+    var patches = game.patchManager().patches(3);
+    if(!patches.isEmpty() &&
+        patches.stream()
+        .anyMatch(patch -> player.buttons() >= patch.price())) {
+      choices.add(new KeybindedChoice('s', "Select a patch"));
+    }
+    choices.add(new KeybindedChoice('r', "Ragequit"));
+    return choices;
+  }
+  
   private Set<KeybindedChoice> availableManipulations(QuiltBoard quilt, Patch patch){
     var choices = new HashSet<KeybindedChoice>();
     if (quilt.canAdd(patch)) {
@@ -251,21 +264,7 @@ public class PatchworkController {
     choices.addAll(basicChoices);
     return choices;
   }
-  
-  /**
-   * Advance the current player to the space in front of the next player. This
-   * action lead to button income proportional of number of crossed spaces.
-   */
-  public void advancePlayer() {
-    int moves = 1;
-    Player nextPlayer = game.trackBoard().nextPlayerFrom(player.position() + moves);
-    if(nextPlayer != null) { // player ahead
-      moves = nextPlayer.position() + 1 - player.position();
-    }
-    triggeredEvents.addAll(game.trackBoard().movePlayer(player, moves));
-    player.addButtons(moves);
-  }
-  
+    
   public static void main(String[] args) {
     var userInterface = new CommandLineInterface();
     var loop = true;

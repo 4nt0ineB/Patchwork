@@ -2,10 +2,7 @@ package fr.uge.patchwork.model.component.patch;
 
 import java.util.Set;
 
-import fr.uge.patchwork.view.cli.CommandLineInterface;
-import fr.uge.patchwork.view.cli.DrawableOnCLI;
-
-public final class LeatherPatch implements Patch, DrawableOnCLI {
+public final class LeatherPatch implements Patch {
   
   private final Patch2D patch;
   
@@ -22,6 +19,9 @@ public final class LeatherPatch implements Patch, DrawableOnCLI {
     return patch.form();
   }
   
+  public Patch2D patch2D() {
+    return patch;
+  }
 
   @Override
   public void flip() {
@@ -102,11 +102,5 @@ public final class LeatherPatch implements Patch, DrawableOnCLI {
   public void absoluteMoveTo(Coordinates coordinates) {
     patch.absoluteMoveTo(coordinates);
   }
-
-  @Override
-  public void drawOnCLI(CommandLineInterface ui) {
-    patch.drawOnCLI(ui);
-  }
-
   
 }

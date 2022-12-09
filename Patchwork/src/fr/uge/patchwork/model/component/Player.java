@@ -5,15 +5,13 @@ import java.util.Objects;
 import fr.uge.patchwork.model.component.patch.LeatherPatch;
 import fr.uge.patchwork.model.component.patch.Patch;
 import fr.uge.patchwork.model.component.patch.RegularPatch;
-import fr.uge.patchwork.view.cli.CommandLineInterface;
-import fr.uge.patchwork.view.cli.DrawableOnCLI;
 
-public class Player implements DrawableOnCLI, Comparable<Player> {
+public class Player implements Comparable<Player> {
   
   private final String name;
   private final QuiltBoard quilt;
   private int position;
-  private int specialTile;
+  private boolean specialTile;
   private int buttons;
 
   public Player(String name, int buttons, QuiltBoard quilt) {
@@ -45,6 +43,11 @@ public class Player implements DrawableOnCLI, Comparable<Player> {
   
   public void move(int position) {
     this.position = position;
+  }
+  
+
+  public boolean specialTile() {
+    return specialTile;
   }
   
  
@@ -91,16 +94,8 @@ public class Player implements DrawableOnCLI, Comparable<Player> {
     return "[" + name + "] buttons:" + buttons;
   }
 
-  @Override
-  public void drawOnCLI(CommandLineInterface ui) {
-    ui.builder()
-    .append(String.format("%5d|", position))
-    .append(" " + name + " - buttons [" + buttons + "]")
-    .append(specialTile > 0 ? " SpecialTile : " + specialTile : "");
-  }
-  
   public void earnSpecialTile() {
-  	specialTile = 1;
+  	specialTile = true;
   }
   
   /**
@@ -109,7 +104,9 @@ public class Player implements DrawableOnCLI, Comparable<Player> {
    * @return void
    */
   public int score() {
-  	return buttons + specialTile * 7 - (quilt.countEmptySpaces() * 2);
+  	return buttons 
+  	    + (specialTile ? 7 : 0) 
+  	    - (quilt.countEmptySpaces() * 2);
   }
   
 
@@ -136,6 +133,7 @@ public class Player implements DrawableOnCLI, Comparable<Player> {
     }
     buttons += amount;
   }
+
 
   
 }

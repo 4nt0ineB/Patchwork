@@ -1,7 +1,6 @@
 package fr.uge.patchwork.model.component.gameboard;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -11,10 +10,6 @@ import java.util.Set;
 
 import fr.uge.patchwork.model.component.Player;
 import fr.uge.patchwork.model.component.gameboard.event.Event;
-import fr.uge.patchwork.model.component.gameboard.event.EventType;
-import fr.uge.patchwork.view.cli.CLIColor;
-import fr.uge.patchwork.view.cli.CommandLineInterface;
-import fr.uge.patchwork.view.cli.DrawableOnCLI;
 
 /**
  * 
@@ -26,7 +21,7 @@ import fr.uge.patchwork.view.cli.DrawableOnCLI;
  * 
  *
  */
-public class TrackBoard implements DrawableOnCLI {
+public class TrackBoard {
 
   // Number of squares on the board
   private final int spaces;
@@ -34,7 +29,6 @@ public class TrackBoard implements DrawableOnCLI {
   private final LinkedHashSet<Player> players = new LinkedHashSet<>();
   //All events in game
   private final Queue<Event> events = new LinkedList<>();
-
 
   /**
    * GameBoard constructor
@@ -146,53 +140,6 @@ public class TrackBoard implements DrawableOnCLI {
     return nextPlayerFrom(0);
   }
   
-  
-  
-  @Override
-  public void drawOnCLI(CommandLineInterface ui) {
-    Objects.requireNonNull(ui, "The user interface can't be null");
-    if(isFinished()) {
-      drawScoreBoard(ui);
-      return;
-    }
-    var builder = ui.builder();
-    /*User needs to see what are the tiles where the patches income and buttons income
-     *  are so he can prepare a proper strategy.*/ 
-      if (!events.isEmpty()) {
-	      builder.append("[ ---- (Patch Tiles: ");
-	      events.stream()
-	      	.filter(e -> e.type().equals(EventType.PATCH_INCOME))
-	      	.forEach(e -> builder.append(e.position()).append(" "));
-	      builder.append(") ---- ]\n");
-	      builder.append("[ ---- (Button Tiles: ");
-	      events.stream()
-	      	.filter(e -> e.type().equals(EventType.BUTTON_INCOME))
-	      	.forEach(e -> builder.append(e.position()).append(" "));
-	      builder.append(") ---- ]\n");
-    }
-    builder.append("\n");
-    for (var player : players) {
-      player.drawOnCLI(ui);
-      builder.append("\n");
-    }
-    builder.append("\n");
-  }
-  
-  private void drawScoreBoard(CommandLineInterface ui) {
-    var builder = ui.builder();
-    builder.append(CLIColor.ANSI_ORANGE)
-    .append("[ ---- Scores ---- ] \n")
-    .append(CLIColor.ANSI_RESET);
-    var sortedPlayers = players.stream().sorted(Comparator.reverseOrder()).toList();
-    sortedPlayers.forEach(
-        p -> builder.append(p.name()).append(" : ")
-        .append(p.score()).append("\n"));
-    builder.append(CLIColor.ANSI_YELLOW)
-    .append(sortedPlayers.get(0).name())
-    .append(" Wins !\n")
-    .append(CLIColor.ANSI_RESET);
-  }
-
   /**
    * The game is finished when all the players are on the last space. 
    * 
@@ -202,5 +149,13 @@ public class TrackBoard implements DrawableOnCLI {
     // In short, the game is finished when the position 
     // of the latest player is the last space
     return latestPlayer().position() == spaces;
+  }
+
+  public List<Event> events() {
+    return List.copyOf(events);
+  }
+
+  public List<Player> players() {
+    return List.copyOf(players);
   }  
 }

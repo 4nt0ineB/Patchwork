@@ -4,10 +4,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import fr.uge.patchwork.view.cli.CommandLineInterface;
-import fr.uge.patchwork.view.cli.DrawableOnCLI;
-
-public final class Patch2D implements Patch, DrawableOnCLI {
+public final class Patch2D implements Patch {
   // Absolute origin on the plan associated to the relative origin of the patch
   // (0,0)
   private Coordinates absoluteOrigin = new Coordinates(0, 0);
@@ -230,32 +227,5 @@ public final class Patch2D implements Patch, DrawableOnCLI {
   public String toString() {
     return form().coordinates() + "AbsOrigin: " + absoluteOrigin;
   }
-
-  @Override
-  public void drawOnCLI(CommandLineInterface ui) {
-    // We use a conceptual square to deal with absolute coordinates.
-    // While the patch doesn't fit in, we expand the square
-    // and replace the origin of the patch at the center of it
-    var width = 2;
-    var height = 2;
-    while (!this.fits(width, height)) {
-      absoluteMoveTo(new Coordinates(height / 2, width / 2));
-      width += 1;
-      height += 1;
-    }
-    // draw the patch
-    for (var y = 0; y < height; y++) {
-      ui.builder().append("  ");
-      for (var x = 0; x < width; x++) {
-        if (absoluteCoordinates().contains(new Coordinates(y, x))) {
-          ui.builder().append("x");
-        } else {
-          ui.builder().append(" ");
-        }
-      }
-      ui.builder().append("\n");
-    }
-  }
-
 
 }
