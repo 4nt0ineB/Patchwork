@@ -48,27 +48,25 @@ public class PatchworkController {
     var wantToPlay = true;
     do {
       ui.clear();
-      ui.display();
       var chose = ui.gameModeMenu(choices);
-      if(chose.isEmpty()) {
-        continue;
+      if(!chose.isEmpty()) {
+        gameMode = switch(chose.get().key()) {
+          case 'b' -> GameMode.PATCHWORK_BASIC;
+          case 'f' -> GameMode.PATCHWORK_FULL;
+          case 'q' -> {
+            wantToPlay = false;
+            yield null;
+          }
+          default -> throw new AssertionError("there shoulnd't be other possiblities");
+        };
       }
-      gameMode = switch(chose.get().key()) {
-       case 'b' -> GameMode.PATCHWORK_BASIC;
-       case 'f' -> GameMode.PATCHWORK_FULL;
-       case 'q' -> {
-         wantToPlay = false;
-         yield null;
-       }
-       default -> throw new AssertionError("there shoulnd't be other possiblities");
-     };
+     ui.display();
     }while(wantToPlay && gameMode == null);
     
     return wantToPlay;
   }
   
   public void init() throws IOException {
-    ui.init();
     game = Game.fromGameMode(gameMode);
     player = game.trackBoard().latestPlayer();
   }
@@ -111,16 +109,9 @@ public class PatchworkController {
     }
   }
   
-  
-  private void updateView() {
-    ui.clear();
-    ui.draw(game.trackBoard());
-    ui.display(); 
-  }
-  
   private void playEvents() {
     while(!triggeredEvents.isEmpty()) {
-      updateView();
+      ui.clear();
       var event = triggeredEvents.peek();
       switch(event.type()) {
         case BUTTON_INCOME -> {
@@ -140,6 +131,7 @@ public class PatchworkController {
         }
         default -> {throw new AssertionError(); }
       }
+      ui.display();
     }
     testSpecialTile();
   }
@@ -153,32 +145,33 @@ public class PatchworkController {
 
   private boolean playTurn() {
     for(;;) {
-      updateView();
+      ui.clear();
+      ui.draw(game.trackBoard());
       var chose = ui.turnMenu(availableActions());
-      if(chose.isEmpty()) {
-        continue;
-      }
-      switch (chose.get().key()) {
-        case 's' -> { 
-          // select a patch
-          var selectedPatch = ui.selectPatch(game.patchManager().patches(3), game.patchManager());
-          if(selectedPatch.isPresent()) {
-            // try placing it on the quilt
-            if(manipulatePatch(selectedPatch.get())) {
-              game.trackBoard().movePlayer(player, selectedPatch.get().moves());
-              return true;
+      if(chose.isPresent()) {
+        switch (chose.get().key()) {
+          case 's' -> { 
+            // select a patch
+            var selectedPatch = ui.selectPatch(game.patchManager().patches(3), game.patchManager());
+            if(selectedPatch.isPresent()) {
+              // try placing it on the quilt
+              if(manipulatePatch(selectedPatch.get())) {
+                game.trackBoard().movePlayer(player, selectedPatch.get().moves());
+                return true;
+              }
             }
           }
+          case 'a' -> {
+            advancePlayer();
+            return true;
+          }
+          case 'r' -> {
+            return false; // quit asked
+          }
+          default -> throw new AssertionError("There shouldn't be other choices");
         }
-        case 'a' -> {
-          advancePlayer();
-          return true;
-        }
-        case 'r' -> {
-          return false; // quit asked
-        }
-        default -> throw new AssertionError("There shouldn't be other choices");
-      }
+      }    
+      ui.display();
     }
   }
   
@@ -211,9 +204,9 @@ public class PatchworkController {
     patch.absoluteMoveTo(new Coordinates(player.quilt().width() / 2, player.quilt().height() / 2));
     var loop = true;
     do {
-      updateView();
+      ui.clear();
       ui.drawDummyQuilt(player, patch);
-      ui.display();
+      
       var chose = ui.manipulatePatch(availableManipulations(player.quilt(), patch));
       if(chose.isEmpty()) {
         continue;
@@ -232,6 +225,7 @@ public class PatchworkController {
         case 'b' -> loop = false;
         default -> { throw new AssertionError("There shouldn't be other choices"); }
       }
+      ui.display();
     } while (loop);
     return false;
   }
@@ -302,7 +296,16 @@ public class PatchworkController {
   public static void main(String[] args) {
     // startGame(new CommandLineInterface());
     Application.run(Color.BLACK, (context) -> {
-      startGame(new GraphicalUserInterface(context));
+      var ui = new GraphicalUserInterface(context);
+      try {
+        ui.init();
+      } catch (IOException e) {
+        System.err.println(e.getMessage());
+        ui.close();
+        System.exit(1);
+        return;
+      }
+      startGame(ui);
     });
   }
   

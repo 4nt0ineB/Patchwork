@@ -38,10 +38,10 @@ public record Game(GameMode gameMode, TrackBoard trackBoard,
     Path patchesPath = null;
     switch(gameMode) {
         case PATCHWORK_BASIC -> {
-          patchesPath = Path.of("resources/settings/basic/patchwork_basic.txt");
+          patchesPath = Path.of("resources/patchwork/settings/basic/patchwork_basic.txt");
         }
         case PATCHWORK_FULL -> {
-          patchesPath = Path.of("resources/settings/full/patchwork_full.txt");
+          patchesPath = Path.of("resources/patchwork/settings/full/patchwork_full.txt");
           for(var pos: List.of(5, 11, 17, 23, 29, 35, 41, 47)) {
             events.add(new Event(EventType.BUTTON_INCOME, pos));
           }

@@ -1,5 +1,6 @@
 package fr.uge.patchwork.view;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -13,7 +14,7 @@ import fr.uge.patchwork.model.component.patch.RegularPatch;
 
 public interface UserInterface {
   
-  void init();
+  void init() throws IOException;
   void draw(TrackBoard trackboard);
   void drawScoreBoard(TrackBoard trackboard);
   /**
