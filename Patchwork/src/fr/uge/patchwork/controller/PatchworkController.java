@@ -1,5 +1,6 @@
 package fr.uge.patchwork.controller;
 
+import java.awt.Color;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -15,9 +16,9 @@ import fr.uge.patchwork.model.component.gameboard.event.Event;
 import fr.uge.patchwork.model.component.patch.Coordinates;
 import fr.uge.patchwork.model.component.patch.LeatherPatch;
 import fr.uge.patchwork.model.component.patch.Patch;
-import fr.uge.patchwork.view.Color;
 import fr.uge.patchwork.view.UserInterface;
-import fr.uge.patchwork.view.cli.CommandLineInterface;
+import fr.uge.patchwork.view.gui.GraphicalUserInterface;
+import fr.umlv.zen5.Application;
 
 public class PatchworkController {
   
@@ -27,7 +28,7 @@ public class PatchworkController {
   private Stack<Event> triggeredEvents = new Stack<>();
   private GameMode gameMode;
   private boolean specialTile = true;
-  
+
   public PatchworkController(UserInterface ui) {
     this.ui = Objects.requireNonNull(ui);
   }
@@ -39,37 +40,41 @@ public class PatchworkController {
    * @param ui the user interface
    * @return Choosen game mode
    */
-  public void choseGameMode() {
+  public boolean choseGameMode() {
     var choices = new LinkedHashSet<KeybindedChoice>();
     choices.add(new KeybindedChoice('b', "The basic game"));
     choices.add(new KeybindedChoice('f', "The full game"));
+    choices.add(new KeybindedChoice('q', "Quit"));
+    var wantToPlay = true;
     do {
       ui.clear();
-      ui.drawMessages();
       ui.display();
-      gameMode = switch(ui.getPlayerChoice(choices)) {
+      var chose = ui.gameModeMenu(choices);
+      if(chose.isEmpty()) {
+        continue;
+      }
+      gameMode = switch(chose.get().key()) {
        case 'b' -> GameMode.PATCHWORK_BASIC;
        case 'f' -> GameMode.PATCHWORK_FULL;
-       case -1 -> null;
+       case 'q' -> {
+         wantToPlay = false;
+         yield null;
+       }
        default -> throw new AssertionError("there shoulnd't be other possiblities");
      };
-    }while(gameMode == null);
+    }while(wantToPlay && gameMode == null);
+    
+    return wantToPlay;
   }
   
-  public void init() {
-    try {
-      game = Game.fromGameMode(gameMode);
-      player = game.trackBoard().latestPlayer();
-    } catch (IOException e) {
-      System.err.println(e.getMessage());
-      ui.close();
-      System.exit(1);
-      return;
-    }
+  public void init() throws IOException {
+    ui.init();
+    game = Game.fromGameMode(gameMode);
+    player = game.trackBoard().latestPlayer();
   }
   
   public boolean run() {
-    while( (player = game.trackBoard().latestPlayer()) != null   
+    while((player = game.trackBoard().latestPlayer()) != null   
         && player.position() != game.trackBoard().spaces()) {
       triggeredEvents.clear();
       if(!playTurn()) { // quit asked
@@ -77,7 +82,7 @@ public class PatchworkController {
       }
       playEvents();
     }
-    return true;
+    return endGame();
   }
   
   /**
@@ -90,27 +95,26 @@ public class PatchworkController {
     var choices = Set.of(
         new KeybindedChoice('q', "Quit"), 
         new KeybindedChoice('n', "New game"));
-    var choice = -1;
-    ui.clear();
-    ui.drawScoreBoard(game.trackBoard());
-    ui.drawMessages();
-    ui.display(); 
-    do {
-      switch (ui.getPlayerChoice(choices)) {
+    for(;;) {
+      ui.clear();
+      ui.drawScoreBoard(game.trackBoard());
+      ui.display(); 
+      var chose = ui.endGameMenu(choices);
+      if(chose.isEmpty()) {
+        continue;
+      }
+      switch (chose.get().key()) {
         case 'q' -> { return false; }
         case 'n' -> { return true; } 
-        case -1 -> {}
         default -> { throw new AssertionError("There shouldn't be other choices"); }
-      };
-    }while(choice == -1);
-    return false;
+      }
+    }
   }
   
   
   private void updateView() {
     ui.clear();
     ui.draw(game.trackBoard());
-    ui.drawMessages();
     ui.display(); 
   }
   
@@ -120,7 +124,7 @@ public class PatchworkController {
       var event = triggeredEvents.peek();
       switch(event.type()) {
         case BUTTON_INCOME -> {
-          ui.drawMessage("You receive some buttons!", new Color(46, 112, 219)); // don't work do other way
+          //ui.drawMessage("You receive some buttons!", new Color(46, 112, 219)); // don't work do other way
           int amount = player.quilt().buttons();
           if(amount != 0) {
             player.addButtons(amount);
@@ -128,7 +132,7 @@ public class PatchworkController {
           triggeredEvents.pop();
         }
         case PATCH_INCOME -> {
-          ui.drawMessage("You receive some buttons!", new Color(82, 181, 25));
+          //ui.drawMessage("You receive some buttons!", new Color(82, 181, 25));
           if(manipulatePatch(new LeatherPatch())) {
             game.trackBoard().removeEvent(event);
             triggeredEvents.pop();
@@ -137,40 +141,45 @@ public class PatchworkController {
         default -> {throw new AssertionError(); }
       }
     }
+    testSpecialTile();
+  }
+
+  public void testSpecialTile() {
     if(specialTile && player.quilt().hasFilledSquare(7)) {
       player.earnSpecialTile();
       specialTile = false;
     }
-    // print msg on ui
   }
 
-  
   private boolean playTurn() {
-    boolean hasPlayed = false;
-    while(!hasPlayed) {
+    for(;;) {
       updateView();
-      switch (ui.getPlayerChoice(availableActions())) {
-        case 's' -> {
-          var selectedPatch = ui.selectPatch(game.patchManager().patches(3));
+      var chose = ui.turnMenu(availableActions());
+      if(chose.isEmpty()) {
+        continue;
+      }
+      switch (chose.get().key()) {
+        case 's' -> { 
+          // select a patch
+          var selectedPatch = ui.selectPatch(game.patchManager().patches(3), game.patchManager());
           if(selectedPatch.isPresent()) {
+            // try placing it on the quilt
             if(manipulatePatch(selectedPatch.get())) {
               game.trackBoard().movePlayer(player, selectedPatch.get().moves());
-              hasPlayed = true;
+              return true;
             }
           }
         }
         case 'a' -> {
           advancePlayer();
-          hasPlayed = true;
+          return true;
         }
         case 'r' -> {
           return false; // quit asked
         }
-        case -1 -> { }
         default -> throw new AssertionError("There shouldn't be other choices");
       }
     }
-    return true;
   }
   
   /**
@@ -195,7 +204,7 @@ public class PatchworkController {
    *
    * @param ui 
    * @param board
-   * @return Action
+   * @return true if patch is placed, otherwise false
    */
   private boolean manipulatePatch(Patch patch) {
     // We use a dummy quilt to play with the patch
@@ -203,9 +212,13 @@ public class PatchworkController {
     var loop = true;
     do {
       updateView();
-      ui.drawDummyQuilt(player.quilt(), patch);
+      ui.drawDummyQuilt(player, patch);
       ui.display();
-      switch (ui.getPlayerChoice(availableManipulations(player.quilt(), patch))) {
+      var chose = ui.manipulatePatch(availableManipulations(player.quilt(), patch));
+      if(chose.isEmpty()) {
+        continue;
+      }
+      switch (chose.get().key()) {
         case 's'  -> patch.moveUp();
         case 'w' -> patch.moveDown();
         case 'd' -> patch.moveRight();
@@ -217,7 +230,6 @@ public class PatchworkController {
           return player.placePatch(patch);
         }
         case 'b' -> loop = false;
-        case -1 -> {}
         default -> { throw new AssertionError("There shouldn't be other choices"); }
       }
     } while (loop);
@@ -264,20 +276,34 @@ public class PatchworkController {
     choices.addAll(basicChoices);
     return choices;
   }
-    
-  public static void main(String[] args) {
-    var userInterface = new CommandLineInterface();
+  
+  public static void startGame(UserInterface userInterface) {
     var loop = true;
     while(loop) {
       var controller = new PatchworkController(userInterface);
-      controller.choseGameMode();
-      controller.init();
+      if(!controller.choseGameMode()) {
+        break;
+      }
+      try {
+        controller.init();
+      } catch (IOException e) {
+        System.err.println(e.getMessage());
+        userInterface.close();
+        System.exit(1);
+        return;
+      }
       if(!controller.run()) {
         break;
       }
-      loop = controller.endGame();
     }
     userInterface.close();
+  }
+    
+  public static void main(String[] args) {
+    // startGame(new CommandLineInterface());
+    Application.run(Color.BLACK, (context) -> {
+      startGame(new GraphicalUserInterface(context));
+    });
   }
   
 }

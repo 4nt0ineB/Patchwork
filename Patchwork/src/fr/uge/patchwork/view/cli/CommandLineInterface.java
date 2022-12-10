@@ -64,14 +64,45 @@ public final class CommandLineInterface implements UserInterface {
       }); 
   }
   
+  /**
+   * Close the interface: <br>
+   * 
+   * close scanner on {@link System#in}
+   */
   @Override
+  public void close() {
+    scanner.close();
+  }
+  
+  @Override
+  public void init() {}
+
+  @Override
+  public Optional<KeybindedChoice> gameModeMenu(Set<KeybindedChoice> choices) {
+    return getPlayerChoice(choices);
+  }
+
+  @Override
+  public Optional<KeybindedChoice> endGameMenu(Set<KeybindedChoice> choices) {
+    return getPlayerChoice(choices);
+  }
+
+  @Override
+  public Optional<KeybindedChoice> turnMenu(Set<KeybindedChoice> choices) {
+    return getPlayerChoice(choices);
+  }
+
+  @Override
+  public Optional<KeybindedChoice> manipulatePatch(Set<KeybindedChoice> choices) {
+    return getPlayerChoice(choices);
+  }
+  
   public void draw(KeybindedChoice choice) {
     builder()
     .append("[").append(choice.key()).append("] ")
     .append(choice.description());
   }
   
-  @Override
   public void draw(Player player) {
     Objects.requireNonNull(player, "The player can't be null");
     builder()
@@ -80,7 +111,6 @@ public final class CommandLineInterface implements UserInterface {
     .append(player.specialTile() ? " (SpecialTile) " : "");
   }
   
-  @Override
   public void draw(QuiltBoard quilt) {
     // top
     builder.append("┌");
@@ -157,7 +187,7 @@ public final class CommandLineInterface implements UserInterface {
     .append(CLIColor.ANSI_RESET);
   }
 
-  @Override
+
   public void draw(PatchManager patchmanager) {
     Objects.requireNonNull(patchmanager, "The patch manager can't be null");
   }
@@ -209,7 +239,7 @@ public final class CommandLineInterface implements UserInterface {
   }
 
   @Override
-  public Optional<RegularPatch> selectPatch(List<RegularPatch> patches) {
+  public Optional<RegularPatch> selectPatch(List<RegularPatch> patches, PatchManager manager) {
     Objects.requireNonNull(patches);
     if(patches.isEmpty()) {
       throw new IllegalArgumentException("Their should be at least 1 patch in the list");
@@ -246,21 +276,21 @@ public final class CommandLineInterface implements UserInterface {
   }
   
   @Override
-  public void drawDummyQuilt(QuiltBoard quilt, Patch patch) {
-    Objects.requireNonNull(quilt, "the quilt can't be null");
+  public void drawDummyQuilt(Player player, Patch patch) {
+    Objects.requireNonNull(player.quilt(), "the quilt can't be null");
     Objects.requireNonNull(patch, "The patch can't be null");
     // top
     builder.append("┌");
-    for(var i = 0; i < quilt.width(); i++) {
+    for(var i = 0; i < player.quilt().width(); i++) {
       builder.append("─");
     }
     builder.append("┐\n");
     // body
-    for(var y = 0; y < quilt.height(); y++) {
+    for(var y = 0; y < player.quilt().height(); y++) {
       builder.append("|");
-      for(var x = 0; x < quilt.width(); x++) {
+      for(var x = 0; x < player.quilt().width(); x++) {
         var isPatchHere = patch.meets(new Coordinates(y, x));
-        if(quilt.occupied(new Coordinates(y, x))) {
+        if(player.quilt().occupied(new Coordinates(y, x))) {
           if(isPatchHere){
             builder.append(CLIColor.ANSI_RED_BACKGROUND)
             .append("░")
@@ -284,14 +314,13 @@ public final class CommandLineInterface implements UserInterface {
     }
     // bottom
     builder.append("└");
-    for(var i = 0; i < quilt.width(); i++) {
+    for(var i = 0; i < player.quilt().width(); i++) {
       builder.append("─");
     }
     builder.append("┘");
   }
   
-  @Override
-  public int getPlayerChoice(Set<KeybindedChoice> choices){
+  public Optional<KeybindedChoice> getPlayerChoice(Set<KeybindedChoice> choices){
     Objects.requireNonNull(choices, "the quilt can't be null");
     if(choices.isEmpty()) {
       throw new IllegalArgumentException("The set of choices can't be empty");
@@ -310,25 +339,14 @@ public final class CommandLineInterface implements UserInterface {
         && (input = scanner.nextLine()).length() == 1) {
       for(var choice: choices) {
         if(choice.key() == input.charAt(0)) {
-          return choice.key();
+          return Optional.of(choice);
         }
       }
     }
     System.out.println("Wrong choice\n");
-    return -1;
+    return Optional.empty();
   }
   
-  /**
-   * Close the interface: <br>
-   * 
-   * close scanner on {@link System#in}
-   */
-  @Override
-  public void close() {
-    scanner.close();
-  }
-
-  @Override
   public void drawSplashScreen() {
     var splash = CLIColor.ANSI_BOLD + "  _____      _       _                       _    \n"
         + " |  __ \\    | |     | |                     | |   \n"
@@ -343,19 +361,16 @@ public final class CommandLineInterface implements UserInterface {
     builder.append(splash);
   }
 
-  @Override
   public void drawMessage(String txt, Color color) {
     Objects.requireNonNull(txt);
     builder.append(CLIColor.fromColor(color));
     drawMessage(txt);
   }
   
-  @Override
   public void drawMessage(String txt) {
     Objects.requireNonNull(txt);
     builder.append(txt).append(CLIColor.ANSI_RESET);
   }
 
-  
-  
+ 
 }
