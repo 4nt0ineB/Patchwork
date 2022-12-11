@@ -2,7 +2,6 @@ package fr.uge.patchwork.view.cli;
 
 import static java.util.Comparator.reverseOrder;
 
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -19,7 +18,6 @@ import fr.uge.patchwork.model.component.patch.Coordinates;
 import fr.uge.patchwork.model.component.patch.Patch;
 import fr.uge.patchwork.model.component.patch.Patch2D;
 import fr.uge.patchwork.model.component.patch.RegularPatch;
-import fr.uge.patchwork.view.Color;
 import fr.uge.patchwork.view.UserInterface;
 
 /**
@@ -341,6 +339,12 @@ public final class CommandLineInterface implements UserInterface {
         + "\n"
         + CLIColor.ANSI_RESET;
     builder.append(splash);
+  }
+
+  @Override
+  public Optional<KeybindedChoice> getInput(Set<KeybindedChoice> choices) {
+    // TODO Auto-generated method stub
+    return Optional.empty();
   }
  
 }

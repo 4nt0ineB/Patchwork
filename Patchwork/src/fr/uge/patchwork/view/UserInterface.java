@@ -16,6 +16,7 @@ public interface UserInterface {
   
   void init() throws IOException;
   void draw(TrackBoard trackboard);
+  void draw(PatchManager manager);
   void drawScoreBoard(TrackBoard trackboard);
   /**
    * Draw a dummy quilt with a given patch to 
@@ -40,7 +41,7 @@ public interface UserInterface {
   Optional<KeybindedChoice> endGameMenu(Set<KeybindedChoice> choices);
   Optional<KeybindedChoice> turnMenu(Set<KeybindedChoice> choices);
   Optional<KeybindedChoice> manipulatePatch(Set<KeybindedChoice> choices);
-  //Optional<KeybindedChoice> getInput(Set<KeybindedChoice> choices);
+  Optional<KeybindedChoice> getInput(Set<KeybindedChoice> choices);
   /**
    * Make the user select a patch a given patch list
    * @param patches

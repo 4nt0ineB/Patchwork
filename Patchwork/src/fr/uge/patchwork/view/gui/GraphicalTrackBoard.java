@@ -12,7 +12,6 @@ import java.awt.geom.Rectangle2D;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import fr.uge.patchwork.model.component.Player;
 import fr.uge.patchwork.model.component.gameboard.TrackBoard;
@@ -114,16 +113,18 @@ public class GraphicalTrackBoard {
   	var squareOrigin = coordinatesToPoint(coord.x(), coord.y());
   	var buttonX = squareOrigin.x + squareSide / 8;
   	var buttonY = squareOrigin.y + squareSide / 8;
+  	var holeSize = squareSide / 24;
+  	var buttonSide = squareSide / 20;
     var ellipses = new LinkedList<Shape>(List.of(
-        new Ellipse2D.Double(buttonX + squareSide / 20, buttonY + squareSide / 20, squareSide / 24, squareSide / 24),
-        new Ellipse2D.Double(buttonX + 3 * squareSide / 20, buttonY + 3 * squareSide / 20, squareSide / 24, squareSide / 24),
-        new Ellipse2D.Double(buttonX + squareSide / 20, buttonY + 3 * squareSide / 20, squareSide / 24, squareSide / 24),
-        new Ellipse2D.Double(buttonX + 3 * squareSide / 20, buttonY + squareSide / 20, squareSide / 24, squareSide / 24),
-        new Ellipse2D.Double(buttonX + 2 * squareSide / 20, buttonY + 2* squareSide / 20, squareSide / 24, squareSide / 24)));
+        new Ellipse2D.Double(buttonX + 1.3 * buttonSide, buttonY + 1.2 * buttonSide, holeSize, holeSize),
+        new Ellipse2D.Double(buttonX + 2.8 * buttonSide, buttonY + 2.9 * buttonSide, holeSize, holeSize),
+        new Ellipse2D.Double(buttonX + 1.3 * buttonSide, buttonY + 2.9 * buttonSide, holeSize, holeSize)
+        ,new Ellipse2D.Double(buttonX + 2.8 * buttonSide, buttonY + 1.2 * buttonSide, holeSize, holeSize)
+        ));
   	ui.addDrawingAction(g2 -> {
   		g2.setColor(new Color(67, 165, 198));
   		g2.fill(new Ellipse2D.Double(buttonX, buttonY, squareSide / 4, squareSide / 4));
-  		g2.setColor(Color.BLACK);
+  		g2.setColor(new Color(47, 115, 138));
   		ellipses.forEach(g2::fill);
   	});
   }

@@ -149,6 +149,7 @@ public class PatchworkController {
     for(;;) {
       ui.clear();
       ui.draw(game.trackBoard());
+      ui.draw(game.patchManager());
       ui.display();
       var chose = ui.turnMenu(availableActions());
       if(chose.isPresent()) {
@@ -157,8 +158,12 @@ public class PatchworkController {
             // select a patch
             var selectedPatch = selectPatch();
             // try placing it on the quilt
-            if(manipulatePatch(selectedPatch)) {
+            if(manipulatePatch(selectedPatch)) { 
+              // placed
               game.trackBoard().movePlayer(player, selectedPatch.moves());
+              // update patch manager
+              game.patchManager().moveNeutralToken(game.patchManager().patches(3).indexOf(selectedPatch));
+              game.patchManager().removeAtToken();
               return true;
             }
           }
