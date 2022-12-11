@@ -34,7 +34,7 @@ public class GraphicalUserInterface implements UserInterface {
   private final ApplicationContext context;
   private final float width;
   private final float height;
-  private final int fps = 25;
+  private final int fps = 20;
   private final Color backgroundColor = new Color(201, 153, 68);
   private BufferedImage img;
   
@@ -105,7 +105,9 @@ public class GraphicalUserInterface implements UserInterface {
   
   @Override
   public void draw(TrackBoard trackBoard) {
-     new GraphicalTrackBoard(200, 200, 800, trackBoard).draw(this);
+    new GraphicalPlayer(trackBoard.players().get(0), 1200, 250, 300).draw(this);
+    new GraphicalTrackBoard(200, 200, 800, trackBoard).draw(this);
+     
   }
 
   @Override
@@ -202,8 +204,7 @@ public class GraphicalUserInterface implements UserInterface {
   
   @Override
   public void drawDummyQuilt(Player player, Patch patch) {
-    // TODO Auto-generated method stub
-    
+    new GraphicalPlayer(player, 1200, 250, 300).drawPatchAsDummy(this, patch);
   }
   
   public void drawSplashScreen(int x, int y, int fontsize) {
@@ -229,8 +230,7 @@ public class GraphicalUserInterface implements UserInterface {
 
   @Override
   public Optional<KeybindedChoice> manipulatePatch(Set<KeybindedChoice> choices) {
-    // TODO Auto-generated method stub
-    return Optional.empty();
+    return menu(List.copyOf(choices));
   }
 
   
