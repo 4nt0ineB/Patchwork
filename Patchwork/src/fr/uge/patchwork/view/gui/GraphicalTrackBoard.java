@@ -11,6 +11,8 @@ import java.util.Objects;
 
 import fr.uge.patchwork.model.component.Player;
 import fr.uge.patchwork.model.component.gameboard.TrackBoard;
+import fr.uge.patchwork.model.component.gameboard.event.Event;
+import fr.uge.patchwork.model.component.gameboard.event.EventType;
 import fr.uge.patchwork.model.component.patch.Coordinates;
 
 public class GraphicalTrackBoard {
@@ -48,6 +50,7 @@ public class GraphicalTrackBoard {
     });
     drawTrackBoardSpaces(ui);
     drawPlayers(ui);
+    drawButtons(ui);
   }  
 
   private void drawTrackBoardSpaces(GraphicalUserInterface ui) {
@@ -78,6 +81,29 @@ public class GraphicalTrackBoard {
     for(var player: board.players()) {
       drawPlayer(ui, player);
     }
+  }
+  
+  private void drawButton(GraphicalUserInterface ui, Event button) {
+  	var coord = posToCoordinates(button.position() + offset);
+  	var squareOrigin = coordinatesToPoint(coord.x(), coord.y());
+  	var buttonX = squareOrigin.x + squareSide / 8;
+  	var buttonY = squareOrigin.y + squareSide / 8;
+  	ui.addDrawingAction(g2 -> {
+  		g2.setColor(new Color(91, 60, 17));
+  		g2.fill(new Ellipse2D.Double(buttonX, buttonY, squareSide / 4, squareSide / 4));
+  		g2.setColor(Color.BLACK);
+  		g2.fill(new Ellipse2D.Double(buttonX + squareSide / 20, buttonY + squareSide / 20, squareSide / 24, squareSide / 24));
+  		g2.fill(new Ellipse2D.Double(buttonX + 3 * squareSide / 20, buttonY + 3 * squareSide / 20, squareSide / 24, squareSide / 24));
+  		g2.fill(new Ellipse2D.Double(buttonX + squareSide / 20, buttonY + 3 * squareSide / 20, squareSide / 24, squareSide / 24));
+  		g2.fill(new Ellipse2D.Double(buttonX + 3 * squareSide / 20, buttonY + squareSide / 20, squareSide / 24, squareSide / 24));
+  		g2.fill(new Ellipse2D.Double(buttonX + 2 * squareSide / 20, buttonY + 2* squareSide / 20, squareSide / 24, squareSide / 24));
+  	});
+  }
+  
+  private void drawButtons(GraphicalUserInterface ui) {
+  	board.events().stream()
+  		.filter(e -> e.type().equals(EventType.BUTTON_INCOME))
+  		.forEach(e -> drawButton(ui, e));
   }
   
   private void updateSpaces() { 
