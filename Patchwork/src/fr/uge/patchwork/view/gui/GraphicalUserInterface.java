@@ -1,21 +1,15 @@
 package fr.uge.patchwork.view.gui;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
-import java.awt.Shape;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.Line2D;
-import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -40,11 +34,11 @@ public class GraphicalUserInterface implements UserInterface {
   private final ApplicationContext context;
   private final float width;
   private final float height;
-  private final int fps = 20;
+  private final int fps = 25;
   private final Color backgroundColor = new Color(201, 153, 68);
   private BufferedImage img;
   
-  private final ArrayList<Consumer<Graphics2D>> drawingActions = new ArrayList<>();
+  private final LinkedList<Consumer<Graphics2D>> drawingActions = new LinkedList<>();
   private KeybindedChoice choice;
   
   private long time;
@@ -57,6 +51,10 @@ public class GraphicalUserInterface implements UserInterface {
     time = Instant.now().toEpochMilli();
   }
 
+  public void addDrawingAction(Consumer<Graphics2D> action) {
+    drawingActions.add(action);
+  }
+  
   @Override
   public void init() throws IOException {
     drawingActions.add(graphics -> {
@@ -67,6 +65,7 @@ public class GraphicalUserInterface implements UserInterface {
     try(var reader = Files.newInputStream(path)) {
       img = ImageIO.read(reader);
     }
+    
   }
   
   @Override
@@ -82,10 +81,9 @@ public class GraphicalUserInterface implements UserInterface {
   @Override
   public void clear() {
     drawingActions.clear();
-    drawingActions.add(g2 -> {
+    addDrawingAction(g2 -> {
       g2.setColor(backgroundColor);
       g2.fill(new Rectangle2D.Float(0, 0, width, height));
-      //g2.drawImage(img, 0, 0, 500, 500, null);
     });
   }
 
@@ -106,31 +104,8 @@ public class GraphicalUserInterface implements UserInterface {
   }
   
   @Override
-  public void draw(TrackBoard trackboard) {
-    var radius = 400;
-    var diameter = radius * 2;
-    var originEllipse = new Point2D.Double(width / 2 - radius, height / 2 - radius);
-    var origin = new Point2D.Double(originEllipse.x + radius, originEllipse.y + radius);
-    
-    
-    var lines = new ArrayList<Shape>();
-    
-    
-    
-    for(var i = 0; i < 15; i++) {
-      var line = new Line2D.Double(origin.x, origin.y, origin.x + radius, origin.y);
-      var rotation = AffineTransform.getRotateInstance(Math.toRadians((360 / 15) * i), line.getX1(), line.getY1());
-      lines.add(rotation.createTransformedShape(line));
-    }
-    
-    drawingActions.add(g2 -> {
-      g2.setColor(new Color(134, 149, 69));
-      g2.fill(new Ellipse2D.Double(originEllipse.x, originEllipse.y, diameter, diameter));
-      g2.setColor(Color.BLACK);
-      g2.setStroke(new BasicStroke(1));
-      g2.drawOval((int) originEllipse.x, (int) originEllipse.y, diameter, diameter);
-      lines.stream().forEach(g2::draw);      
-    });
+  public void draw(TrackBoard trackBoard) {
+     new GraphicalTrackBoard(200, 200, 800, trackBoard).draw(this);
   }
 
   @Override
@@ -186,7 +161,7 @@ public class GraphicalUserInterface implements UserInterface {
         y += 70 + margin;
       }
     };
-    drawingActions.add(runnable);
+    addDrawingAction(runnable);
   }
   
   
@@ -232,7 +207,7 @@ public class GraphicalUserInterface implements UserInterface {
   }
   
   public void drawSplashScreen(int x, int y, int fontsize) {
-    drawingActions.add(g2 -> {
+    addDrawingAction(g2 -> {
       g2.setColor(new Color(104, 107, 107));
       g2.setFont(new Font("Arial", Font.BOLD, fontsize));
       g2.drawString("Patchwork", x, y);
