@@ -31,6 +31,9 @@ public class GraphicalTrackBoard {
   
   public GraphicalTrackBoard(int x, int y, int side, TrackBoard trackBoard) {
     board = Objects.requireNonNull(trackBoard);
+    if (x < 0 || y < 0) {
+    	throw new IllegalArgumentException("Coords can't be negatives");
+    }
     origin = new Point2D.Double(x, y);
     this.side = side;
     squaresOnSide = (int) Math.sqrt(nextPerfectSquare(board.spaces()));
@@ -74,7 +77,8 @@ public class GraphicalTrackBoard {
       g2.setColor(Color.GRAY);
       g2.fill(new Ellipse2D.Double(squareOrigin.x, squareOrigin.y, squareSide, squareSide));
       g2.setColor(Color.BLACK);
-      g2.drawString(player.name(), (int) (squareOrigin.x + squareSide / 2), (int) (squareOrigin.y + squareSide / 2));
+      var width = g2.getFontMetrics().stringWidth(player.name());
+      g2.drawString(player.name(), (int) (squareOrigin.x) + width / 2, (int) (squareOrigin.y + squareSide / 2));
     });
   }
   
