@@ -16,7 +16,9 @@ import fr.uge.patchwork.model.component.gameboard.event.Event;
 import fr.uge.patchwork.model.component.patch.Coordinates;
 import fr.uge.patchwork.model.component.patch.LeatherPatch;
 import fr.uge.patchwork.model.component.patch.Patch;
+import fr.uge.patchwork.model.component.patch.RegularPatch;
 import fr.uge.patchwork.view.UserInterface;
+import fr.uge.patchwork.view.cli.CommandLineInterface;
 import fr.uge.patchwork.view.gui.GraphicalUserInterface;
 import fr.umlv.zen5.Application;
 
@@ -147,18 +149,17 @@ public class PatchworkController {
     for(;;) {
       ui.clear();
       ui.draw(game.trackBoard());
+      ui.display();
       var chose = ui.turnMenu(availableActions());
       if(chose.isPresent()) {
         switch (chose.get().key()) {
           case 's' -> { 
             // select a patch
-            var selectedPatch = ui.selectPatch(game.patchManager().patches(3), game.patchManager());
-            if(selectedPatch.isPresent()) {
-              // try placing it on the quilt
-              if(manipulatePatch(selectedPatch.get())) {
-                game.trackBoard().movePlayer(player, selectedPatch.get().moves());
-                return true;
-              }
+            var selectedPatch = selectPatch();
+            // try placing it on the quilt
+            if(manipulatePatch(selectedPatch)) {
+              game.trackBoard().movePlayer(player, selectedPatch.moves());
+              return true;
             }
           }
           case 'a' -> {
@@ -171,6 +172,19 @@ public class PatchworkController {
           default -> throw new AssertionError("There shouldn't be other choices");
         }
       }    
+      ui.display();
+    }
+  }
+  
+  private RegularPatch selectPatch() {
+    for(;;) {
+      ui.clear();
+      ui.draw(game.trackBoard());
+      ui.display();
+      var selectedPatch = ui.selectPatch(game.patchManager().patches(3), game.patchManager());
+      if(selectedPatch.isPresent()) {
+        return selectedPatch.get();
+      }
       ui.display();
     }
   }
@@ -206,24 +220,23 @@ public class PatchworkController {
     do {
       ui.clear();
       ui.drawDummyQuilt(player, patch);
-      
+      ui.display();
       var chose = ui.manipulatePatch(availableManipulations(player.quilt(), patch));
-      if(chose.isEmpty()) {
-        continue;
-      }
-      switch (chose.get().key()) {
-        case 's'  -> patch.moveUp();
-        case 'w' -> patch.moveDown();
-        case 'd' -> patch.moveRight();
-        case 'q' -> patch.moveLeft();
-        case 'z' -> patch.rotateLeft();
-        case 'a' -> patch.rotateRight();
-        case 'f' -> patch.flip();
-        case 'p' -> {
-          return player.placePatch(patch);
+      if(chose.isPresent()) {
+        switch (chose.get().key()) {
+          case 's'  -> patch.moveUp();
+          case 'w' -> patch.moveDown();
+          case 'd' -> patch.moveRight();
+          case 'q' -> patch.moveLeft();
+          case 'z' -> patch.rotateLeft();
+          case 'a' -> patch.rotateRight();
+          case 'f' -> patch.flip();
+          case 'p' -> {
+            return player.placePatch(patch);
+          }
+          case 'b' -> loop = false;
+          default -> { throw new AssertionError("There shouldn't be other choices"); }
         }
-        case 'b' -> loop = false;
-        default -> { throw new AssertionError("There shouldn't be other choices"); }
       }
       ui.display();
     } while (loop);
@@ -294,19 +307,23 @@ public class PatchworkController {
   }
     
   public static void main(String[] args) {
-    // startGame(new CommandLineInterface());
-    Application.run(Color.BLACK, (context) -> {
-      var ui = new GraphicalUserInterface(context);
-      try {
-        ui.init();
-      } catch (IOException e) {
-        System.err.println(e.getMessage());
-        ui.close();
-        System.exit(1);
-        return;
-      }
-      startGame(ui);
-    });
+    var cli = false;
+    if(cli) {
+      startGame(new CommandLineInterface());
+    }else {
+      Application.run(Color.BLACK, (context) -> {
+        var ui = new GraphicalUserInterface(context);
+        try {
+          ui.init();
+        } catch (IOException e) {
+          System.err.println(e.getMessage());
+          ui.close();
+          System.exit(1);
+          return;
+        }
+        startGame(ui);
+      });
+    }
   }
   
 }

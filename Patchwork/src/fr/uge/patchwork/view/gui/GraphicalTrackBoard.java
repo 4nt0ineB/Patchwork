@@ -1,13 +1,18 @@
 package fr.uge.patchwork.view.gui;
 
+import static java.util.stream.Collectors.groupingBy;
+
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import fr.uge.patchwork.model.component.Player;
 import fr.uge.patchwork.model.component.gameboard.TrackBoard;
@@ -52,9 +57,9 @@ public class GraphicalTrackBoard {
       g2.drawRect((int) origin.x, (int) origin.y, side, side);
     });
     drawTrackBoardSpaces(ui);
-    drawPlayers(ui);
     drawButtons(ui);
     drawPatches(ui);
+    drawPlayers(ui);
   }  
 
   private void drawTrackBoardSpaces(GraphicalUserInterface ui) {
@@ -70,21 +75,37 @@ public class GraphicalTrackBoard {
     });
   }
   
-  private void drawPlayer(GraphicalUserInterface ui, Player player) {
-    var coord = posToCoordinates(player.position() + offset);
-    var squareOrigin = coordinatesToPoint(coord.x(), coord.y());
+  private void drawPlayer(GraphicalUserInterface ui, Player player, double x, double y) {
+    var tokenWidth = squareSide * 0.7;
+    var tokenHeight = squareSide * 0.3;
+    var bottomSide = new Ellipse2D.Double(x, y + tokenHeight, tokenWidth, tokenHeight);
+    var topSide = new Ellipse2D.Double(x, y + tokenHeight - 5, tokenWidth, tokenHeight);
     ui.addDrawingAction(g2 -> {
+      // bottom
       g2.setColor(Color.GRAY);
-      g2.fill(new Ellipse2D.Double(squareOrigin.x, squareOrigin.y, squareSide, squareSide));
+      g2.fill(bottomSide);
       g2.setColor(Color.BLACK);
-      var width = g2.getFontMetrics().stringWidth(player.name());
-      g2.drawString(player.name(), (int) (squareOrigin.x) + width / 2, (int) (squareOrigin.y + squareSide / 2));
+      g2.drawOval((int) x, (int) (y + tokenHeight), (int) tokenWidth, (int) tokenHeight);
+      // top
+      g2.setColor(Color.GRAY);
+      g2.fill(topSide);
+      g2.setColor(Color.BLACK);
+      g2.drawOval((int) x, (int) (y + tokenHeight - 5), (int) tokenWidth, (int) tokenHeight);
+      // name
+      g2.setFont(new Font("Arial", Font.BOLD, 15));
+      g2.drawString(player.name(), (int) (x + 2), (int) (y + squareSide / 2));
     });
   }
   
   private void drawPlayers(GraphicalUserInterface ui) {
-    for(var player: board.players()) {
-      drawPlayer(ui, player);
+    var players = board.players().stream().collect(groupingBy(Player::position));
+    for(var position: players.entrySet()) {
+      var coord = posToCoordinates(position.getKey() + offset);
+      var squareOrigin = coordinatesToPoint(coord.x(), coord.y());
+      for(var player: position.getValue()) {
+        drawPlayer(ui, player, squareOrigin.x, squareOrigin.y);
+        squareOrigin = new Point2D.Double(squareOrigin.x, squareOrigin.y - 10);
+      }
     }
   }
   
@@ -93,15 +114,17 @@ public class GraphicalTrackBoard {
   	var squareOrigin = coordinatesToPoint(coord.x(), coord.y());
   	var buttonX = squareOrigin.x + squareSide / 8;
   	var buttonY = squareOrigin.y + squareSide / 8;
+    var ellipses = new LinkedList<Shape>(List.of(
+        new Ellipse2D.Double(buttonX + squareSide / 20, buttonY + squareSide / 20, squareSide / 24, squareSide / 24),
+        new Ellipse2D.Double(buttonX + 3 * squareSide / 20, buttonY + 3 * squareSide / 20, squareSide / 24, squareSide / 24),
+        new Ellipse2D.Double(buttonX + squareSide / 20, buttonY + 3 * squareSide / 20, squareSide / 24, squareSide / 24),
+        new Ellipse2D.Double(buttonX + 3 * squareSide / 20, buttonY + squareSide / 20, squareSide / 24, squareSide / 24),
+        new Ellipse2D.Double(buttonX + 2 * squareSide / 20, buttonY + 2* squareSide / 20, squareSide / 24, squareSide / 24)));
   	ui.addDrawingAction(g2 -> {
-  		g2.setColor(new Color(91, 60, 17));
+  		g2.setColor(new Color(67, 165, 198));
   		g2.fill(new Ellipse2D.Double(buttonX, buttonY, squareSide / 4, squareSide / 4));
   		g2.setColor(Color.BLACK);
-  		g2.fill(new Ellipse2D.Double(buttonX + squareSide / 20, buttonY + squareSide / 20, squareSide / 24, squareSide / 24));
-  		g2.fill(new Ellipse2D.Double(buttonX + 3 * squareSide / 20, buttonY + 3 * squareSide / 20, squareSide / 24, squareSide / 24));
-  		g2.fill(new Ellipse2D.Double(buttonX + squareSide / 20, buttonY + 3 * squareSide / 20, squareSide / 24, squareSide / 24));
-  		g2.fill(new Ellipse2D.Double(buttonX + 3 * squareSide / 20, buttonY + squareSide / 20, squareSide / 24, squareSide / 24));
-  		g2.fill(new Ellipse2D.Double(buttonX + 2 * squareSide / 20, buttonY + 2* squareSide / 20, squareSide / 24, squareSide / 24));
+  		ellipses.forEach(g2::fill);
   	});
   }
   
@@ -116,9 +139,11 @@ public class GraphicalTrackBoard {
   	var squareOrigin = coordinatesToPoint(coord.x(), coord.y());
   	ui.addDrawingAction(g2 -> {
   		g2.setColor(new Color(78, 62, 21));
-  		g2.fill(new Rectangle2D.Double(squareOrigin.x + squareSide / 16, squareOrigin.y + squareSide / 16, squareSide / 4 + squareSide / 8, squareSide / 4 + squareSide / 8));
+  		g2.fill(new Rectangle2D.Double(squareOrigin.x + squareSide / 16, 
+  		    squareOrigin.y + squareSide / 16, squareSide / 4 + squareSide / 8, squareSide / 4 + squareSide / 8));
   		g2.setColor(new Color(97, 78, 26));
-  		g2.fill(new Rectangle2D.Double(squareOrigin.x + squareSide / 8, squareOrigin.y + squareSide / 8, squareSide / 4, squareSide / 4));
+  		g2.fill(new Rectangle2D.Double(squareOrigin.x + squareSide / 8, 
+  		    squareOrigin.y + squareSide / 8, squareSide / 4, squareSide / 4));
   	});
   }
   

@@ -35,7 +35,6 @@ public final class CommandLineInterface implements UserInterface {
   private static final Scanner scanner = new Scanner(System.in); 
   // It's like the window, we draw our elements on it and we refresh the display
   private final StringBuilder builder = new StringBuilder();
-  private final LinkedHashSet<String> messages = new LinkedHashSet<>();
   
   /**
    * Access the string builder of the command line interface
@@ -44,24 +43,6 @@ public final class CommandLineInterface implements UserInterface {
    */
   public StringBuilder builder() {
     return builder;
-  }
-  
-  public void addMessage(String message) {
-    Objects.requireNonNull(message, "The message can't be null");
-    messages.add(message);
-  }
-  
-  public void clearMessages() {
-    messages.clear();
-  }
-  
-  public void drawMessages() {
-    messages.forEach(message -> {
-      builder
-      .append("\n")
-      .append(message)
-      .append("\n");
-      }); 
   }
   
   /**
@@ -79,6 +60,7 @@ public final class CommandLineInterface implements UserInterface {
 
   @Override
   public Optional<KeybindedChoice> gameModeMenu(Set<KeybindedChoice> choices) {
+
     return getPlayerChoice(choices);
   }
 
@@ -348,7 +330,7 @@ public final class CommandLineInterface implements UserInterface {
   }
   
   public void drawSplashScreen() {
-    var splash = CLIColor.ANSI_BOLD + "  _____      _       _                       _    \n"
+    var splash = CLIColor.ANSI_BOLD + "\n  _____      _       _                       _    \n"
         + " |  __ \\    | |     | |                     | |   \n"
         + " | |__) |_ _| |_ ___| |____      _____  _ __| | __\n"
         + " |  ___/ _` | __/ __| '_ \\ \\ /\\ / / _ \\| '__| |/ /\n"
@@ -360,17 +342,5 @@ public final class CommandLineInterface implements UserInterface {
         + CLIColor.ANSI_RESET;
     builder.append(splash);
   }
-
-  public void drawMessage(String txt, Color color) {
-    Objects.requireNonNull(txt);
-    builder.append(CLIColor.fromColor(color));
-    drawMessage(txt);
-  }
-  
-  public void drawMessage(String txt) {
-    Objects.requireNonNull(txt);
-    builder.append(txt).append(CLIColor.ANSI_RESET);
-  }
-
  
 }
