@@ -51,6 +51,7 @@ public class GraphicalTrackBoard {
     drawTrackBoardSpaces(ui);
     drawPlayers(ui);
     drawButtons(ui);
+    drawPatches(ui);
   }  
 
   private void drawTrackBoardSpaces(GraphicalUserInterface ui) {
@@ -104,6 +105,23 @@ public class GraphicalTrackBoard {
   	board.events().stream()
   		.filter(e -> e.type().equals(EventType.BUTTON_INCOME))
   		.forEach(e -> drawButton(ui, e));
+  }
+  
+  private void drawPatch(GraphicalUserInterface ui, Event patch) {
+  	var coord = posToCoordinates(patch.position() + offset);
+  	var squareOrigin = coordinatesToPoint(coord.x(), coord.y());
+  	ui.addDrawingAction(g2 -> {
+  		g2.setColor(new Color(78, 62, 21));
+  		g2.fill(new Rectangle2D.Double(squareOrigin.x + squareSide / 16, squareOrigin.y + squareSide / 16, squareSide / 4 + squareSide / 8, squareSide / 4 + squareSide / 8));
+  		g2.setColor(new Color(97, 78, 26));
+  		g2.fill(new Rectangle2D.Double(squareOrigin.x + squareSide / 8, squareOrigin.y + squareSide / 8, squareSide / 4, squareSide / 4));
+  	});
+  }
+  
+  private void drawPatches(GraphicalUserInterface ui) {
+  	board.events().stream()
+  		.filter(e -> e.type().equals(EventType.PATCH_INCOME))
+  		.forEach(p -> drawPatch(ui, p));
   }
   
   private void updateSpaces() { 
