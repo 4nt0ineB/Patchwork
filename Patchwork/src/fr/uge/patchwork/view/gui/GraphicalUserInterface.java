@@ -1,19 +1,18 @@
 package fr.uge.patchwork.view.gui;
 
+import static java.util.Comparator.comparing;
+
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
-import java.awt.Shape;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Line2D;
-import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
@@ -47,6 +46,7 @@ public class GraphicalUserInterface implements UserInterface {
   
   private final LinkedList<Consumer<Graphics2D>> drawingActions = new LinkedList<>();
   private KeybindedChoice choice;
+  private RegularPatch selectedPatch;
   
   private long time;
   
@@ -59,6 +59,7 @@ public class GraphicalUserInterface implements UserInterface {
   }
 
   public void addDrawingAction(Consumer<Graphics2D> action) {
+    Objects.requireNonNull(action, "the drawing action can't be null");
     drawingActions.add(action);
   }
   
@@ -101,6 +102,7 @@ public class GraphicalUserInterface implements UserInterface {
   
   @Override
   public Optional<KeybindedChoice> gameModeMenu(Set<KeybindedChoice> choices) {
+    Objects.requireNonNull(choices, "the choies can't be null");
     var choiceList = List.copyOf(choices);
     drawSplashScreen((int) width / 2 - 400, (int) (height / 2 - (choices.size() * 95) / 2) - 160, 80);
     renderChoices(choiceList, 
@@ -110,60 +112,119 @@ public class GraphicalUserInterface implements UserInterface {
     return menu(choiceList);
   }
   
+  /**
+   * Return the next power of two greater or equal to n
+   * @throws new IllegalArgumentException if n equal zero
+   * @return
+   */
+  private double nextPower2(int n) {
+    if(n == 0) {
+      throw new IllegalArgumentException("n can't be equal to zero");
+    }
+    return 32 - Integer.numberOfLeadingZeros(n - 1);
+  }
+  
+  private void drawPlayerInfo(Player player, int x, int y, int fontSize) {
+    var buttonColor = new Color(47, 115, 138);
+    addDrawingAction(g2 -> {
+      g2.setFont(new Font("", Font.BOLD, fontSize));
+      g2.drawString(player.name(), x,y );
+      g2.setColor(buttonColor);
+      g2.drawString(player.buttons() + " buttons", (int) x, (int) y + fontSize);
+    });
+  }
+  
+  private void drawPlayers(List<Player> players, int x, int y, int w, int h) {
+    var zones = new ArrayList<Rectangle2D.Double>();
+    var firstZone = new Rectangle2D.Double(x, y, w, h);
+    zones.add(firstZone);
+    var numberOfDivision = nextPower2(players.size());
+    for(var i = 1; i <= numberOfDivision; i++) {
+      var start = zones.size();
+      for(var j = 0; j < Math.pow(2, i - 1); j++) {
+        var rect = zones.get(start - 1 - j);
+        Rectangle2D.Double r1;
+        Rectangle2D.Double r2;
+        if(i % 2 == 0) {
+          r1 = new Rectangle2D.Double(rect.x, rect.y, rect.width, rect.height / 2);
+          r2 = new Rectangle2D.Double(rect.x, rect.y + rect.height / 2, rect.width, rect.height / 2);
+        }else {
+          r1 = new Rectangle2D.Double(rect.x, rect.y, rect.width / 2, rect.height);
+          r2 = new Rectangle2D.Double(rect.x + rect.width / 2, rect.y, rect.width / 2, rect.height);
+        }
+        zones.add(r1);
+        zones.add(r2);
+      }
+    }
+    var numberOfZones = Math.pow(2, numberOfDivision);
+    for(var i = 0; i < players.size(); i++) { // draw the quilt of each players in associated area
+      var zone = zones.get((int) (zones.size() - numberOfZones + i));
+      var side = (int) Math.min(zone.width, zone.height);
+      var player = players.get(i);
+      var zy = zone.y + side / 4;
+      new GraphicalQuiltBoard(player.quilt(), 
+          (int) zone.x - 20, 
+          (int) zy, 
+          side
+          ).draw(this);
+      var fontSize = (int) (side * 0.05);
+      // draw the quilt
+      drawPlayerInfo(player, (int) zone.x, (int) (zy + side + side * 0.1), fontSize);
+    }
+  }
+  
   @Override
   public void draw(TrackBoard trackBoard) {
-    var zone = new Rectangle2D.Double(width - width / 3, 0, width / 3, height);
-    addDrawingAction(g2 -> {
-      g2.draw(zone);
-    });
-    var players = trackBoard.players().stream().sorted(Comparator.comparing(Player::name)).toList();
-    new GraphicalQuiltBoard(players.get(0).quilt(), (int) zone.x, (int) zone.y, (int) zone.height / 2).draw(this);
-    new GraphicalQuiltBoard(players.get(1).quilt(), (int) zone.x, (int) (zone.y + zone.height / 2), (int) zone.height / 2).draw(this);
-    new GraphicalTrackBoard((int) width / 5, (int) height / 3, 400, trackBoard).draw(this);
+    Objects.requireNonNull(trackBoard, "the track board can't be null");
+    var sortedPlayers = trackBoard.players().stream().sorted(comparing(Player::name)).toList();
+    drawPlayers(sortedPlayers, (int) (width - width / 3), 0, (int) width / 3, (int) height);
+    new GraphicalTrackBoard((int) width / 4, (int) height / 4, 600, trackBoard).draw(this);
   }
   
   @Override
   public void draw(PatchManager manager) {
-    var radius = 400;
-    var center = new Point2D.Double((int) width / 5 + radius / 2
-        , (int) height / 3 + radius / 2);
-    var circumference = radius * 2 * Math.PI;
-    var gap = 30;
-    var lines = new LinkedList<Shape>();
-    for(var i = 0; i < manager.numberOfPatches(); i++) {
-      //var line = new Line2D.Double( center.x + radius / 2 + radius, center.y);
-      var rect = new Rectangle2D.Double(center.x + radius - radius / 5, center.y, radius / 3, circumference / manager.numberOfPatches() - gap);
-      var rotation = AffineTransform.getRotateInstance(Math.toRadians((360 / manager.numberOfPatches()) * i), center.x, center.y);
-      lines.add(rotation.createTransformedShape(rect));
-    }
-    addDrawingAction(g2 -> {
-      g2.setColor(Color.BLACK);
-      g2.setStroke(new BasicStroke(3.0f));
-      g2.drawOval((int) center.x - radius, (int) center.y - radius, radius * 2, radius * 2);
-      g2.setColor(new Color(89, 153, 84));
-      lines.forEach(g2::fill);
-      
-      g2.setColor(Color.BLACK);
-      g2.setFont(new Font("", Font.BOLD, 25));
-      g2.drawString("Les patch à représenter... faire un GraphicalPatchManager", (int) center.x - radius, (int) center.y - radius);
-    });
-    
+    Objects.requireNonNull(manager, "the patch manager can't be null");
+    new GraphicalPatchManager(manager, 9, 0, (int) 20, (int) (width / 7), (int) (height - (height/10)*2) ).draw(this);
   }
 
   @Override
   public Optional<KeybindedChoice> turnMenu(Set<KeybindedChoice> choices) {
+    Objects.requireNonNull(choices, "the list of choices can't be null");
     var choiceList = List.copyOf(choices);
     renderChoices(choiceList, 
-        width / 5 - 400, 
-        height - (height / 9) - (choices.size() * 95) / 2, 
-        400, 75, 20, 35);
+        (int) (width * 0.02) , 
+        height - (height * 0.07) - (choices.size() * 95) / 2, 
+        400, 75, 20, 30);
     return menu(choiceList);
   }
   
   @Override
   public Optional<RegularPatch> selectPatch(List<RegularPatch> patches, PatchManager manager) {
-    // TODO Auto-generated method stub
-    return Optional.of(patches.get(0));
+    Objects.requireNonNull(patches, "the list of choices can't be null");
+    Objects.requireNonNull(manager, "the list of choices can't be null");
+    var i = 0;
+    if(selectedPatch != null) {
+      i = Math.max(0, patches.indexOf(selectedPatch));
+    }
+    var gmanager = new GraphicalPatchManager(manager, 9, 0, (int) 20, (int) (width / 7), (int) (height - (height/10)*2));
+    gmanager.enhance(patches.get(i));
+    gmanager.draw(this);
+    Event event = context.pollOrWaitEvent(10);
+    if(event != null) {
+      Action action = event.getAction();
+      if (action == Action.KEY_PRESSED) {
+        var keyname = event.getKey().toString();
+          switch(keyname) {
+            case "UP" -> selectedPatch = patches.get(Integer.min(patches.size() - 1, i + 1));
+            case "DOWN" -> selectedPatch = patches.get(Integer.max(i - 1, 0));
+            case "SPACE" -> {
+              choice = null;
+              return Optional.of(patches.get(i));
+            }
+          }
+      }
+    }
+    return Optional.empty();
   }
   
   /**
@@ -183,9 +244,9 @@ public class GraphicalUserInterface implements UserInterface {
       graphics.setFont(new Font("Arial", Font.TRUETYPE_FONT, fontsize));
       var x = posx;
       var y = posy;
-      int i = 0;
       Color color;
       // check index of previously selected choice
+      int i = 0;
       if(choice != null) {
         i = choices.indexOf(choice);
       }
@@ -232,23 +293,24 @@ public class GraphicalUserInterface implements UserInterface {
             }
           }
       }
-//      if(action == Action.POINTER_MOVE) {
-//        System.out.println(event.getLocation());
-//      }
     }
-    // add mouse click capability
     return Optional.empty();
   }
   
   @Override
   public void drawDummyQuilt(Player player, Patch patch) {
     var quiltSide = height / 2;
+    var x = (int) ((width / 2) - quiltSide / 2);
+    var y = (int) ((height / 2) - quiltSide / 2);
     var quilt = new GraphicalQuiltBoard(player.quilt()
-        , (int) ((width / 2) - (quiltSide / 2))
-        , (int) ((height / 2) - quiltSide / 2)
+        , x
+        , y
         , (int) quiltSide);
     quilt.draw(this);
     quilt.drawWithPatchAsDummy(this, patch);
+    var fontSize = 35;
+    drawPlayerInfo(player, (int) x, (int) y - fontSize * 2, fontSize);
+   
   }
   
   public void drawSplashScreen(int x, int y, int fontsize) {
@@ -260,18 +322,21 @@ public class GraphicalUserInterface implements UserInterface {
   }
 
   @Override
-  public void drawScoreBoard(TrackBoard trackboard) {
+  public void drawScoreBoard(TrackBoard trackBoard) {
+    Objects.requireNonNull(trackBoard, "the track board can't be null");
     throw new AssertionError("todo");
     
   }
 
   @Override
   public Optional<KeybindedChoice> endGameMenu(Set<KeybindedChoice> choices) {
+    Objects.requireNonNull(choices, "the choices can't be null");
     return Optional.empty();
   }
 
   @Override
   public Optional<KeybindedChoice> manipulatePatch(Set<KeybindedChoice> choices) {
+    Objects.requireNonNull(choices, "the choices can't be null");
     return getInput(choices);
   }
 
@@ -289,10 +354,7 @@ public class GraphicalUserInterface implements UserInterface {
         }
       }
     }
-    // add mouse click capability
     return Optional.empty();
   }
-
-  
 
 }

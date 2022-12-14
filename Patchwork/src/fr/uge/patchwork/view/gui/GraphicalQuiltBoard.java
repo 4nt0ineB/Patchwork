@@ -2,6 +2,7 @@ package fr.uge.patchwork.view.gui;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
 import java.util.LinkedList;
@@ -9,9 +10,7 @@ import java.util.Objects;
 
 import fr.uge.patchwork.model.component.QuiltBoard;
 import fr.uge.patchwork.model.component.patch.Coordinates;
-import fr.uge.patchwork.model.component.patch.Form;
 import fr.uge.patchwork.model.component.patch.Patch;
-import fr.uge.patchwork.model.component.patch.RegularPatch;
 
 public class GraphicalQuiltBoard {
   
@@ -29,15 +28,13 @@ public class GraphicalQuiltBoard {
   }
   
   public void draw(GraphicalUserInterface ui) {
-    var x = new RegularPatch(0,0,0, Form.fromText("oxx\nx\n\n"));
-    x.absoluteMoveTo(new Coordinates(5, 5));
-    board.add(x);
     drawQuilt(ui);
   }
 
   private void drawQuilt(GraphicalUserInterface ui) {
     drawQuiltBox(ui, (int) origin.x(), (int) origin.y(), width);
     drawPatches(ui);
+    drawInfo(ui);
   }
   
   private void drawPatches(GraphicalUserInterface ui) {
@@ -51,14 +48,17 @@ public class GraphicalQuiltBoard {
         if(board.occupied(coord)) {
           g2.setColor(Color.RED);
         }
-        g2.fill(new Rectangle2D.Double(origin.x() + coord.x() * squareSide, 
-          origin.y() + coord.y() * squareSide, squareSide, squareSide));
+        var rect = new Rectangle2D.Double(origin.x() + coord.x() * squareSide, 
+            origin.y() + coord.y() * squareSide, squareSide, squareSide);
+        g2.fill(rect);
+        g2.setColor(Color.BLACK);
+        g2.setStroke(new BasicStroke(2.0f));
+        g2.draw(rect);
       }
     });
   }
   
   public void drawPatch(GraphicalUserInterface ui, Patch patch) {
-    
     var squares = new LinkedList<Shape>();
     for(var coord: patch.absoluteCoordinates()) {
       squares.add(new Rectangle2D.Double(origin.x() + coord.x() * squareSide, 
@@ -67,6 +67,9 @@ public class GraphicalQuiltBoard {
     ui.addDrawingAction(g2 -> {
       g2.setColor(new Color(patch.hashCode()));
       squares.forEach(g2::fill);
+      g2.setColor(Color.BLACK);
+      g2.setStroke(new BasicStroke(2.0f));
+      squares.forEach(g2::draw);
     });
   }
   
@@ -74,10 +77,22 @@ public class GraphicalQuiltBoard {
   private void drawQuiltBox(GraphicalUserInterface ui, int x, int y, int width) {
     ui.addDrawingAction(g2 -> {
       g2.setColor(bgColor);
-      g2.fillRect(x, y, width, (int) (board.height() * squareSide));
+      g2.fillRect(x, y, (int) (width - width * 0.001), (int) (board.height() * squareSide));
       g2.setColor(Color.BLACK);
       g2.setStroke(new BasicStroke(2f));
       g2.drawRect(x, y, width, (int)  (board.height() * squareSide));
     });
+  }
+  
+  private void drawInfo(GraphicalUserInterface ui) {
+    var fontSize = (int) (squareSide * 0.3);
+    var font = new Font("", Font.BOLD, fontSize);
+    ui.addDrawingAction(g2 -> {
+      g2.setFont(font);
+      var txt = "Buttons : " + board.buttons();
+      var txtWidth = g2.getFontMetrics().stringWidth(txt);
+      g2.drawString(txt, origin.x() + width - txtWidth, origin.y() + width + 20);
+    });
+    
   }
 }

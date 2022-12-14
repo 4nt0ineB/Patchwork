@@ -42,7 +42,7 @@ public class GraphicalTrackBoard {
     this.side = side;
     squaresOnSide = (int) Math.sqrt(nextPerfectSquare(board.spaces()));
     squareSide = side / squaresOnSide;
-    offset = (int) (squaresOnSide * squaresOnSide - board.spaces());
+    offset = (int) (squaresOnSide * squaresOnSide - board.spaces() - 1);
     updateSpaces();
   }
   
@@ -184,7 +184,7 @@ public class GraphicalTrackBoard {
   }
   
   private Coordinates posToCoordinates(int pos) {
-    var start = new Coordinates(squaresOnSide - 1 ,squaresOnSide - 1);
+    var start = new Coordinates(squaresOnSide - 1 , squaresOnSide - 1);
     var advance = pos; // how many spaces to advance
     int directionI = 0;
     Coordinates[] turnCycle = {

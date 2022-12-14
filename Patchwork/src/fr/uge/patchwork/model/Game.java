@@ -32,7 +32,8 @@ public record Game(GameMode gameMode, TrackBoard trackBoard,
     var events = new ArrayList<Event>();
     var players = new HashSet<Player>(List.of(
         new Player("Player 1", 5, new QuiltBoard(9,9)),
-        new Player("Player 2", 5, new QuiltBoard(9,9))
+        new Player("Player 2", 5, new QuiltBoard(9,9)),
+        new Player("Player 3", 5, new QuiltBoard(9,9))
         ));
 
     Path patchesPath = null;
