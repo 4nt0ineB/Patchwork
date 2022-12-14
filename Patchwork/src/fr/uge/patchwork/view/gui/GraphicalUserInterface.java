@@ -1,6 +1,7 @@
 package fr.uge.patchwork.view.gui;
 
 import static java.util.Comparator.comparing;
+import static java.util.Comparator.reverseOrder;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -24,6 +25,7 @@ import fr.uge.patchwork.model.component.gameboard.TrackBoard;
 import fr.uge.patchwork.model.component.patch.Patch;
 import fr.uge.patchwork.model.component.patch.RegularPatch;
 import fr.uge.patchwork.view.UserInterface;
+import fr.uge.patchwork.view.cli.CLIColor;
 import fr.umlv.zen5.ApplicationContext;
 import fr.umlv.zen5.Event;
 import fr.umlv.zen5.Event.Action;
@@ -231,10 +233,14 @@ public class GraphicalUserInterface implements UserInterface {
   public Optional<KeybindedChoice> turnMenu(Set<KeybindedChoice> choices) {
     Objects.requireNonNull(choices, "the list of choices can't be null");
     var choiceList = List.copyOf(choices);
+    var y = (int) (height - (height/10)*2) + 20;
     renderChoices(choiceList, 
-        (int) (width * 0.02) , 
-        height - (height * 0.07) - (choices.size() * 95) / 2, 
-        400, 75, 20, 30);
+        (int) (width * 0.02) ,
+        (int) y, 
+        0 ,
+        0, 
+        2, 
+        30);
     return menu(choiceList);
   }
   
@@ -369,14 +375,35 @@ public class GraphicalUserInterface implements UserInterface {
   @Override
   public void drawScoreBoard(TrackBoard trackBoard) {
     Objects.requireNonNull(trackBoard, "the track board can't be null");
-    throw new AssertionError("todo");
-    
+    var sortedPlayers = trackBoard.players().stream().sorted(reverseOrder()).toList();
+    addDrawingAction(g2 -> {
+      var x = width / 2;
+      var y = height / 6;
+      var margin = 10;
+      var fontSize =  (int) (height * 0.04);
+      g2.setFont(new Font("", Font.CENTER_BASELINE, fontSize));
+      var fontMetrics = g2.getFontMetrics();
+      for(var player: sortedPlayers) {
+        var txt = player.name() + " " + player.score();
+        var txtWidth = fontMetrics.stringWidth(txt);
+        g2.drawString(txt, x - txtWidth / 2, y);
+        y += fontSize + margin;
+      }
+      g2.setColor(new Color(134, 123, 189));
+      var txt = sortedPlayers.get(0).name() + " Wins !";
+      g2.drawString(txt, x - (fontMetrics.stringWidth(txt) / 2), y + fontSize + margin);
+    });
   }
 
   @Override
   public Optional<KeybindedChoice> endGameMenu(Set<KeybindedChoice> choices) {
     Objects.requireNonNull(choices, "the choices can't be null");
-    return Optional.empty();
+    var choiceList = List.copyOf(choices);
+    renderChoices(choiceList, 
+        width / 2 - 400, 
+        height - height / 4 - (choices.size() * (35 + 20 )) / 2, 
+        0, 0, 20, 35);
+    return menu(choiceList);
   }
 
   @Override

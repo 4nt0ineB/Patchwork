@@ -64,7 +64,6 @@ public class PatchworkController {
       }
      ui.display();
     }while(wantToPlay && gameMode == null);
-    
     return wantToPlay;
   }
   
@@ -100,14 +99,14 @@ public class PatchworkController {
       ui.drawScoreBoard(game.trackBoard());
       ui.display(); 
       var chose = ui.endGameMenu(choices);
-      if(chose.isEmpty()) {
-        continue;
+      if(chose.isPresent()) {
+        switch (chose.get().key()) {
+          case 'q' -> { return false; }
+          case 'n' -> { return true; } 
+          default -> { throw new AssertionError("There shouldn't be other choices"); }
+        }
       }
-      switch (chose.get().key()) {
-        case 'q' -> { return false; }
-        case 'n' -> { return true; } 
-        default -> { throw new AssertionError("There shouldn't be other choices"); }
-      }
+      ui.display();
     }
   }
   
@@ -117,7 +116,6 @@ public class PatchworkController {
       var event = triggeredEvents.peek();
       switch(event.type()) {
         case BUTTON_INCOME -> {
-          //ui.drawMessage("You receive some buttons!", new Color(46, 112, 219)); // don't work do other way
           int amount = player.quilt().buttons();
           if(amount != 0) {
             player.addButtons(amount);
@@ -125,7 +123,6 @@ public class PatchworkController {
           triggeredEvents.pop();
         }
         case PATCH_INCOME -> {
-          //ui.drawMessage("You receive some buttons!", new Color(82, 181, 25));
           if(manipulatePatch(new LeatherPatch())) {
             game.trackBoard().removeEvent(event);
             triggeredEvents.pop();
