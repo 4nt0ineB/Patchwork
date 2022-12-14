@@ -5,7 +5,6 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Polygon;
 import java.awt.geom.Rectangle2D;
-import java.util.Arrays;
 import java.util.Objects;
 
 import fr.uge.patchwork.model.component.QuiltBoard;
@@ -13,6 +12,12 @@ import fr.uge.patchwork.model.component.gameboard.PatchManager;
 import fr.uge.patchwork.model.component.patch.Coordinates;
 import fr.uge.patchwork.model.component.patch.RegularPatch;
 
+/**
+ * 
+ * Graphical layer of a patch manager implementation
+ * for a graphical user interface.
+ *
+ */
 public class GraphicalPatchManager {
   private final PatchManager manager;
   private final Coordinates origin;
@@ -35,6 +40,10 @@ public class GraphicalPatchManager {
     squareSide = Math.max(width, height) / shown;
   }
   
+  /**
+   * Draw the patch manager on a graphical user interface
+   * @param ui a graphical user interface
+   */
   public void draw(GraphicalUserInterface ui) {
     ui.addDrawingAction(g2 -> {
       g2.setStroke(new BasicStroke(2f));
@@ -58,6 +67,10 @@ public class GraphicalPatchManager {
     }
   }
   
+  /**
+   * Set a patch to be enhanced
+   * @param patch
+   */
   public void enhance(RegularPatch patch) {
     Objects.requireNonNull(patch, "Can't enhance null");
     toEnhance = patch;
@@ -89,7 +102,6 @@ public class GraphicalPatchManager {
     if(toEnhance == patch) { // we compare pointers here
       var rect = new Rectangle2D.Double(x ,  y + squareSide / 4, squareSide / 4, squareSide / 6);
       var color = new Color(0, 149, 186);
-      var stroke = new BasicStroke(2.0f);
       // triangle
       int[] xs = {(int) rect.x + (int) rect.width, 0, 0};
       xs[1] = xs[0];

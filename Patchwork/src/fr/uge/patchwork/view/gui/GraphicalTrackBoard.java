@@ -19,6 +19,12 @@ import fr.uge.patchwork.model.component.gameboard.event.Event;
 import fr.uge.patchwork.model.component.gameboard.event.EventType;
 import fr.uge.patchwork.model.component.patch.Coordinates;
 
+/**
+ * 
+ * Graphical layer of a track board implementation
+ * for a graphical user interface.
+ *
+ */
 public class GraphicalTrackBoard {
   
   private final TrackBoard board;
@@ -46,6 +52,10 @@ public class GraphicalTrackBoard {
     updateSpaces();
   }
   
+  /**
+   * Draw the track board on a graphical user interface
+   * @param ui a graphical user interface
+   */
   public void draw(GraphicalUserInterface ui) {
     // background
     ui.addDrawingAction(g2 -> {
@@ -166,6 +176,12 @@ public class GraphicalTrackBoard {
     }
   }
   
+  /**
+   * Transform a track board position into indexes 
+   * on its 2d array representation
+   * @param space
+   * @return
+   */
   public Point2D.Double posToPoint(int space){
     var coord = posToCoordinates(space);
     return coordinatesToPoint(coord.x(), coord.y());
@@ -223,11 +239,14 @@ public class GraphicalTrackBoard {
     return start;
   }
   
+  /**
+   * Return the next perfect square greater than a given number
+   * @param x
+   * @return
+   */
   private int nextPerfectSquare(int x) {
     int upperx = (int) Math.floor(Math.sqrt(x)) + 1;
     return upperx * upperx;
   }
-  
-  
   
 }

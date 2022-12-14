@@ -2,18 +2,13 @@ package fr.uge.patchwork.view.gui;
 
 import static java.util.Comparator.comparing;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -21,8 +16,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
-
-import javax.imageio.ImageIO;
 
 import fr.uge.patchwork.controller.KeybindedChoice;
 import fr.uge.patchwork.model.component.Player;
@@ -35,6 +28,11 @@ import fr.umlv.zen5.ApplicationContext;
 import fr.umlv.zen5.Event;
 import fr.umlv.zen5.Event.Action;
 
+/**
+ * 
+ * A graphical user interface for the patchwork game
+ *
+ */
 public class GraphicalUserInterface implements UserInterface {
 
   private final ApplicationContext context;
@@ -42,7 +40,6 @@ public class GraphicalUserInterface implements UserInterface {
   private final float height;
   private final int fps = 20;
   private final Color backgroundColor = new Color(201, 153, 68);
-  private BufferedImage img;
   
   private final LinkedList<Consumer<Graphics2D>> drawingActions = new LinkedList<>();
   private KeybindedChoice choice;
@@ -57,26 +54,38 @@ public class GraphicalUserInterface implements UserInterface {
     this.height = screenInfo.getHeight();
     time = Instant.now().toEpochMilli();
   }
-
+  
+  /**
+   * Add a drawing action that will be executed 
+   * at the next displayed frame
+   * @param action
+   */
   public void addDrawingAction(Consumer<Graphics2D> action) {
     Objects.requireNonNull(action, "the drawing action can't be null");
     drawingActions.add(action);
   }
   
   @Override
+  /**
+   * Init the view
+   */
   public void init() throws IOException {
     drawingActions.add(graphics -> {
       graphics.setColor(Color.ORANGE);
       graphics.fill(new  Rectangle2D.Float(0, 0, 500, 500));
     });
-    var path = Path.of("resources/patchwork/img/img.jpg");
-    try(var reader = Files.newInputStream(path)) {
-      img = ImageIO.read(reader);
-    }
-    
+//    var path = Path.of("resources/patchwork/img/img.jpg");
+//    try(var reader = Files.newInputStream(path)) {
+//      img = ImageIO.read(reader);
+//    }
   }
   
   @Override
+  /**
+   * Run all drawing actions.
+   * with a defined refresh rate
+   * 
+   */
   public void display() {
     var currentTime = Instant.now().toEpochMilli();
     // cap the refresh rate
@@ -87,6 +96,10 @@ public class GraphicalUserInterface implements UserInterface {
   }
 
   @Override
+  /**
+   * clear the drawing actions queue
+   * and clear the window with a background
+   */
   public void clear() {
     drawingActions.clear();
     addDrawingAction(g2 -> {
@@ -101,6 +114,12 @@ public class GraphicalUserInterface implements UserInterface {
   }
   
   @Override
+  /**
+   * Display a menu as the game mode selection menu.
+   * (The game menu)
+   * for given choices
+   * @return an optional keybindedChoice
+   */
   public Optional<KeybindedChoice> gameModeMenu(Set<KeybindedChoice> choices) {
     Objects.requireNonNull(choices, "the choies can't be null");
     var choiceList = List.copyOf(choices);
@@ -124,6 +143,13 @@ public class GraphicalUserInterface implements UserInterface {
     return 32 - Integer.numberOfLeadingZeros(n - 1);
   }
   
+  /**
+   * Draw the player info at given position
+   * @param player
+   * @param x
+   * @param y
+   * @param fontSize
+   */
   private void drawPlayerInfo(Player player, int x, int y, int fontSize) {
     var buttonColor = new Color(47, 115, 138);
     addDrawingAction(g2 -> {
@@ -134,6 +160,14 @@ public class GraphicalUserInterface implements UserInterface {
     });
   }
   
+  /**
+   * Draw given players in a given area
+   * @param players
+   * @param x
+   * @param y
+   * @param w
+   * @param h
+   */
   private void drawPlayers(List<Player> players, int x, int y, int w, int h) {
     var zones = new ArrayList<Rectangle2D.Double>();
     var firstZone = new Rectangle2D.Double(x, y, w, h);
@@ -174,6 +208,9 @@ public class GraphicalUserInterface implements UserInterface {
   }
   
   @Override
+  /**
+   * Draw the track board
+   */
   public void draw(TrackBoard trackBoard) {
     Objects.requireNonNull(trackBoard, "the track board can't be null");
     var sortedPlayers = trackBoard.players().stream().sorted(comparing(Player::name)).toList();
@@ -182,6 +219,9 @@ public class GraphicalUserInterface implements UserInterface {
   }
   
   @Override
+  /**
+   * Draw the patch manager
+   */
   public void draw(PatchManager manager) {
     Objects.requireNonNull(manager, "the patch manager can't be null");
     new GraphicalPatchManager(manager, 9, 0, (int) 20, (int) (width / 7), (int) (height - (height/10)*2) ).draw(this);
@@ -199,6 +239,11 @@ public class GraphicalUserInterface implements UserInterface {
   }
   
   @Override
+  /**
+   * Draw the menu of patch selection
+   * with a given restricted list of patches used as available choices
+   * and a patch manager
+   */
   public Optional<RegularPatch> selectPatch(List<RegularPatch> patches, PatchManager manager) {
     Objects.requireNonNull(patches, "the list of choices can't be null");
     Objects.requireNonNull(manager, "the list of choices can't be null");

@@ -12,6 +12,12 @@ import fr.uge.patchwork.model.component.QuiltBoard;
 import fr.uge.patchwork.model.component.patch.Coordinates;
 import fr.uge.patchwork.model.component.patch.Patch;
 
+/**
+ * 
+ * Graphical layer of a quilt board implementation
+ * for a graphical user interface.
+ *
+ */
 public class GraphicalQuiltBoard {
   
   public final QuiltBoard board;
@@ -27,20 +33,26 @@ public class GraphicalQuiltBoard {
     squareSide = width / board.width();
   }
   
+  /**
+   * Draw the quilt board on a graphical user interface
+   * @param ui a graphical user interface
+   */
   public void draw(GraphicalUserInterface ui) {
-    drawQuilt(ui);
-  }
-
-  private void drawQuilt(GraphicalUserInterface ui) {
     drawQuiltBox(ui, (int) origin.x(), (int) origin.y(), width);
     drawPatches(ui);
     drawInfo(ui);
   }
-  
+
   private void drawPatches(GraphicalUserInterface ui) {
     board.patches().forEach(p -> drawPatch(ui, p));
   }  
   
+  /**
+   * Draw the quilt board on a graphical user interface
+   * with a dummy patch. Useful for manipulating a patch
+   * and moving it on the quilt without adding it to the patch
+   * @param ui a graphical user interface
+   */
   public void drawWithPatchAsDummy(GraphicalUserInterface ui, Patch patch) {
     ui.addDrawingAction(g2 -> {
       for(var coord: patch.absoluteCoordinates()) {
@@ -58,6 +70,10 @@ public class GraphicalQuiltBoard {
     });
   }
   
+  /**
+   * Draw the patches of the quilt on a graphical user interface
+   * @param ui a graphical user interface
+   */
   public void drawPatch(GraphicalUserInterface ui, Patch patch) {
     var squares = new LinkedList<Shape>();
     for(var coord: patch.absoluteCoordinates()) {
@@ -73,7 +89,6 @@ public class GraphicalQuiltBoard {
     });
   }
   
-
   private void drawQuiltBox(GraphicalUserInterface ui, int x, int y, int width) {
     ui.addDrawingAction(g2 -> {
       g2.setColor(bgColor);
