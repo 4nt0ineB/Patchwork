@@ -5,8 +5,11 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Polygon;
 import java.awt.geom.Rectangle2D;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
+import fr.uge.patchwork.controller.KeybindedChoice;
 import fr.uge.patchwork.model.component.QuiltBoard;
 import fr.uge.patchwork.model.component.gameboard.PatchManager;
 import fr.uge.patchwork.model.component.patch.Coordinates;

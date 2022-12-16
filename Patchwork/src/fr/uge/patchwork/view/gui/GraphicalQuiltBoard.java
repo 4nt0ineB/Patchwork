@@ -5,9 +5,12 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Objects;
+import java.util.Set;
 
+import fr.uge.patchwork.controller.KeybindedChoice;
 import fr.uge.patchwork.model.component.QuiltBoard;
 import fr.uge.patchwork.model.component.patch.Coordinates;
 import fr.uge.patchwork.model.component.patch.Patch;
@@ -25,12 +28,15 @@ public class GraphicalQuiltBoard {
   private final int width;
   private final Color bgColor = new Color(140, 85, 52);
   private final double squareSide; // side of a square
+  private boolean focusedMode = false;
+  private Set<KeybindedChoice> infos = new HashSet<KeybindedChoice>();
   
   public GraphicalQuiltBoard(QuiltBoard board, int x, int y, int width) {
     this.board = Objects.requireNonNull(board);
     origin = new Coordinates(y, x);
     this.width = width;
     squareSide = width / board.width();
+    initOptions();
   }
   
   /**
@@ -42,7 +48,7 @@ public class GraphicalQuiltBoard {
     drawPatches(ui);
     drawInfo(ui);
   }
-
+  
   private void drawPatches(GraphicalUserInterface ui) {
     board.patches().forEach(p -> drawPatch(ui, p));
   }  
@@ -96,6 +102,8 @@ public class GraphicalQuiltBoard {
       g2.setColor(Color.BLACK);
       g2.setStroke(new BasicStroke(2f));
       g2.drawRect(x, y, width, (int)  (board.height() * squareSide));
+
+      
     });
   }
   
@@ -109,5 +117,49 @@ public class GraphicalQuiltBoard {
       g2.drawString(txt, origin.x() + width - txtWidth, origin.y() + width + 20);
     });
     
+  }
+  
+
+  private void initOptions() {
+    infos.add(new KeybindedChoice('p', "Place the patch"));
+    infos.add(new KeybindedChoice('s', "up"));
+    infos.add(new KeybindedChoice('w', "down"));
+    infos.add(new KeybindedChoice('q', "left"));
+    infos.add(new KeybindedChoice('d', "right"));
+    infos.add(new KeybindedChoice('z', "rotate left"));
+    infos.add(new KeybindedChoice('a', "rotate right"));
+    infos.add(new KeybindedChoice('f', "flip"));
+    infos.add(new KeybindedChoice('b', "back"));
+  }
+  
+  private void drawOption(GraphicalUserInterface ui, KeybindedChoice info, int x, int y) {
+  	ui.addDrawingAction(g2 -> {
+  			var stringWidth = g2.getFontMetrics().stringWidth(info.toString());
+        g2.setColor(Color.BLACK);
+        g2.setFont(new Font("Arial", Font.BOLD, 15));
+        g2.drawString(info.toString(), x - stringWidth / 2, y);
+      });
+  }
+  
+  private void drawOptions(GraphicalUserInterface ui, int x, int y, int width) {
+  	var optionY = y;
+   	var optionX = (x + width) / 2;
+   	var offsetY = width / infos.size();
+   	for (var info : infos) {
+   		drawOption(ui, info, optionX, optionY);
+   		optionY += offsetY;
+   	}
+  }
+  
+  public Set<KeybindedChoice> infos(){
+  	return infos;
+  }
+  
+  public Coordinates coords() {
+  	return origin;
+  }
+  
+  public int width() {
+  	return width;
   }
 }

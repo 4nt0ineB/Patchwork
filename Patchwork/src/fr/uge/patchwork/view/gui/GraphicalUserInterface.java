@@ -10,6 +10,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -361,7 +362,27 @@ public class GraphicalUserInterface implements UserInterface {
     quilt.drawWithPatchAsDummy(this, patch);
     var fontSize = 35;
     drawPlayerInfo(player, (int) x, (int) y - fontSize * 2, fontSize);
-   
+    drawOptions(this, quilt);
+
+  }
+  
+  private void drawOption(GraphicalUserInterface ui, KeybindedChoice info, int x, int y) {
+  	ui.addDrawingAction(g2 -> {
+			var stringWidth = g2.getFontMetrics().stringWidth(info.toString());
+	    g2.setColor(Color.BLACK);
+	    g2.setFont(new Font("Arial", Font.BOLD, 30));
+	    g2.drawString(info.toString(), x - stringWidth / 2, y);
+  	});
+  }
+  
+  private void drawOptions(GraphicalUserInterface ui, GraphicalQuiltBoard quilt) {
+  	var optionY = quilt.coords().y();
+   	var optionX = (quilt.coords().x()) / 2;
+   	var offsetY = quilt.width() / quilt.infos().size();
+   	for (var info : quilt.infos()) {
+   		drawOption(ui, info, (int)optionX, optionY);
+   		optionY += offsetY;
+   	}
   }
   
   public void drawSplashScreen(int x, int y, int fontsize) {
