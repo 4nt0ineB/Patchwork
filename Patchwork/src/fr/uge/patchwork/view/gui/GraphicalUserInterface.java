@@ -368,20 +368,20 @@ public class GraphicalUserInterface implements UserInterface {
   
   private void drawOption(GraphicalUserInterface ui, KeybindedChoice info, int x, int y) {
   	ui.addDrawingAction(g2 -> {
-			var stringWidth = g2.getFontMetrics().stringWidth(info.toString());
+			var stringRect = g2.getFontMetrics().getStringBounds(info.toString(), g2);
 	    g2.setColor(Color.BLACK);
 	    g2.setFont(new Font("Arial", Font.BOLD, 30));
-	    g2.drawString(info.toString(), x - stringWidth / 2, y);
-  	});
+	    g2.drawString(info.toString(), x - (int) stringRect.getCenterX(), y + (int) stringRect.getCenterY());
+  	}); 
   }
   
   private void drawOptions(GraphicalUserInterface ui, GraphicalQuiltBoard quilt) {
   	var optionY = quilt.coords().y();
    	var optionX = (quilt.coords().x()) / 2;
-   	var offsetY = quilt.width() / quilt.infos().size();
+   	var offsetY = quilt.width() / (quilt.infos().size() + 1);
    	for (var info : quilt.infos()) {
-   		drawOption(ui, info, (int)optionX, optionY);
    		optionY += offsetY;
+   		drawOption(ui, info, (int)optionX, optionY);
    	}
   }
   
