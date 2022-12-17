@@ -5,11 +5,8 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Polygon;
 import java.awt.geom.Rectangle2D;
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
 
-import fr.uge.patchwork.controller.KeybindedChoice;
 import fr.uge.patchwork.model.component.QuiltBoard;
 import fr.uge.patchwork.model.component.gameboard.PatchManager;
 import fr.uge.patchwork.model.component.patch.Coordinates;
@@ -38,8 +35,7 @@ public class GraphicalPatchManager {
     }
     this.width = width;
     this.height = height;
-    Objects.checkIndex(shown, manager.numberOfPatches());
-    this.shown = shown;
+    this.shown = Math.max(0, Math.min(shown,  manager.numberOfPatches()));
     squareSide = Math.max(width, height) / shown;
   }
   

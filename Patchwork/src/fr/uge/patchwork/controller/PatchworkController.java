@@ -4,19 +4,23 @@ import java.awt.Color;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.Stack;
 
 import fr.uge.patchwork.model.Game;
 import fr.uge.patchwork.model.GameMode;
-import fr.uge.patchwork.model.component.Player;
 import fr.uge.patchwork.model.component.QuiltBoard;
 import fr.uge.patchwork.model.component.gameboard.event.Event;
 import fr.uge.patchwork.model.component.patch.Coordinates;
 import fr.uge.patchwork.model.component.patch.LeatherPatch;
 import fr.uge.patchwork.model.component.patch.Patch;
 import fr.uge.patchwork.model.component.patch.RegularPatch;
+import fr.uge.patchwork.model.component.player.Automa;
+import fr.uge.patchwork.model.component.player.AutomaDifficulty;
+import fr.uge.patchwork.model.component.player.HumanPlayer;
+import fr.uge.patchwork.model.component.player.Player;
 import fr.uge.patchwork.view.UserInterface;
 import fr.uge.patchwork.view.cli.CommandLineInterface;
 import fr.uge.patchwork.view.gui.GraphicalUserInterface;
@@ -43,10 +47,11 @@ public class PatchworkController {
    * @return Choosen game mode
    */
   public boolean choseGameMode() {
-    var choices = new LinkedHashSet<KeybindedChoice>();
-    choices.add(new KeybindedChoice('b', "The basic game"));
-    choices.add(new KeybindedChoice('f', "The full game"));
-    choices.add(new KeybindedChoice('q', "Quit"));
+    var choices = new LinkedHashSet<KeybindedChoice>(List.of(
+            new KeybindedChoice('b', "The basic game")
+            , new KeybindedChoice('f', "The full game")
+            , new KeybindedChoice('a', "Automa")
+            , new KeybindedChoice('q', "Quit")));
     var wantToPlay = true;
     do {
       ui.clear();
@@ -55,6 +60,7 @@ public class PatchworkController {
         gameMode = switch(chose.get().key()) {
           case 'b' -> GameMode.PATCHWORK_BASIC;
           case 'f' -> GameMode.PATCHWORK_FULL;
+          case 'a' -> GameMode.PATCHWORK_AUTOMA;
           case 'q' -> {
             wantToPlay = false;
             yield null;
@@ -67,8 +73,42 @@ public class PatchworkController {
     return wantToPlay;
   }
   
+  public AutomaDifficulty choseDifficulty() {
+    var choices = new LinkedHashSet<KeybindedChoice>(List.of(
+            new KeybindedChoice('i', "Intern")
+            , new KeybindedChoice('a', "Apprentice")
+            , new KeybindedChoice('f', "Fellow")
+            , new KeybindedChoice('m', "Master")
+            , new KeybindedChoice('l', "Legend")));
+    AutomaDifficulty difficulty = null;
+    while(difficulty == null) {
+      ui.clear();
+      var choice = ui.difficultyMenu(choices);
+      if(!choice.isEmpty()) {
+        difficulty = switch(choice.get().key()) {
+          case 'i' -> AutomaDifficulty.INTERN;
+          case 'a' -> AutomaDifficulty.APPRENTICE;
+          case 'f' -> AutomaDifficulty.FELLOW;
+          case 'm' -> AutomaDifficulty.MASTER;
+          case 'l' -> AutomaDifficulty.LEGEND; 
+          default -> throw new AssertionError("there shoulnd't be other possiblities");
+        };
+      }
+     ui.display();
+    }
+    return difficulty;
+  }
+  
+  public Player player() {
+    return player;
+  }
+  
   public void init() throws IOException {
-    game = Game.fromGameMode(gameMode);
+   game = switch(gameMode) {
+     case PATCHWORK_BASIC -> Game.basic();
+     case PATCHWORK_FULL -> Game.full();
+     case PATCHWORK_AUTOMA -> Game.automa(choseDifficulty());
+    };
     player = game.trackBoard().latestPlayer();
   }
   
@@ -76,6 +116,10 @@ public class PatchworkController {
     while((player = game.trackBoard().latestPlayer()) != null   
         && player.position() != game.trackBoard().spaces()) {
       triggeredEvents.clear();
+      if(player instanceof Automa o) {
+        playAutoma((Automa) player);
+        continue;
+      }
       if(!playTurn()) { // quit asked
        return false; 
       }
@@ -116,7 +160,7 @@ public class PatchworkController {
       var event = triggeredEvents.peek();
       switch(event.type()) {
         case BUTTON_INCOME -> {
-          int amount = player.quilt().buttons();
+          int amount = ((HumanPlayer) player).quilt().buttons();
           if(amount != 0) {
             player.addButtons(amount);
           }
@@ -136,13 +180,17 @@ public class PatchworkController {
   }
 
   public void testSpecialTile() {
-    if(specialTile && player.quilt().hasFilledSquare(7)) {
+    if(specialTile && (((HumanPlayer) player).quilt().hasFilledSquare(7))) {
       player.earnSpecialTile();
       specialTile = false;
     }
   }
 
-  private boolean playTurn() {
+  private void playAutoma(Automa automa) {
+    throw new AssertionError("To do");
+  }
+  
+  boolean playTurn() {
     for(;;) {
       ui.clear();
       ui.draw(game.trackBoard());
@@ -217,13 +265,14 @@ public class PatchworkController {
    */
   private boolean manipulatePatch(Patch patch) {
     // We use a dummy quilt to play with the patch
-    patch.absoluteMoveTo(new Coordinates(player.quilt().width() / 2, player.quilt().height() / 2));
+    var hplayer = (HumanPlayer) player;
+    patch.absoluteMoveTo(new Coordinates(hplayer.quilt().width() / 2, hplayer.quilt().height() / 2));
     var loop = true;
     do {
       ui.clear();
-      ui.drawDummyQuilt(player, patch);
+      ui.drawDummyQuilt(hplayer, patch);
       ui.display();
-      var chose = ui.manipulatePatch(availableManipulations(player.quilt(), patch));
+      var chose = ui.manipulatePatch(availableManipulations(hplayer.quilt(), patch));
       if(chose.isPresent()) {
         switch (chose.get().key()) {
           case 's'  -> patch.moveUp();
@@ -234,7 +283,7 @@ public class PatchworkController {
           case 'a' -> patch.rotateRight();
           case 'f' -> patch.flip();
           case 'p' -> {
-            return player.placePatch(patch);
+            return hplayer.placePatch(patch);
           }
           case 'b' -> loop = false;
           default -> { throw new AssertionError("There shouldn't be other choices"); }
@@ -307,6 +356,8 @@ public class PatchworkController {
     }
     userInterface.close();
   }
+  
+ 
     
   public static void main(String[] args) {
     var cli = false;

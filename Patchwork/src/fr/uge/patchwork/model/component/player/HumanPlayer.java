@@ -1,12 +1,13 @@
-package fr.uge.patchwork.model.component;
+package fr.uge.patchwork.model.component.player;
 
 import java.util.Objects;
 
+import fr.uge.patchwork.model.component.QuiltBoard;
 import fr.uge.patchwork.model.component.patch.LeatherPatch;
 import fr.uge.patchwork.model.component.patch.Patch;
 import fr.uge.patchwork.model.component.patch.RegularPatch;
 
-public class Player implements Comparable<Player> {
+public class HumanPlayer implements Player {
   
   private final String name;
   private final QuiltBoard quilt;
@@ -14,7 +15,7 @@ public class Player implements Comparable<Player> {
   private boolean specialTile;
   private int buttons;
 
-  public Player(String name, int buttons, QuiltBoard quilt) {
+  public HumanPlayer(String name, int buttons, QuiltBoard quilt) {
     Objects.requireNonNull(name, "The player must have a name");
     if (buttons < 0) {
       throw new IllegalArgumentException("The player can't have debts at start-up");
@@ -41,6 +42,7 @@ public class Player implements Comparable<Player> {
     return quilt;
   }
   
+  @Override
   public void move(int position) {
     this.position = position;
   }
@@ -85,7 +87,7 @@ public class Player implements Comparable<Player> {
 
   @Override
   public boolean equals(Object obj) {
-    return obj instanceof Player o
+    return obj instanceof HumanPlayer o
         && name.equals(o.name);
   }
 
@@ -108,7 +110,6 @@ public class Player implements Comparable<Player> {
   	    + (specialTile ? 7 : 0) 
   	    - (quilt.countEmptySpaces() * 2);
   }
-  
 
   public boolean canAdd(RegularPatch patch) {
     return buttons >= patch.price();
@@ -116,15 +117,6 @@ public class Player implements Comparable<Player> {
   
   public boolean canAdd(LeatherPatch patch) {
     return true;
-  }
-  
-
-  @Override
-  /**
-   * Compare on the score
-   */
-  public int compareTo(Player o) {
-    return Integer.compare(score(), o.score());
   }
 
   public void addButtons(int amount) {

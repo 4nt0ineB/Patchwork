@@ -10,7 +10,6 @@ import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -20,13 +19,13 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import fr.uge.patchwork.controller.KeybindedChoice;
-import fr.uge.patchwork.model.component.Player;
 import fr.uge.patchwork.model.component.gameboard.PatchManager;
 import fr.uge.patchwork.model.component.gameboard.TrackBoard;
 import fr.uge.patchwork.model.component.patch.Patch;
 import fr.uge.patchwork.model.component.patch.RegularPatch;
+import fr.uge.patchwork.model.component.player.HumanPlayer;
+import fr.uge.patchwork.model.component.player.Player;
 import fr.uge.patchwork.view.UserInterface;
-import fr.uge.patchwork.view.cli.CLIColor;
 import fr.umlv.zen5.ApplicationContext;
 import fr.umlv.zen5.Event;
 import fr.umlv.zen5.Event.Action;
@@ -134,6 +133,21 @@ public class GraphicalUserInterface implements UserInterface {
     return menu(choiceList);
   }
   
+  @Override
+  public Optional<KeybindedChoice> difficultyMenu(Set<KeybindedChoice> choices) {
+    Objects.requireNonNull(choices, "the choies can't be null");
+    var choiceList = List.copyOf(choices);
+    addDrawingAction(g2 -> {
+      g2.setFont(new Font("", Font.BOLD, 80));
+     g2.drawString("Difficulty", width / 2, height /2); 
+    });
+    renderChoices(choiceList, 
+        width / 2 - 400, 
+        height / 2 - (choices.size() * 95) / 2, 
+        400, 75, 20, 35);
+    return menu(choiceList);
+  }
+  
   /**
    * Return the next power of two greater or equal to n
    * @throws new IllegalArgumentException if n equal zero
@@ -153,7 +167,7 @@ public class GraphicalUserInterface implements UserInterface {
    * @param y
    * @param fontSize
    */
-  private void drawPlayerInfo(Player player, int x, int y, int fontSize) {
+  private void drawPlayerInfo(HumanPlayer player, int x, int y, int fontSize) {
     var buttonColor = new Color(47, 115, 138);
     addDrawingAction(g2 -> {
       g2.setFont(new Font("", Font.BOLD, fontSize));
@@ -171,7 +185,7 @@ public class GraphicalUserInterface implements UserInterface {
    * @param w
    * @param h
    */
-  private void drawPlayers(List<Player> players, int x, int y, int w, int h) {
+  private void drawPlayers(List<HumanPlayer> players, int x, int y, int w, int h) {
     var zones = new ArrayList<Rectangle2D.Double>();
     var firstZone = new Rectangle2D.Double(x, y, w, h);
     zones.add(firstZone);
@@ -216,7 +230,11 @@ public class GraphicalUserInterface implements UserInterface {
    */
   public void draw(TrackBoard trackBoard) {
     Objects.requireNonNull(trackBoard, "the track board can't be null");
-    var sortedPlayers = trackBoard.players().stream().sorted(comparing(Player::name)).toList();
+    var sortedPlayers = trackBoard.players().stream()
+        .filter(HumanPlayer.class::isInstance)
+        .map(HumanPlayer.class::cast)
+        .sorted(comparing(Player::name))
+        .toList();
     drawPlayers(sortedPlayers, (int) (width - width / 3), 0, (int) width / 3, (int) height);
     new GraphicalTrackBoard((int) width / 4, (int) height / 4, 600, trackBoard).draw(this);
   }
@@ -244,6 +262,9 @@ public class GraphicalUserInterface implements UserInterface {
         30);
     return menu(choiceList);
   }
+  
+  
+  
   
   @Override
   /**
@@ -350,7 +371,7 @@ public class GraphicalUserInterface implements UserInterface {
   }
   
   @Override
-  public void drawDummyQuilt(Player player, Patch patch) {
+  public void drawDummyQuilt(HumanPlayer player, Patch patch) {
     var quiltSide = height / 2;
     var x = (int) ((width / 2) - quiltSide / 2);
     var y = (int) ((height / 2) - quiltSide / 2);

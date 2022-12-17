@@ -13,11 +13,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
-import fr.uge.patchwork.model.component.Player;
 import fr.uge.patchwork.model.component.gameboard.TrackBoard;
 import fr.uge.patchwork.model.component.gameboard.event.Event;
 import fr.uge.patchwork.model.component.gameboard.event.EventType;
 import fr.uge.patchwork.model.component.patch.Coordinates;
+import fr.uge.patchwork.model.component.player.HumanPlayer;
+import fr.uge.patchwork.model.component.player.Player;
 
 /**
  * 

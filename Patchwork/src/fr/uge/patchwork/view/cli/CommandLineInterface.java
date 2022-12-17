@@ -9,7 +9,6 @@ import java.util.Scanner;
 import java.util.Set;
 
 import fr.uge.patchwork.controller.KeybindedChoice;
-import fr.uge.patchwork.model.component.Player;
 import fr.uge.patchwork.model.component.QuiltBoard;
 import fr.uge.patchwork.model.component.gameboard.PatchManager;
 import fr.uge.patchwork.model.component.gameboard.TrackBoard;
@@ -18,6 +17,8 @@ import fr.uge.patchwork.model.component.patch.Coordinates;
 import fr.uge.patchwork.model.component.patch.Patch;
 import fr.uge.patchwork.model.component.patch.Patch2D;
 import fr.uge.patchwork.model.component.patch.RegularPatch;
+import fr.uge.patchwork.model.component.player.HumanPlayer;
+import fr.uge.patchwork.model.component.player.Player;
 import fr.uge.patchwork.view.UserInterface;
 
 /**
@@ -256,7 +257,7 @@ public final class CommandLineInterface implements UserInterface {
   }
   
   @Override
-  public void drawDummyQuilt(Player player, Patch patch) {
+  public void drawDummyQuilt(HumanPlayer player, Patch patch) {
     Objects.requireNonNull(player.quilt(), "the quilt can't be null");
     Objects.requireNonNull(patch, "The patch can't be null");
     // top
@@ -345,6 +346,11 @@ public final class CommandLineInterface implements UserInterface {
   public Optional<KeybindedChoice> getInput(Set<KeybindedChoice> choices) {
     // TODO Auto-generated method stub
     return Optional.empty();
+  }
+
+  @Override
+  public Optional<KeybindedChoice> difficultyMenu(Set<KeybindedChoice> choices) {
+    return getPlayerChoice(choices);
   }
  
 }

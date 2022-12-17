@@ -8,8 +8,8 @@ import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 
-import fr.uge.patchwork.model.component.Player;
 import fr.uge.patchwork.model.component.gameboard.event.Event;
+import fr.uge.patchwork.model.component.player.Player;
 
 /**
  * 
