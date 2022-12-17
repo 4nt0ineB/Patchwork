@@ -5,6 +5,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 
@@ -110,7 +111,7 @@ public class TrackBoard {
    * @param position
    * @return the player, or null
    */
-  public Player nextPlayerFrom(int position) {
+  public Optional<Player> nextPlayerFrom(int position) {
     Player nextPlayer = null;
     var iterator = players.iterator();
     while (iterator.hasNext()) {
@@ -125,11 +126,15 @@ public class TrackBoard {
           nextPlayer = player;
         }
     }
-    return nextPlayer;
+    return Optional.ofNullable(nextPlayer);
   }
 
-  private long countPlayersAt(int position) {
-    return players.stream().filter(p -> p.position() == position).count();
+  public long countPlayersAt(int position) {
+    return playersAt(position).size();
+  }
+  
+  public List<Player> playersAt(int position){
+    return players.stream().filter(p -> p.position() == position).toList();
   }
   
   /**
@@ -137,7 +142,7 @@ public class TrackBoard {
    * @return
    */
   public Player latestPlayer() {
-    return nextPlayerFrom(0);
+    return nextPlayerFrom(0).get();
   }
   
   /**

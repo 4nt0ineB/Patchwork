@@ -62,23 +62,12 @@ public class HumanPlayer implements Player {
    */
   public boolean placePatch(Patch patch) {
     Objects.requireNonNull(patch, "The patch can't be null");
+    if(patch instanceof RegularPatch) {
+      buttons -= ((RegularPatch) patch).price();
+    }
     return quilt.add(patch);
   }
   
-  /**
-   * Buy the patch. Test if the player have enough buttons to buy the patch and if
-   * it can be place on his quilt
-   *
-   * @param patch
-   * @return true or false
-   */
-  public boolean placePatch(RegularPatch patch) {
-    if(placePatch(patch)) {
-      buttons -= patch.price();
-      return true;
-    }
-    return false;
-  }
 
   @Override
   public int hashCode() {
@@ -124,6 +113,11 @@ public class HumanPlayer implements Player {
       throw new IllegalArgumentException("The amount of buttons must be positive");
     }
     buttons += amount;
+  }
+
+  @Override
+  public boolean isAutonomous() {
+    return false;
   }
 
 

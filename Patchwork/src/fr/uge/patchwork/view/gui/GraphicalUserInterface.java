@@ -25,6 +25,7 @@ import fr.uge.patchwork.model.component.patch.Patch;
 import fr.uge.patchwork.model.component.patch.RegularPatch;
 import fr.uge.patchwork.model.component.player.HumanPlayer;
 import fr.uge.patchwork.model.component.player.Player;
+import fr.uge.patchwork.model.component.player.automa.Automa;
 import fr.uge.patchwork.view.UserInterface;
 import fr.umlv.zen5.ApplicationContext;
 import fr.umlv.zen5.Event;
@@ -76,10 +77,6 @@ public class GraphicalUserInterface implements UserInterface {
       graphics.setColor(Color.ORANGE);
       graphics.fill(new  Rectangle2D.Float(0, 0, 500, 500));
     });
-//    var path = Path.of("resources/patchwork/img/img.jpg");
-//    try(var reader = Files.newInputStream(path)) {
-//      img = ImageIO.read(reader);
-//    }
   }
   
   @Override
@@ -133,13 +130,13 @@ public class GraphicalUserInterface implements UserInterface {
     return menu(choiceList);
   }
   
-  @Override
-  public Optional<KeybindedChoice> difficultyMenu(Set<KeybindedChoice> choices) {
+  public Optional<KeybindedChoice> simpleMenu(String title, Set<KeybindedChoice> choices){
+    Objects.requireNonNull(title);
     Objects.requireNonNull(choices, "the choies can't be null");
     var choiceList = List.copyOf(choices);
     addDrawingAction(g2 -> {
       g2.setFont(new Font("", Font.BOLD, 80));
-     g2.drawString("Difficulty", width / 2, height /2); 
+     g2.drawString(title, width / 2, height /2); 
     });
     renderChoices(choiceList, 
         width / 2 - 400, 
@@ -167,14 +164,41 @@ public class GraphicalUserInterface implements UserInterface {
    * @param y
    * @param fontSize
    */
-  private void drawPlayerInfo(HumanPlayer player, int x, int y, int fontSize) {
+  private void drawPlayerInfo(Player player, int x, int y, int fontSize) {
     var buttonColor = new Color(47, 115, 138);
     addDrawingAction(g2 -> {
       g2.setFont(new Font("", Font.BOLD, fontSize));
       g2.drawString(player.name(), x,y );
       g2.setColor(buttonColor);
       g2.drawString(player.buttons() + " buttons", (int) x, (int) y + fontSize);
+      if(player.isAutonomous()) {
+        var automa = (Automa) player;
+        g2.setColor(new Color(184, 113, 37));
+        g2.drawString("" + automa.difficulty(), (int) x, (int) y + fontSize * 2);
+      }
     });
+  }
+  
+  private void draw(HumanPlayer player, int x, int y, int w) {
+    new GraphicalQuiltBoard(player.quilt(), (int) x, (int) y, w).draw(this);
+  }
+  
+  private void draw(Automa automa, int x, int y, int w) {
+    var card = automa.card();
+    if(card.tactical()) {
+      
+    }
+  }
+  
+  private void draw(Player player, int x, int y, int w) {
+    if(player.isAutonomous()) {
+      draw((Automa) player, x, y, w);
+    }else {
+      draw((HumanPlayer) player, x, y, w);
+    }
+    var fontSize = (int) (w * 0.05);
+    // draw the quilt
+    drawPlayerInfo(player, (int) x, (int) (y + w + w * 0.1), fontSize);
   }
   
   /**
@@ -185,7 +209,7 @@ public class GraphicalUserInterface implements UserInterface {
    * @param w
    * @param h
    */
-  private void drawPlayers(List<HumanPlayer> players, int x, int y, int w, int h) {
+  private void drawPlayers(List<Player> players, int x, int y, int w, int h) {
     var zones = new ArrayList<Rectangle2D.Double>();
     var firstZone = new Rectangle2D.Double(x, y, w, h);
     zones.add(firstZone);
@@ -213,14 +237,7 @@ public class GraphicalUserInterface implements UserInterface {
       var side = (int) Math.min(zone.width, zone.height);
       var player = players.get(i);
       var zy = zone.y + side / 4;
-      new GraphicalQuiltBoard(player.quilt(), 
-          (int) zone.x - 20, 
-          (int) zy, 
-          side
-          ).draw(this);
-      var fontSize = (int) (side * 0.05);
-      // draw the quilt
-      drawPlayerInfo(player, (int) zone.x, (int) (zy + side + side * 0.1), fontSize);
+      draw(player, (int) zone.x - 20, (int) zy, side);
     }
   }
   
@@ -231,8 +248,8 @@ public class GraphicalUserInterface implements UserInterface {
   public void draw(TrackBoard trackBoard) {
     Objects.requireNonNull(trackBoard, "the track board can't be null");
     var sortedPlayers = trackBoard.players().stream()
-        .filter(HumanPlayer.class::isInstance)
-        .map(HumanPlayer.class::cast)
+        .filter(Player.class::isInstance)
+        .map(Player.class::cast)
         .sorted(comparing(Player::name))
         .toList();
     drawPlayers(sortedPlayers, (int) (width - width / 3), 0, (int) width / 3, (int) height);
@@ -262,9 +279,6 @@ public class GraphicalUserInterface implements UserInterface {
         30);
     return menu(choiceList);
   }
-  
-  
-  
   
   @Override
   /**

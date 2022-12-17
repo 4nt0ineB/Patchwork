@@ -10,8 +10,8 @@ import fr.uge.patchwork.model.component.gameboard.PatchManager;
 import fr.uge.patchwork.model.component.gameboard.TrackBoard;
 import fr.uge.patchwork.model.component.patch.Patch;
 import fr.uge.patchwork.model.component.patch.RegularPatch;
-import fr.uge.patchwork.model.component.player.AutomaDifficulty;
 import fr.uge.patchwork.model.component.player.HumanPlayer;
+import fr.uge.patchwork.model.component.player.automa.AutomaDifficulty;
 
 public interface UserInterface {
   
@@ -64,6 +64,7 @@ public interface UserInterface {
    * @return an optional keybindedChoice
    */
   Optional<KeybindedChoice> gameModeMenu(Set<KeybindedChoice> choices);
+  Optional<KeybindedChoice> simpleMenu(String title, Set<KeybindedChoice> choices);
   
   /**
    * Display a menu as the game mode selection menu.
@@ -71,7 +72,6 @@ public interface UserInterface {
    * for given choices
    * @return an optional keybindedChoice
    */
-  Optional<KeybindedChoice> difficultyMenu(Set<KeybindedChoice> choices);
   
   /**
    * Display a menu as the end game selection menu.

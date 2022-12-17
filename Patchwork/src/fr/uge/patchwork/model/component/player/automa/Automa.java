@@ -1,19 +1,28 @@
-package fr.uge.patchwork.model.component.player;
+package fr.uge.patchwork.model.component.player.automa;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 
 import fr.uge.patchwork.model.component.patch.Patch;
+import fr.uge.patchwork.model.component.patch.RegularPatch;
+import fr.uge.patchwork.model.component.player.Player;
 
 public class Automa implements Player {
   private final LinkedList<Patch> patches = new LinkedList<>();
+  private final List<NormalCard> deck;
   private int position;
   private final AutomaDifficulty difficulty;
   private boolean specialTile = false;
   private int buttons;
   
-  public Automa(AutomaDifficulty difficulty) {
+  private int currentCard;
+  
+  public Automa(AutomaDifficulty difficulty, List<NormalCard> cards) {
     this.difficulty = Objects.requireNonNull(difficulty);
+    deck = new ArrayList<>(cards);
   }
   
   @Override
@@ -28,6 +37,7 @@ public class Automa implements Player {
 
   @Override
   public int score() {
+    
     switch(difficulty) {
     case APPRENTICE:
       break;
@@ -61,6 +71,10 @@ public class Automa implements Player {
     return buttons;
   }
   
+  public AutomaDifficulty difficulty() {
+    return difficulty;
+  }
+  
   @Override
   public void addButtons(int amount) {
     if(amount < 0) {
@@ -72,6 +86,28 @@ public class Automa implements Player {
   @Override
   public boolean specialTile() {
     return specialTile;
+  }
+  
+  public NormalCard card() {
+    return deck.get(currentCard);
+  }
+  
+  public void discardCard() {
+    if(currentCard == deck.size() - 1) {
+      currentCard = 0;
+      Collections.shuffle(deck);
+    }else {
+      currentCard++;
+    }
+  }
+
+  @Override
+  public boolean isAutonomous() {
+    return true;
+  }
+
+  public void add(RegularPatch patch) {
+    patches.add(patch);
   }
 
 }

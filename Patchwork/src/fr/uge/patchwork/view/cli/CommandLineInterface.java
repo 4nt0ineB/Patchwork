@@ -59,23 +59,22 @@ public final class CommandLineInterface implements UserInterface {
 
   @Override
   public Optional<KeybindedChoice> gameModeMenu(Set<KeybindedChoice> choices) {
-
-    return getPlayerChoice(choices);
+    return simpleMenu("Game mode", choices);
   }
 
   @Override
   public Optional<KeybindedChoice> endGameMenu(Set<KeybindedChoice> choices) {
-    return getPlayerChoice(choices);
+    return simpleMenu("", choices);
   }
 
   @Override
   public Optional<KeybindedChoice> turnMenu(Set<KeybindedChoice> choices) {
-    return getPlayerChoice(choices);
+    return simpleMenu("", choices);
   }
 
   @Override
   public Optional<KeybindedChoice> manipulatePatch(Set<KeybindedChoice> choices) {
-    return getPlayerChoice(choices);
+    return simpleMenu("", choices);
   }
   
   public void draw(KeybindedChoice choice) {
@@ -349,8 +348,32 @@ public final class CommandLineInterface implements UserInterface {
   }
 
   @Override
-  public Optional<KeybindedChoice> difficultyMenu(Set<KeybindedChoice> choices) {
-    return getPlayerChoice(choices);
+  public Optional<KeybindedChoice> simpleMenu(String title, Set<KeybindedChoice> choices) {
+    Objects.requireNonNull(choices, "the quilt can't be null");
+    if(choices.isEmpty()) {
+      throw new IllegalArgumentException("The set of choices can't be empty");
+    }
+    var localBuilder = new StringBuilder();
+    localBuilder
+    
+    .append(CLIColor.ANSI_ORANGE)
+    .append("\n" + title + " [Choices]\n")
+    .append(CLIColor.ANSI_RESET);
+    choices.forEach(option -> 
+      localBuilder.append(option).append("\n"));
+    localBuilder.append("\nChoice ? : ");
+    System.out.print(localBuilder);
+    String input;
+    if(scanner.hasNextLine() 
+        && (input = scanner.nextLine()).length() == 1) {
+      for(var choice: choices) {
+        if(choice.key() == input.charAt(0)) {
+          return Optional.of(choice);
+        }
+      }
+    }
+    System.out.println("Wrong choice\n");
+    return Optional.empty();
   }
  
 }

@@ -1,4 +1,4 @@
-package fr.uge.patchwork.model.component.player;
+package fr.uge.patchwork.model.component.player.automa;
 
 public enum AutomaDifficulty {
   INTERN(1)
@@ -19,6 +19,6 @@ public enum AutomaDifficulty {
   
   @Override
   public String toString() {
-    return this.toString().toLowerCase();
+    return this.name();
   }
 }

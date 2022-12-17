@@ -9,6 +9,8 @@ public interface Player extends Comparable<Player>  {
   int buttons();
   void addButtons(int amount);
   
+  boolean isAutonomous();
+  
   @Override
   /**
    * Compare on the score

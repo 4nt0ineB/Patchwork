@@ -13,10 +13,11 @@ import fr.uge.patchwork.model.component.gameboard.TrackBoard;
 import fr.uge.patchwork.model.component.gameboard.event.Event;
 import fr.uge.patchwork.model.component.gameboard.event.EventType;
 import fr.uge.patchwork.model.component.patch.RegularPatch;
-import fr.uge.patchwork.model.component.player.Automa;
-import fr.uge.patchwork.model.component.player.AutomaDifficulty;
 import fr.uge.patchwork.model.component.player.HumanPlayer;
 import fr.uge.patchwork.model.component.player.Player;
+import fr.uge.patchwork.model.component.player.automa.Automa;
+import fr.uge.patchwork.model.component.player.automa.AutomaDifficulty;
+import fr.uge.patchwork.model.component.player.automa.DeckType;
 
 public record Game(GameMode gameMode, TrackBoard trackBoard, 
     PatchManager patchManager) {
@@ -36,7 +37,7 @@ public record Game(GameMode gameMode, TrackBoard trackBoard,
     var players = new HashSet<Player>(List.of(
         new HumanPlayer("Player 1", 5, new QuiltBoard(9,9)),
         new HumanPlayer("Player 2", 5, new QuiltBoard(9,9))));
-    var patchesPath = Path.of("resources/patchwork/settings/basic/patchwork_basic.txt");
+    var patchesPath = Path.of("resources/settings/basic/patchwork_basic.txt");
     var trackBoard = new TrackBoard(54, players, events);
     var patchManager = new PatchManager(RegularPatch.fromFile(patchesPath));
     return new Game(GameMode.PATCHWORK_BASIC, trackBoard, patchManager);
@@ -47,7 +48,7 @@ public record Game(GameMode gameMode, TrackBoard trackBoard,
     var players = new HashSet<Player>(List.of(
         new HumanPlayer("Player 1", 5, new QuiltBoard(9,9)),
         new HumanPlayer("Player 2", 5, new QuiltBoard(9,9))));
-    var patchesPath = Path.of("resources/patchwork/settings/full/patchwork_full.txt");
+    var patchesPath = Path.of("resources/settings/full/patchwork_full.txt");
     for(var pos: List.of(5, 11, 17, 23, 29, 35, 41, 47)) {
       events.add(new Event(EventType.BUTTON_INCOME, pos));
     }
@@ -59,12 +60,12 @@ public record Game(GameMode gameMode, TrackBoard trackBoard,
     return new Game(GameMode.PATCHWORK_FULL, trackBoard, patchManager);    
   }
   
-  public static Game automa(AutomaDifficulty difficulty) throws IOException {
+  public static Game automa(AutomaDifficulty difficulty, DeckType deckType) throws IOException {
     var events = new ArrayList<Event>();
     var players = new HashSet<Player>(List.of(
         new HumanPlayer("Player 1", 5, new QuiltBoard(9,9)),
-        new Automa(difficulty)));
-    var patchesPath = Path.of("resources/patchwork/settings/full/patchwork_full.txt");
+        new Automa(difficulty, DeckType.fromType(deckType))));
+    var patchesPath = Path.of("resources/settings/full/patchwork_full.txt");
     for(var pos: List.of(5, 11, 17, 23, 29, 35, 41, 47)) {
       events.add(new Event(EventType.BUTTON_INCOME, pos));
     }

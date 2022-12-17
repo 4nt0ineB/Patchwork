@@ -17,8 +17,8 @@ import fr.uge.patchwork.model.component.gameboard.TrackBoard;
 import fr.uge.patchwork.model.component.gameboard.event.Event;
 import fr.uge.patchwork.model.component.gameboard.event.EventType;
 import fr.uge.patchwork.model.component.patch.Coordinates;
-import fr.uge.patchwork.model.component.player.HumanPlayer;
 import fr.uge.patchwork.model.component.player.Player;
+import fr.uge.patchwork.model.component.player.automa.Automa;
 
 /**
  * 
@@ -104,6 +104,16 @@ public class GraphicalTrackBoard {
       // name
       g2.setFont(new Font("Arial", Font.BOLD, 15));
       g2.drawString(player.name(), (int) (x + 2), (int) (y + squareSide / 2));
+      if(player.isAutonomous()) {
+        var automa = (Automa) player;
+        if(!automa.specialTile()) {
+          var specialPatchPos = posToPoint(board.spaces() - automa.difficulty().spaces());
+          g2.setColor(new Color(160, 84, 51));
+          g2.setFont(new Font("Arial", Font.BOLD, (int) squareSide / 2));
+          g2.drawString("S", (int) (specialPatchPos.x + squareSide / 2)
+              , (int) (specialPatchPos.y + squareSide / 2));
+        } 
+      }
     });
   }
   
