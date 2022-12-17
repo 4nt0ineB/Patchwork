@@ -462,7 +462,7 @@ public class PatchworkController {
  
     
   public static void main(String[] args) {
-    var cli = false;
+    var cli = true;
     if(cli) {
       startGame(new CommandLineInterface());
     }else {

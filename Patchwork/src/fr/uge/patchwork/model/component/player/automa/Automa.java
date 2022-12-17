@@ -11,8 +11,8 @@ import fr.uge.patchwork.model.component.patch.RegularPatch;
 import fr.uge.patchwork.model.component.player.Player;
 
 public class Automa implements Player {
-  private final LinkedList<Patch> patches = new LinkedList<>();
-  private final List<NormalCard> deck;
+  private final LinkedList<RegularPatch> patches = new LinkedList<>();
+  private final List<Card> deck;
   private int position;
   private final AutomaDifficulty difficulty;
   private boolean specialTile = false;
@@ -20,7 +20,7 @@ public class Automa implements Player {
   
   private int currentCard;
   
-  public Automa(AutomaDifficulty difficulty, List<NormalCard> cards) {
+  public Automa(AutomaDifficulty difficulty, List<Card> cards) {
     this.difficulty = Objects.requireNonNull(difficulty);
     deck = new ArrayList<>(cards);
   }
@@ -37,23 +37,21 @@ public class Automa implements Player {
 
   @Override
   public int score() {
-    
+    var score = 0;
     switch(difficulty) {
-    case APPRENTICE:
-      break;
-    case FELLOW:
-      break;
-    case INTERN:
-      break;
     case LEGEND:
-      break;
+      score += patches.size();
     case MASTER:
-      break;
+      score -= patches.size();
+      score += buttonsOnPatches();
+    case FELLOW:
+      score += patches.size();
+    case APPRENTICE:
+      score += buttons;
     default:
-      break;
+      score += specialTile ? 7 : 0;
     }
-    
-    return -999999999;
+    return score;
   }
 
   @Override
@@ -88,7 +86,7 @@ public class Automa implements Player {
     return specialTile;
   }
   
-  public NormalCard card() {
+  public Card card() {
     return deck.get(currentCard);
   }
   
@@ -101,6 +99,14 @@ public class Automa implements Player {
     }
   }
 
+  public List<Patch> patches(){
+    return List.copyOf(patches);
+  }
+  
+  public int buttonsOnPatches() {
+    return patches.stream().mapToInt(RegularPatch::buttons).sum();
+  }
+  
   @Override
   public boolean isAutonomous() {
     return true;

@@ -11,7 +11,6 @@ import fr.uge.patchwork.model.component.gameboard.TrackBoard;
 import fr.uge.patchwork.model.component.patch.Patch;
 import fr.uge.patchwork.model.component.patch.RegularPatch;
 import fr.uge.patchwork.model.component.player.HumanPlayer;
-import fr.uge.patchwork.model.component.player.automa.AutomaDifficulty;
 
 public interface UserInterface {
   

@@ -2,6 +2,7 @@ package fr.uge.patchwork.view.cli;
 
 import static java.util.Comparator.reverseOrder;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -19,6 +20,7 @@ import fr.uge.patchwork.model.component.patch.Patch2D;
 import fr.uge.patchwork.model.component.patch.RegularPatch;
 import fr.uge.patchwork.model.component.player.HumanPlayer;
 import fr.uge.patchwork.model.component.player.Player;
+import fr.uge.patchwork.model.component.player.automa.Automa;
 import fr.uge.patchwork.view.UserInterface;
 
 /**
@@ -87,8 +89,15 @@ public final class CommandLineInterface implements UserInterface {
     Objects.requireNonNull(player, "The player can't be null");
     builder()
     .append(String.format("%5d|", player.position()))
-    .append(" " + player.name() + " - buttons [" + player.buttons() + "]")
-    .append(player.specialTile() ? " (SpecialTile) " : "");
+    .append(" " + player.name() + " - buttons [" + player.buttons() + "]");
+    if(player.isAutonomous()) {
+      var automa = (Automa) player;
+      builder.append(" | " + automa.patches().size() 
+          + " patch"+ (automa.patches().size() > 1 ? "es" : "")  +" totalling " 
+          + automa.buttonsOnPatches()
+          + " button" + (automa.buttonsOnPatches() > 1 ? "s" : ""));
+    }
+    builder.append(player.specialTile() ? " (SpecialTile) " : "");
   }
   
   public void draw(QuiltBoard quilt) {
@@ -170,6 +179,35 @@ public final class CommandLineInterface implements UserInterface {
 
   public void draw(PatchManager patchmanager) {
     Objects.requireNonNull(patchmanager, "The patch manager can't be null");
+    var patches = patchmanager.patches(7);
+    var txt = "";
+    var farthest = patches.stream()
+        .mapToInt(p -> {
+          var maxCord = p.form().farthestCoordinates();
+          return Math.max(Math.abs(maxCord.x()), Math.abs(maxCord.y()));
+          })
+        .max().getAsInt();
+    for(var i = -farthest; i <= farthest + 1; i++) {
+      txt += "\n";
+        txt += " ";
+        for(var patch: patches) {
+          var description = "(" + patch.price() + "," + patch.moves() + "," + patch.buttons() + ")";
+          var minx = Math.max(farthest, description.length());
+          for(var j = -minx; j <= minx; j++) {
+            if(i == farthest && j == -minx) {
+             txt += description;
+             txt += " ".repeat((minx *2) + 1 - description.length());
+             break;
+            }else if(patch.meets(new Coordinates(i, j))) {
+              txt += "x";
+            }else {
+              txt += " ";
+            }
+          }
+        }
+    }
+    builder.append("[ Next patches (price, moves, buttons) ] --> \n");
+    builder.append(txt);
   }
   
   public void display() {
@@ -334,9 +372,7 @@ public final class CommandLineInterface implements UserInterface {
         + " |  ___/ _` | __/ __| '_ \\ \\ /\\ / / _ \\| '__| |/ /\n"
         + " | |  | (_| | || (__| | | \\ V  V / (_) | |  |   < \n"
         + " |_|   \\__,_|\\__\\___|_| |_|\\_/\\_/ \\___/|_|  |_|\\_\\\n"
-        + CLIColor.ANSI_GREEN + "└─────────────────────────────────────────────────┘"
-        + CLIColor.rgb(2, 77, 24) +  "v2.0\n" + CLIColor.ANSI_RESET
-        + "\n"
+        + CLIColor.ANSI_GREEN + "└─────────────────────────────────────────────────┘\n"
         + CLIColor.ANSI_RESET;
     builder.append(splash);
   }
@@ -355,9 +391,8 @@ public final class CommandLineInterface implements UserInterface {
     }
     var localBuilder = new StringBuilder();
     localBuilder
-    
     .append(CLIColor.ANSI_ORANGE)
-    .append("\n" + title + " [Choices]\n")
+    .append("\n" + title + " ---------\n")
     .append(CLIColor.ANSI_RESET);
     choices.forEach(option -> 
       localBuilder.append(option).append("\n"));

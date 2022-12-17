@@ -3,6 +3,7 @@ package fr.uge.patchwork.view.gui;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.reverseOrder;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
@@ -43,6 +44,7 @@ public class GraphicalUserInterface implements UserInterface {
   private final float height;
   private final int fps = 20;
   private final Color backgroundColor = new Color(201, 153, 68);
+  private final Color buttonColor = new Color(47, 115, 138);
   
   private final LinkedList<Consumer<Graphics2D>> drawingActions = new LinkedList<>();
   private KeybindedChoice choice;
@@ -68,10 +70,10 @@ public class GraphicalUserInterface implements UserInterface {
     drawingActions.add(action);
   }
   
-  @Override
   /**
    * Init the view
    */
+  @Override
   public void init() throws IOException {
     drawingActions.add(graphics -> {
       graphics.setColor(Color.ORANGE);
@@ -79,12 +81,12 @@ public class GraphicalUserInterface implements UserInterface {
     });
   }
   
-  @Override
   /**
    * Run all drawing actions.
    * with a defined refresh rate
    * 
    */
+  @Override
   public void display() {
     var currentTime = Instant.now().toEpochMilli();
     // cap the refresh rate
@@ -112,13 +114,13 @@ public class GraphicalUserInterface implements UserInterface {
     context.exit(0);
   }
   
-  @Override
   /**
    * Display a menu as the game mode selection menu.
    * (The game menu)
    * for given choices
    * @return an optional keybindedChoice
    */
+  @Override
   public Optional<KeybindedChoice> gameModeMenu(Set<KeybindedChoice> choices) {
     Objects.requireNonNull(choices, "the choies can't be null");
     var choiceList = List.copyOf(choices);
@@ -165,7 +167,6 @@ public class GraphicalUserInterface implements UserInterface {
    * @param fontSize
    */
   private void drawPlayerInfo(Player player, int x, int y, int fontSize) {
-    var buttonColor = new Color(47, 115, 138);
     addDrawingAction(g2 -> {
       g2.setFont(new Font("", Font.BOLD, fontSize));
       g2.drawString(player.name(), x,y );
@@ -175,18 +176,45 @@ public class GraphicalUserInterface implements UserInterface {
         var automa = (Automa) player;
         g2.setColor(new Color(184, 113, 37));
         g2.drawString("" + automa.difficulty(), (int) x, (int) y + fontSize * 2);
+        if(automa.patches().size() != 0) {
+          g2.setColor(Color.BLACK);
+          g2.drawString("" + automa.patches().size() 
+              + " patch"+ (automa.patches().size() > 1 ? "es" : "")  +" totalling " 
+              + automa.buttonsOnPatches()
+              + " button" + (automa.buttonsOnPatches() > 1 ? "s" : "")
+              , (int) x, (int) y + fontSize * 3);
+        } 
       }
     });
   }
   
   private void draw(HumanPlayer player, int x, int y, int w) {
-    new GraphicalQuiltBoard(player.quilt(), (int) x, (int) y, w).draw(this);
+    new GraphicalQuiltBoard(player.quilt()
+        , (int) x, (int) y, w).draw(this);
   }
   
   private void draw(Automa automa, int x, int y, int w) {
     var card = automa.card();
     if(card.tactical()) {
-      
+      addDrawingAction(g2 -> {
+        // brown back
+        g2.setColor(new Color(149, 65, 19));
+        g2.fillRect(x + w / 4, y, w / 2, (int) (w * 0.75));
+        // yellow rect
+        g2.setColor(new Color(227, 201, 21));
+        g2.fillRect(x + w / 4, y, w / 2, (int) ((w * 0.75) / 4 ));
+        g2.setColor(buttonColor);
+        var fontSize = (int) (((w * 0.75) / 4 ) * 0.5);
+        g2.setFont(new Font("", Font.BOLD, fontSize));
+        var txtBtn = "" + card.virtualButtons();
+        var txtw = g2.getFontMetrics().stringWidth(txtBtn);
+        g2.drawString(txtBtn, x + (w / 2) - txtw / 2
+            , (int) (y + ((w * 0.75) / 4 ) / 2) + fontSize / 2);
+        // white border
+        g2.setColor(Color.WHITE);
+        g2.setStroke(new BasicStroke(5.0f));
+        g2.drawRect(x + w / 4, y, w / 2, (int) (w * 0.75));
+      });
     }
   }
   

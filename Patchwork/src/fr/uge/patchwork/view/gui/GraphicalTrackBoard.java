@@ -91,6 +91,16 @@ public class GraphicalTrackBoard {
     var bottomSide = new Ellipse2D.Double(x, y + tokenHeight, tokenWidth, tokenHeight);
     var topSide = new Ellipse2D.Double(x, y + tokenHeight - 5, tokenWidth, tokenHeight);
     ui.addDrawingAction(g2 -> {
+      if(player.isAutonomous()) {
+        var automa = (Automa) player;
+        if(!automa.specialTile()) {
+          var specialPatchPos = posToPoint(board.spaces() - automa.difficulty().spaces() + offset);
+          g2.setColor(new Color(160, 84, 51));
+          g2.setFont(new Font("Arial", Font.BOLD, (int) squareSide / 2));
+          g2.drawString("S", (int) (specialPatchPos.x + squareSide / 2)
+              , (int) (specialPatchPos.y + squareSide / 2));
+        } 
+      }
       // bottom
       g2.setColor(Color.GRAY);
       g2.fill(bottomSide);
@@ -104,16 +114,7 @@ public class GraphicalTrackBoard {
       // name
       g2.setFont(new Font("Arial", Font.BOLD, 15));
       g2.drawString(player.name(), (int) (x + 2), (int) (y + squareSide / 2));
-      if(player.isAutonomous()) {
-        var automa = (Automa) player;
-        if(!automa.specialTile()) {
-          var specialPatchPos = posToPoint(board.spaces() - automa.difficulty().spaces());
-          g2.setColor(new Color(160, 84, 51));
-          g2.setFont(new Font("Arial", Font.BOLD, (int) squareSide / 2));
-          g2.drawString("S", (int) (specialPatchPos.x + squareSide / 2)
-              , (int) (specialPatchPos.y + squareSide / 2));
-        } 
-      }
+      
     });
   }
   

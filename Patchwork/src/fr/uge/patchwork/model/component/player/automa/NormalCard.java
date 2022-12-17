@@ -16,7 +16,7 @@ public record NormalCard(int virtualButtons, int buttonIncome, List<CardFilter> 
     filters = List.copyOf(filters);
   }
   
-  static NormalCard fromText(String txt) {
+  public static NormalCard fromText(String txt) {
     Objects.requireNonNull(txt, "The string can't be null");
     var data = txt.split(",");
     var virtualButtons = Integer.parseInt(data[0]);

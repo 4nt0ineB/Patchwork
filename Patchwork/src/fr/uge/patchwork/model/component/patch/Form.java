@@ -113,7 +113,7 @@ public record Form(Set<Coordinates> coordinates) {
    * @param cells
    * @return
    */
-  private Coordinates farthestCoordinates() {
+  public Coordinates farthestCoordinates() {
     var farthest = new Coordinates(0, 0);
     var rOrigin = new Coordinates(0, 0);
     for(var c: coordinates) {
