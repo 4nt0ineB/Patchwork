@@ -1,23 +1,36 @@
 package fr.uge.patchwork.controller;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
+
+import java.awt.Color;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.Stack;
+import java.util.TreeMap;
 
 import fr.uge.patchwork.model.Game;
 import fr.uge.patchwork.model.GameMode;
-import fr.uge.patchwork.model.component.Player;
 import fr.uge.patchwork.model.component.QuiltBoard;
 import fr.uge.patchwork.model.component.gameboard.event.Event;
+import fr.uge.patchwork.model.component.gameboard.event.EventType;
 import fr.uge.patchwork.model.component.patch.Coordinates;
 import fr.uge.patchwork.model.component.patch.LeatherPatch;
 import fr.uge.patchwork.model.component.patch.Patch;
-import fr.uge.patchwork.view.Color;
+import fr.uge.patchwork.model.component.patch.RegularPatch;
+import fr.uge.patchwork.model.component.player.HumanPlayer;
+import fr.uge.patchwork.model.component.player.Player;
+import fr.uge.patchwork.model.component.player.automa.Automa;
+import fr.uge.patchwork.model.component.player.automa.AutomaDifficulty;
+import fr.uge.patchwork.model.component.player.automa.DeckType;
 import fr.uge.patchwork.view.UserInterface;
 import fr.uge.patchwork.view.cli.CommandLineInterface;
+import fr.uge.patchwork.view.gui.GraphicalUserInterface;
+import fr.umlv.zen5.Application;
 
 public class PatchworkController {
   
@@ -27,7 +40,7 @@ public class PatchworkController {
   private Stack<Event> triggeredEvents = new Stack<>();
   private GameMode gameMode;
   private boolean specialTile = true;
-  
+
   public PatchworkController(UserInterface ui) {
     this.ui = Objects.requireNonNull(ui);
   }
@@ -39,45 +52,111 @@ public class PatchworkController {
    * @param ui the user interface
    * @return Choosen game mode
    */
-  public void choseGameMode() {
-    var choices = new LinkedHashSet<KeybindedChoice>();
-    choices.add(new KeybindedChoice('b', "The basic game"));
-    choices.add(new KeybindedChoice('f', "The full game"));
+  public boolean choseGameMode() {
+    var choices = new LinkedHashSet<KeybindedChoice>(List.of(
+            new KeybindedChoice('b', "The basic game")
+            , new KeybindedChoice('f', "The full game")
+            , new KeybindedChoice('a', "Automa")
+            , new KeybindedChoice('q', "Quit")));
+    var wantToPlay = true;
     do {
       ui.clear();
-      ui.drawMessages();
-      ui.display();
-      gameMode = switch(ui.getPlayerChoice(choices)) {
-       case 'b' -> GameMode.PATCHWORK_BASIC;
-       case 'f' -> GameMode.PATCHWORK_FULL;
-       case -1 -> null;
-       default -> throw new AssertionError("there shoulnd't be other possiblities");
-     };
-    }while(gameMode == null);
+      var chose = ui.gameModeMenu(choices);
+      if(!chose.isEmpty()) {
+        gameMode = switch(chose.get().key()) {
+          case 'b' -> GameMode.PATCHWORK_BASIC;
+          case 'f' -> GameMode.PATCHWORK_FULL;
+          case 'a' -> GameMode.PATCHWORK_AUTOMA;
+          case 'q' -> {
+            wantToPlay = false;
+            yield null;
+          }
+          default -> throw new AssertionError("there shoulnd't be other possiblities");
+        };
+      }
+     ui.display();
+    }while(wantToPlay && gameMode == null);
+    return wantToPlay;
   }
   
-  public void init() {
-    try {
-      game = Game.fromGameMode(gameMode);
-      player = game.trackBoard().latestPlayer();
-    } catch (IOException e) {
-      System.err.println(e.getMessage());
-      ui.close();
-      System.exit(1);
-      return;
+  public AutomaDifficulty choseDifficulty() {
+    var choices = new LinkedHashSet<KeybindedChoice>(List.of(
+            new KeybindedChoice('i', "Intern")
+            , new KeybindedChoice('a', "Apprentice")
+            , new KeybindedChoice('f', "Fellow")
+            , new KeybindedChoice('m', "Master")
+            , new KeybindedChoice('l', "Legend")));
+    AutomaDifficulty difficulty = null;
+    while(difficulty == null) {
+      ui.clear();
+      var choice = ui.simpleMenu("Difficulty", choices);
+      if(!choice.isEmpty()) {
+        difficulty = switch(choice.get().key()) {
+          case 'i' -> AutomaDifficulty.INTERN;
+          case 'a' -> AutomaDifficulty.APPRENTICE;
+          case 'f' -> AutomaDifficulty.FELLOW;
+          case 'm' -> AutomaDifficulty.MASTER;
+          case 'l' -> AutomaDifficulty.LEGEND; 
+          default -> throw new AssertionError("there shoulnd't be other possiblities");
+        };
+      }
+     ui.display();
     }
+    return difficulty;
+  }
+  
+  public DeckType choseDeck() {
+    var choices = new LinkedHashSet<KeybindedChoice>(List.of(
+        new KeybindedChoice('n', "Normal")
+        , new KeybindedChoice('t', "Tactical")));
+    DeckType type = null;
+    while(type == null) {
+      ui.clear();
+      var choice = ui.simpleMenu("Deck", choices);
+      if(!choice.isEmpty()) {
+        type = switch(choice.get().key()) {
+          case 'n' -> DeckType.NORMAL;
+          case 't' -> DeckType.TACTICAL;
+          default -> throw new AssertionError("there shoulnd't be other possiblities");
+        };
+      }
+     ui.display();
+    }
+    return type;
+  }
+  
+  public Player player() {
+    return player;
+  }
+  
+  public void init() throws IOException {
+   game = switch(gameMode) {
+     case PATCHWORK_BASIC -> Game.basic();
+     case PATCHWORK_FULL -> Game.full();
+     case PATCHWORK_AUTOMA -> Game.automa(choseDifficulty(), choseDeck());
+    };
+    var humanPlayers = game.trackBoard().playersAt(0).stream()
+        .filter(HumanPlayer.class::isInstance).toList();
+    // the first player is always human
+    player = humanPlayers.get(humanPlayers.size() - 1); 
   }
   
   public boolean run() {
-    while( (player = game.trackBoard().latestPlayer()) != null   
-        && player.position() != game.trackBoard().spaces()) {
+    do {
       triggeredEvents.clear();
+      if(player.isAutonomous()) {
+        playAutoma((Automa) player);
+        continue;
+      }else {
+        
+      }
       if(!playTurn()) { // quit asked
        return false; 
       }
       playEvents();
-    }
-    return true;
+    }while((player = game.trackBoard().latestPlayer()) != null   
+        && player.position() != game.trackBoard().spaces());
+    return endGame();
   }
   
   /**
@@ -90,45 +169,35 @@ public class PatchworkController {
     var choices = Set.of(
         new KeybindedChoice('q', "Quit"), 
         new KeybindedChoice('n', "New game"));
-    var choice = -1;
-    ui.clear();
-    ui.drawScoreBoard(game.trackBoard());
-    ui.drawMessages();
-    ui.display(); 
-    do {
-      switch (ui.getPlayerChoice(choices)) {
-        case 'q' -> { return false; }
-        case 'n' -> { return true; } 
-        case -1 -> {}
-        default -> { throw new AssertionError("There shouldn't be other choices"); }
-      };
-    }while(choice == -1);
-    return false;
-  }
-  
-  
-  private void updateView() {
-    ui.clear();
-    ui.draw(game.trackBoard());
-    ui.drawMessages();
-    ui.display(); 
+    for(;;) {
+      ui.clear();
+      ui.drawScoreBoard(game.trackBoard());
+      ui.display(); 
+      var chose = ui.endGameMenu(choices);
+      if(chose.isPresent()) {
+        switch (chose.get().key()) {
+          case 'q' -> { return false; }
+          case 'n' -> { return true; } 
+          default -> { throw new AssertionError("There shouldn't be other choices"); }
+        }
+      }
+      ui.display();
+    }
   }
   
   private void playEvents() {
     while(!triggeredEvents.isEmpty()) {
-      updateView();
+      ui.clear();
       var event = triggeredEvents.peek();
       switch(event.type()) {
         case BUTTON_INCOME -> {
-          ui.drawMessage("You receive some buttons!", new Color(46, 112, 219)); // don't work do other way
-          int amount = player.quilt().buttons();
+          int amount = ((HumanPlayer) player).quilt().buttons();
           if(amount != 0) {
             player.addButtons(amount);
           }
           triggeredEvents.pop();
         }
         case PATCH_INCOME -> {
-          ui.drawMessage("You receive some buttons!", new Color(82, 181, 25));
           if(manipulatePatch(new LeatherPatch())) {
             game.trackBoard().removeEvent(event);
             triggeredEvents.pop();
@@ -136,55 +205,154 @@ public class PatchworkController {
         }
         default -> {throw new AssertionError(); }
       }
+      ui.display();
     }
-    if(specialTile && player.quilt().hasFilledSquare(7)) {
+    if((((HumanPlayer) player).quilt().hasFilledSquare(7))) {
+      receiveSpecialTile();
+    }
+  }
+
+  public void receiveSpecialTile() {
+    if(specialTile) {
       player.earnSpecialTile();
       specialTile = false;
     }
-    // print msg on ui
   }
 
+  private void playAutoma(Automa automa) {
+    var patches = game.patchManager().patches(3);
+    var card = automa.card();
+    var affordablePatches = patches.stream()
+        .filter(p -> p.price() <= card.virtualButtons())
+        .toList();
+    if(affordablePatches.size() == 0) {
+      advancePlayer();
+    }else {
+      var patch = affordablePatches.get(0);
+      if(affordablePatches.size() > 1) {
+        patch = automaPlayCard(automa, patches);
+      }
+      game.trackBoard().movePlayer(player, patch.moves());
+      // update patch manager
+      game.patchManager().moveNeutralToken(patches.indexOf(patch));
+      game.patchManager().removeAtToken();
+      automa.add(patch);
+    }
+    // check events
+    var buttonIncomeEventsCount = triggeredEvents.stream()
+        .filter(e -> e.type().equals(EventType.BUTTON_INCOME)).count();
+    automa.addButtons((int) (card.buttonIncome() * buttonIncomeEventsCount));
+    // Special tile
+    if(automa.position() >= game.trackBoard().spaces() - automa.difficulty().spaces()) {
+      receiveSpecialTile();
+    }
+    automa.discardCard();
+  }
   
-  private boolean playTurn() {
-    boolean hasPlayed = false;
-    while(!hasPlayed) {
-      updateView();
-      switch (ui.getPlayerChoice(availableActions())) {
-        case 's' -> {
-          var selectedPatch = ui.selectPatch(game.patchManager().patches(3));
-          if(selectedPatch.isPresent()) {
-            if(manipulatePatch(selectedPatch.get())) {
-              game.trackBoard().movePlayer(player, selectedPatch.get().moves());
-              hasPlayed = true;
-            }
+  /**
+   * Automa chose the right patch
+   * @param automa
+   * @param patches
+   * @return
+   */
+  public RegularPatch automaPlayCard(Automa automa, List<RegularPatch> patches) {
+    var card = automa.card();
+    var nextPlayer = game.trackBoard().nextPlayerFrom(automa.position() + 1);
+    var maxPosition = nextPlayer.isPresent() ? 
+        nextPlayer.get().position() - automa.position() 
+        : game.trackBoard().spaces();
+    // tiles
+    var filteredPatches = List.copyOf(patches);
+    var iterator = card.filters().iterator();
+    while(iterator.hasNext()) {
+      var filterType = iterator.next();
+      switch(filterType) {
+        case LARGEST -> {
+          var patchesBySize = patches.stream()
+              .collect(groupingBy(p -> p.form().countCoordinates(), TreeMap::new, toList()));
+          filteredPatches = List.copyOf(patchesBySize.lastEntry().getValue());
+        }
+        case MOST_BUTTONS -> {
+          var patchesByButtons = patches.stream()
+              .collect(groupingBy(RegularPatch::buttons, TreeMap::new, toList()));
+          filteredPatches = List.copyOf(patchesByButtons.lastEntry().getValue());
+        }
+        case NO_OVERTAKE -> {
+          var patchesBymoves = patches.stream()
+              .filter(p -> p.moves() <= maxPosition)
+              .collect(groupingBy(RegularPatch::buttons, TreeMap::new, toList()));
+          var patchWithNoOvertake = patchesBymoves.lastEntry();
+          if(patchWithNoOvertake != null) {
+            filteredPatches = List.copyOf(patchWithNoOvertake.getValue());
           }
         }
-        case 'a' -> {
-          advancePlayer();
-          hasPlayed = true;
-        }
-        case 'r' -> {
-          return false; // quit asked
-        }
-        case -1 -> { }
-        default -> throw new AssertionError("There shouldn't be other choices");
       }
     }
-    return true;
+    return filteredPatches.get(filteredPatches.size() - 1);
+  }
+  
+  boolean playTurn() {
+    for(;;) {
+      ui.clear();
+      ui.draw(game.trackBoard());
+      ui.draw(game.patchManager());
+      ui.display();
+      var chose = ui.turnMenu(availableActions());
+      if(chose.isPresent()) {
+        switch (chose.get().key()) {
+          case 's' -> { 
+            // select a patch
+            var selectedPatch = selectPatch(game.patchManager().patches(3));
+            // try placing it on the quilt
+            if(manipulatePatch(selectedPatch)) { 
+              // placed
+              game.trackBoard().movePlayer(player, selectedPatch.moves());
+              // update patch manager
+              game.patchManager().moveNeutralToken(game.patchManager().patches(3).indexOf(selectedPatch));
+              game.patchManager().removeAtToken();
+              return true;
+            }
+          }
+          case 'a' -> {
+            player.addButtons(advancePlayer());
+            return true;
+          }
+          case 'r' -> {
+            return false; // quit asked
+          }
+          default -> throw new AssertionError("There shouldn't be other choices");
+        }
+      }    
+      ui.display();
+    }
+  }
+  
+  private RegularPatch selectPatch(List<RegularPatch> patches) {
+    for(;;) {
+      ui.clear();
+      ui.draw(game.trackBoard());
+      ui.display();
+      var selectedPatch = ui.selectPatch(patches, game.patchManager());
+      if(selectedPatch.isPresent()) {
+        return selectedPatch.get();
+      }
+      ui.display();
+    }
   }
   
   /**
    * Advance the current player to the space in front of the next player. This
    * action lead to button income proportional of number of crossed spaces.
+   * @return the amount of spaces moved
    */
-  public void advancePlayer() {
+  public int advancePlayer() {
     int moves = 1;
-    Player nextPlayer = game.trackBoard().nextPlayerFrom(player.position() + moves);
-    if(nextPlayer != null) { // player ahead
-      moves = nextPlayer.position() + 1 - player.position();
+    var nextPlayer = game.trackBoard().nextPlayerFrom(player.position() + moves);
+    if(nextPlayer.isPresent()) { // player ahead
+      moves = nextPlayer.get().position() + 1 - player.position();
     }
     triggeredEvents.addAll(game.trackBoard().movePlayer(player, moves));
-    player.addButtons(moves);
+    return moves;
   }
   
   /**
@@ -195,31 +363,35 @@ public class PatchworkController {
    *
    * @param ui 
    * @param board
-   * @return Action
+   * @return true if patch is placed, otherwise false
    */
   private boolean manipulatePatch(Patch patch) {
     // We use a dummy quilt to play with the patch
-    patch.absoluteMoveTo(new Coordinates(player.quilt().width() / 2, player.quilt().height() / 2));
+    var hplayer = (HumanPlayer) player;
+    patch.absoluteMoveTo(new Coordinates(hplayer.quilt().width() / 2, hplayer.quilt().height() / 2));
     var loop = true;
     do {
-      updateView();
-      ui.drawDummyQuilt(player.quilt(), patch);
+      ui.clear();
+      ui.drawDummyQuilt(hplayer, patch);
       ui.display();
-      switch (ui.getPlayerChoice(availableManipulations(player.quilt(), patch))) {
-        case 's'  -> patch.moveUp();
-        case 'w' -> patch.moveDown();
-        case 'd' -> patch.moveRight();
-        case 'q' -> patch.moveLeft();
-        case 'z' -> patch.rotateLeft();
-        case 'a' -> patch.rotateRight();
-        case 'f' -> patch.flip();
-        case 'p' -> {
-          return player.placePatch(patch);
+      var chose = ui.manipulatePatch(availableManipulations(hplayer.quilt(), patch));
+      if(chose.isPresent()) {
+        switch (chose.get().key()) {
+          case 's'  -> patch.moveUp();
+          case 'w' -> patch.moveDown();
+          case 'd' -> patch.moveRight();
+          case 'q' -> patch.moveLeft();
+          case 'z' -> patch.rotateLeft();
+          case 'a' -> patch.rotateRight();
+          case 'f' -> patch.flip();
+          case 'p' -> {
+            return hplayer.placePatch(patch);
+          }
+          case 'b' -> loop = false;
+          default -> { throw new AssertionError("There shouldn't be other choices"); }
         }
-        case 'b' -> loop = false;
-        case -1 -> {}
-        default -> { throw new AssertionError("There shouldn't be other choices"); }
       }
+      ui.display();
     } while (loop);
     return false;
   }
@@ -264,20 +436,49 @@ public class PatchworkController {
     choices.addAll(basicChoices);
     return choices;
   }
-    
-  public static void main(String[] args) {
-    var userInterface = new CommandLineInterface();
+  
+  public static void startGame(UserInterface userInterface) {
     var loop = true;
     while(loop) {
       var controller = new PatchworkController(userInterface);
-      controller.choseGameMode();
-      controller.init();
+      if(!controller.choseGameMode()) {
+        break;
+      }
+      try {
+        controller.init();
+      } catch (IOException e) {
+        System.err.println(e.getMessage());
+        userInterface.close();
+        System.exit(1);
+        return;
+      }
       if(!controller.run()) {
         break;
       }
-      loop = controller.endGame();
     }
     userInterface.close();
+  }
+  
+ 
+    
+  public static void main(String[] args) {
+    var cli = true;
+    if(cli) {
+      startGame(new CommandLineInterface());
+    }else {
+      Application.run(Color.BLACK, (context) -> {
+        var ui = new GraphicalUserInterface(context);
+        try {
+          ui.init();
+        } catch (IOException e) {
+          System.err.println(e.getMessage());
+          ui.close();
+          System.exit(1);
+          return;
+        }
+        startGame(ui);
+      });
+    }
   }
   
 }

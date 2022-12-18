@@ -2,7 +2,7 @@ package fr.uge.patchwork.view.cli;
 
 import static java.util.Comparator.reverseOrder;
 
-import java.util.LinkedHashSet;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -10,7 +10,6 @@ import java.util.Scanner;
 import java.util.Set;
 
 import fr.uge.patchwork.controller.KeybindedChoice;
-import fr.uge.patchwork.model.component.Player;
 import fr.uge.patchwork.model.component.QuiltBoard;
 import fr.uge.patchwork.model.component.gameboard.PatchManager;
 import fr.uge.patchwork.model.component.gameboard.TrackBoard;
@@ -19,7 +18,9 @@ import fr.uge.patchwork.model.component.patch.Coordinates;
 import fr.uge.patchwork.model.component.patch.Patch;
 import fr.uge.patchwork.model.component.patch.Patch2D;
 import fr.uge.patchwork.model.component.patch.RegularPatch;
-import fr.uge.patchwork.view.Color;
+import fr.uge.patchwork.model.component.player.HumanPlayer;
+import fr.uge.patchwork.model.component.player.Player;
+import fr.uge.patchwork.model.component.player.automa.Automa;
 import fr.uge.patchwork.view.UserInterface;
 
 /**
@@ -35,7 +36,6 @@ public final class CommandLineInterface implements UserInterface {
   private static final Scanner scanner = new Scanner(System.in); 
   // It's like the window, we draw our elements on it and we refresh the display
   private final StringBuilder builder = new StringBuilder();
-  private final LinkedHashSet<String> messages = new LinkedHashSet<>();
   
   /**
    * Access the string builder of the command line interface
@@ -46,41 +46,60 @@ public final class CommandLineInterface implements UserInterface {
     return builder;
   }
   
-  public void addMessage(String message) {
-    Objects.requireNonNull(message, "The message can't be null");
-    messages.add(message);
-  }
-  
-  public void clearMessages() {
-    messages.clear();
-  }
-  
-  public void drawMessages() {
-    messages.forEach(message -> {
-      builder
-      .append("\n")
-      .append(message)
-      .append("\n");
-      }); 
+  /**
+   * Close the interface: <br>
+   * 
+   * close scanner on {@link System#in}
+   */
+  @Override
+  public void close() {
+    scanner.close();
   }
   
   @Override
+  public void init() {}
+
+  @Override
+  public Optional<KeybindedChoice> gameModeMenu(Set<KeybindedChoice> choices) {
+    return simpleMenu("Game mode", choices);
+  }
+
+  @Override
+  public Optional<KeybindedChoice> endGameMenu(Set<KeybindedChoice> choices) {
+    return simpleMenu("", choices);
+  }
+
+  @Override
+  public Optional<KeybindedChoice> turnMenu(Set<KeybindedChoice> choices) {
+    return simpleMenu("", choices);
+  }
+
+  @Override
+  public Optional<KeybindedChoice> manipulatePatch(Set<KeybindedChoice> choices) {
+    return simpleMenu("", choices);
+  }
+  
   public void draw(KeybindedChoice choice) {
     builder()
     .append("[").append(choice.key()).append("] ")
     .append(choice.description());
   }
   
-  @Override
   public void draw(Player player) {
     Objects.requireNonNull(player, "The player can't be null");
     builder()
     .append(String.format("%5d|", player.position()))
-    .append(" " + player.name() + " - buttons [" + player.buttons() + "]")
-    .append(player.specialTile() ? " (SpecialTile) " : "");
+    .append(" " + player.name() + " - buttons [" + player.buttons() + "]");
+    if(player.isAutonomous()) {
+      var automa = (Automa) player;
+      builder.append(" | " + automa.patches().size() 
+          + " patch"+ (automa.patches().size() > 1 ? "es" : "")  +" totalling " 
+          + automa.buttonsOnPatches()
+          + " button" + (automa.buttonsOnPatches() > 1 ? "s" : ""));
+    }
+    builder.append(player.specialTile() ? " (SpecialTile) " : "");
   }
   
-  @Override
   public void draw(QuiltBoard quilt) {
     // top
     builder.append("┌");
@@ -157,9 +176,38 @@ public final class CommandLineInterface implements UserInterface {
     .append(CLIColor.ANSI_RESET);
   }
 
-  @Override
+
   public void draw(PatchManager patchmanager) {
     Objects.requireNonNull(patchmanager, "The patch manager can't be null");
+    var patches = patchmanager.patches(7);
+    var txt = "";
+    var farthest = patches.stream()
+        .mapToInt(p -> {
+          var maxCord = p.form().farthestCoordinates();
+          return Math.max(Math.abs(maxCord.x()), Math.abs(maxCord.y()));
+          })
+        .max().getAsInt();
+    for(var i = -farthest; i <= farthest + 1; i++) {
+      txt += "\n";
+        txt += " ";
+        for(var patch: patches) {
+          var description = "(" + patch.price() + "," + patch.moves() + "," + patch.buttons() + ")";
+          var minx = Math.max(farthest, description.length());
+          for(var j = -minx; j <= minx; j++) {
+            if(i == farthest && j == -minx) {
+             txt += description;
+             txt += " ".repeat((minx *2) + 1 - description.length());
+             break;
+            }else if(patch.meets(new Coordinates(i, j))) {
+              txt += "x";
+            }else {
+              txt += " ";
+            }
+          }
+        }
+    }
+    builder.append("[ Next patches (price, moves, buttons) ] --> \n");
+    builder.append(txt);
   }
   
   public void display() {
@@ -209,7 +257,7 @@ public final class CommandLineInterface implements UserInterface {
   }
 
   @Override
-  public Optional<RegularPatch> selectPatch(List<RegularPatch> patches) {
+  public Optional<RegularPatch> selectPatch(List<RegularPatch> patches, PatchManager manager) {
     Objects.requireNonNull(patches);
     if(patches.isEmpty()) {
       throw new IllegalArgumentException("Their should be at least 1 patch in the list");
@@ -246,21 +294,21 @@ public final class CommandLineInterface implements UserInterface {
   }
   
   @Override
-  public void drawDummyQuilt(QuiltBoard quilt, Patch patch) {
-    Objects.requireNonNull(quilt, "the quilt can't be null");
+  public void drawDummyQuilt(HumanPlayer player, Patch patch) {
+    Objects.requireNonNull(player.quilt(), "the quilt can't be null");
     Objects.requireNonNull(patch, "The patch can't be null");
     // top
     builder.append("┌");
-    for(var i = 0; i < quilt.width(); i++) {
+    for(var i = 0; i < player.quilt().width(); i++) {
       builder.append("─");
     }
     builder.append("┐\n");
     // body
-    for(var y = 0; y < quilt.height(); y++) {
+    for(var y = 0; y < player.quilt().height(); y++) {
       builder.append("|");
-      for(var x = 0; x < quilt.width(); x++) {
+      for(var x = 0; x < player.quilt().width(); x++) {
         var isPatchHere = patch.meets(new Coordinates(y, x));
-        if(quilt.occupied(new Coordinates(y, x))) {
+        if(player.quilt().occupied(new Coordinates(y, x))) {
           if(isPatchHere){
             builder.append(CLIColor.ANSI_RED_BACKGROUND)
             .append("░")
@@ -284,14 +332,13 @@ public final class CommandLineInterface implements UserInterface {
     }
     // bottom
     builder.append("└");
-    for(var i = 0; i < quilt.width(); i++) {
+    for(var i = 0; i < player.quilt().width(); i++) {
       builder.append("─");
     }
     builder.append("┘");
   }
   
-  @Override
-  public int getPlayerChoice(Set<KeybindedChoice> choices){
+  public Optional<KeybindedChoice> getPlayerChoice(Set<KeybindedChoice> choices){
     Objects.requireNonNull(choices, "the quilt can't be null");
     if(choices.isEmpty()) {
       throw new IllegalArgumentException("The set of choices can't be empty");
@@ -310,52 +357,58 @@ public final class CommandLineInterface implements UserInterface {
         && (input = scanner.nextLine()).length() == 1) {
       for(var choice: choices) {
         if(choice.key() == input.charAt(0)) {
-          return choice.key();
+          return Optional.of(choice);
         }
       }
     }
     System.out.println("Wrong choice\n");
-    return -1;
+    return Optional.empty();
   }
   
-  /**
-   * Close the interface: <br>
-   * 
-   * close scanner on {@link System#in}
-   */
-  @Override
-  public void close() {
-    scanner.close();
-  }
-
-  @Override
   public void drawSplashScreen() {
-    var splash = CLIColor.ANSI_BOLD + "  _____      _       _                       _    \n"
+    var splash = CLIColor.ANSI_BOLD + "\n  _____      _       _                       _    \n"
         + " |  __ \\    | |     | |                     | |   \n"
         + " | |__) |_ _| |_ ___| |____      _____  _ __| | __\n"
         + " |  ___/ _` | __/ __| '_ \\ \\ /\\ / / _ \\| '__| |/ /\n"
         + " | |  | (_| | || (__| | | \\ V  V / (_) | |  |   < \n"
         + " |_|   \\__,_|\\__\\___|_| |_|\\_/\\_/ \\___/|_|  |_|\\_\\\n"
-        + CLIColor.ANSI_GREEN + "└─────────────────────────────────────────────────┘"
-        + CLIColor.rgb(2, 77, 24) +  "v2.0\n" + CLIColor.ANSI_RESET
-        + "\n"
+        + CLIColor.ANSI_GREEN + "└─────────────────────────────────────────────────┘\n"
         + CLIColor.ANSI_RESET;
     builder.append(splash);
   }
 
   @Override
-  public void drawMessage(String txt, Color color) {
-    Objects.requireNonNull(txt);
-    builder.append(CLIColor.fromColor(color));
-    drawMessage(txt);
-  }
-  
-  @Override
-  public void drawMessage(String txt) {
-    Objects.requireNonNull(txt);
-    builder.append(txt).append(CLIColor.ANSI_RESET);
+  public Optional<KeybindedChoice> getInput(Set<KeybindedChoice> choices) {
+    // TODO Auto-generated method stub
+    return Optional.empty();
   }
 
-  
-  
+  @Override
+  public Optional<KeybindedChoice> simpleMenu(String title, Set<KeybindedChoice> choices) {
+    Objects.requireNonNull(choices, "the quilt can't be null");
+    if(choices.isEmpty()) {
+      throw new IllegalArgumentException("The set of choices can't be empty");
+    }
+    var localBuilder = new StringBuilder();
+    localBuilder
+    .append(CLIColor.ANSI_ORANGE)
+    .append("\n" + title + " ---------\n")
+    .append(CLIColor.ANSI_RESET);
+    choices.forEach(option -> 
+      localBuilder.append(option).append("\n"));
+    localBuilder.append("\nChoice ? : ");
+    System.out.print(localBuilder);
+    String input;
+    if(scanner.hasNextLine() 
+        && (input = scanner.nextLine()).length() == 1) {
+      for(var choice: choices) {
+        if(choice.key() == input.charAt(0)) {
+          return Optional.of(choice);
+        }
+      }
+    }
+    System.out.println("Wrong choice\n");
+    return Optional.empty();
+  }
+ 
 }
