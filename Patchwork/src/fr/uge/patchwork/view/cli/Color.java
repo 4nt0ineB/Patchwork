@@ -1,4 +1,4 @@
-package fr.uge.patchwork.view;
+package fr.uge.patchwork.view.cli;
 
 import java.util.Objects;
 

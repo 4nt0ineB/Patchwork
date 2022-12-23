@@ -7,6 +7,11 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.UnaryOperator;
 
+
+/**
+ * Implements a form, which is a set of coordinates in a plan
+ * with a a given relative origin for self transformation
+ */
 public record Form(Set<Coordinates> coordinates) {
     
   public Form {
@@ -77,7 +82,25 @@ public record Form(Set<Coordinates> coordinates) {
     return true;
   }
   
-  
+  /**
+   * Built a form from a text representation <br>
+   * Any symbol except o, space, and \n can define the tiles of the form<br>
+   * o being the relative origin <br>
+   * \n a way of increment y axis <br>
+   * space a way of increment x axis <br>
+   * 
+   * e.g:
+   * <pre>
+   * xxx
+   *  o
+   * xxx
+   * </pre>
+   * would be written as 
+   * "xxx\n o \nxxx" 
+   * 
+   * @param txt
+   * @return a form
+   */
   public static Form fromText(String txt) {
      Objects.requireNonNull(txt, "Text representation can't be null");
      if(!txt.contains("o")) {
@@ -111,7 +134,7 @@ public record Form(Set<Coordinates> coordinates) {
   /**
    * Return the farthest coordinates from origin (0,0)
    * @param cells
-   * @return
+   * @return the farthest coordinates from the defined relative origin
    */
   public Coordinates farthestCoordinates() {
     var farthest = new Coordinates(0, 0);

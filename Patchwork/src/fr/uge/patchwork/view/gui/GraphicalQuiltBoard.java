@@ -28,7 +28,6 @@ public class GraphicalQuiltBoard {
   private final int width;
   private final Color bgColor = new Color(140, 85, 52);
   private final double squareSide; // side of a square
-  private boolean focusedMode = false;
   private Set<KeybindedChoice> infos = new HashSet<KeybindedChoice>();
   
   public GraphicalQuiltBoard(QuiltBoard board, int x, int y, int width) {
@@ -130,25 +129,6 @@ public class GraphicalQuiltBoard {
     infos.add(new KeybindedChoice('a', "rotate right"));
     infos.add(new KeybindedChoice('f', "flip"));
     infos.add(new KeybindedChoice('b', "back"));
-  }
-  
-  private void drawOption(GraphicalUserInterface ui, KeybindedChoice info, int x, int y) {
-  	ui.addDrawingAction(g2 -> {
-  			var stringWidth = g2.getFontMetrics().stringWidth(info.toString());
-        g2.setColor(Color.BLACK);
-        g2.setFont(new Font("Arial", Font.BOLD, 15));
-        g2.drawString(info.toString(), x - stringWidth / 2, y);
-      });
-  }
-  
-  private void drawOptions(GraphicalUserInterface ui, int x, int y, int width) {
-  	var optionY = y;
-   	var optionX = (x + width) / 2;
-   	var offsetY = width / infos.size();
-   	for (var info : infos) {
-   		drawOption(ui, info, optionX, optionY);
-   		optionY += offsetY;
-   	}
   }
   
   public Set<KeybindedChoice> infos(){

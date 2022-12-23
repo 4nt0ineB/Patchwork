@@ -1,11 +1,13 @@
-package fr.uge.patchwork.model.component.player;
+package fr.uge.patchwork.model.component.player.automa;
 
 import java.util.List;
 
-import fr.uge.patchwork.model.component.player.automa.Card;
-import fr.uge.patchwork.model.component.player.automa.CardFilter;
-import fr.uge.patchwork.model.component.player.automa.NormalCard;
-
+/**
+ * 
+ * Implements a tactical card, that differentiate from a normal card
+ * by providing information on the virtual buttons on its back
+ *
+ */
 public class TacticalCard implements Card {
   private final NormalCard card;
   

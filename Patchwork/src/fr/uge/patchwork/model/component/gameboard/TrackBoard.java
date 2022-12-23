@@ -16,11 +16,6 @@ import fr.uge.patchwork.model.component.player.Player;
  * 
  * Implementation of the game board
  * 
- *  <p>
- * Provides API to run a patchwork game.
- * It handle players management, events, buttons circulation.
- * 
- *
  */
 public class TrackBoard {
 

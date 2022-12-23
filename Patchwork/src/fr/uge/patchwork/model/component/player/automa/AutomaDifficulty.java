@@ -1,5 +1,11 @@
 package fr.uge.patchwork.model.component.player.automa;
 
+
+/**
+ * 
+ * Enumerate the possible difficulty for Automa
+ *
+ */
 public enum AutomaDifficulty {
   INTERN(1)
   , APPRENTICE(9)

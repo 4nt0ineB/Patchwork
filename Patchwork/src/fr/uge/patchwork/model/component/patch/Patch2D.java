@@ -4,6 +4,12 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * 
+ * Implementation a standard patchwork Patch,
+ * movable on a patchwork quilt board
+ *
+ */
 public final class Patch2D implements Patch {
   // Absolute origin on the plan associated to the relative origin of the patch
   // (0,0)

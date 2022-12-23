@@ -1,5 +1,11 @@
 package fr.uge.patchwork.model.component.patch;
 
+/**
+ * 
+ * Implement simple coordinates,
+ * and useful methods to manipulate them
+ *
+ */
 public record Coordinates(int y, int x) {
   
   @Override

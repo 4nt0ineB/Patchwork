@@ -7,6 +7,10 @@ import fr.uge.patchwork.model.component.patch.LeatherPatch;
 import fr.uge.patchwork.model.component.patch.Patch;
 import fr.uge.patchwork.model.component.patch.RegularPatch;
 
+/**
+ * Implements a human player being able 
+ * to consciously place a patch on a quilt board.
+ */
 public class HumanPlayer implements Player {
   
   private final String name;
@@ -120,6 +124,4 @@ public class HumanPlayer implements Player {
     return false;
   }
 
-
-  
 }

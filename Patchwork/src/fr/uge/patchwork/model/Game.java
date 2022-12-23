@@ -19,6 +19,9 @@ import fr.uge.patchwork.model.component.player.automa.Automa;
 import fr.uge.patchwork.model.component.player.automa.AutomaDifficulty;
 import fr.uge.patchwork.model.component.player.automa.DeckType;
 
+/**
+ * The data of a patchwork game
+ */
 public record Game(GameMode gameMode, TrackBoard trackBoard, 
     PatchManager patchManager) {
   
@@ -31,7 +34,12 @@ public record Game(GameMode gameMode, TrackBoard trackBoard,
   // public void save() ?
   // public void loadFromSave() ?
   
-  
+  /**
+   * Create a 1vs1 patchwork game with basic set of patch
+   * with no events nor special tile
+   * @return the game environnement
+   * @throws IOException if an error occur while paring file setting
+   */
   public static Game basic() throws IOException {
     var events = new ArrayList<Event>();
     var players = new HashSet<Player>(List.of(
@@ -43,6 +51,12 @@ public record Game(GameMode gameMode, TrackBoard trackBoard,
     return new Game(GameMode.PATCHWORK_BASIC, trackBoard, patchManager);
   }
   
+  /**
+   * Create a 1vs1 patchwork game with the full set of patch
+   * and events
+   * @return the game environnement
+   * @throws IOException if an error occur while paring file setting
+   */
   public static Game full() throws IOException {
     var events = new ArrayList<Event>();
     var players = new HashSet<Player>(List.of(
@@ -60,6 +74,14 @@ public record Game(GameMode gameMode, TrackBoard trackBoard,
     return new Game(GameMode.PATCHWORK_FULL, trackBoard, patchManager);    
   }
   
+  /**
+   * Create a 1vs1 patchwork game the with full set of patch and events 
+   * and with a player as Automa
+   * @param difficulty
+   * @param deckType
+   * @return the game environnement
+   * @throws IOException if an error occur while paring file setting
+   */
   public static Game automa(AutomaDifficulty difficulty, DeckType deckType) throws IOException {
     var events = new ArrayList<Event>();
     var players = new HashSet<Player>(List.of(

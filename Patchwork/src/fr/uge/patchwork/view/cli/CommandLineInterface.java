@@ -2,7 +2,6 @@ package fr.uge.patchwork.view.cli;
 
 import static java.util.Comparator.reverseOrder;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -176,7 +175,7 @@ public final class CommandLineInterface implements UserInterface {
     .append(CLIColor.ANSI_RESET);
   }
 
-
+  @Override
   public void draw(PatchManager patchmanager) {
     Objects.requireNonNull(patchmanager, "The patch manager can't be null");
     var patches = patchmanager.patches(7);
@@ -210,6 +209,7 @@ public final class CommandLineInterface implements UserInterface {
     builder.append(txt);
   }
   
+  @Override
   public void display() {
     System.out.print(builder);
   }
@@ -246,6 +246,7 @@ public final class CommandLineInterface implements UserInterface {
       builder().append("\n");
     }
   }
+  
   
   public void draw(RegularPatch patch) {
     builder().append("[")
@@ -338,33 +339,9 @@ public final class CommandLineInterface implements UserInterface {
     builder.append("┘");
   }
   
-  public Optional<KeybindedChoice> getPlayerChoice(Set<KeybindedChoice> choices){
-    Objects.requireNonNull(choices, "the quilt can't be null");
-    if(choices.isEmpty()) {
-      throw new IllegalArgumentException("The set of choices can't be empty");
-    }
-    var localBuilder = new StringBuilder();
-    localBuilder
-    .append(CLIColor.ANSI_ORANGE)
-    .append("\n[Choices]\n")
-    .append(CLIColor.ANSI_RESET);
-    choices.forEach(option -> 
-      localBuilder.append(option).append("\n"));
-    localBuilder.append("\nChoice ? : ");
-    System.out.print(localBuilder);
-    String input;
-    if(scanner.hasNextLine() 
-        && (input = scanner.nextLine()).length() == 1) {
-      for(var choice: choices) {
-        if(choice.key() == input.charAt(0)) {
-          return Optional.of(choice);
-        }
-      }
-    }
-    System.out.println("Wrong choice\n");
-    return Optional.empty();
-  }
-  
+  /**
+   * Draw the splash screen
+   */
   public void drawSplashScreen() {
     var splash = CLIColor.ANSI_BOLD + "\n  _____      _       _                       _    \n"
         + " |  __ \\    | |     | |                     | |   \n"

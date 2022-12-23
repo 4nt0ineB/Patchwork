@@ -2,8 +2,6 @@ package fr.uge.patchwork.view.cli;
 
 import java.util.Objects;
 
-import fr.uge.patchwork.view.Color;
-
 /**
  * Provides ANSI colors
  */
