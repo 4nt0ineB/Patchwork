@@ -33,11 +33,19 @@
     </target>
 	
 	<target name="javadoc">
-		<javadoc 
-		version="true"
-			sourcepath="${src}" 
+		<javadoc
+			version="true"
 			destdir="${doc}"
-			Overview="src/overview.html"/>
+			Overview="src/overview.html">
+			<fileset dir="${src}/fr/uge/patchwork" defaultexcludes="yes">
+				<include name="**/*.java"/>
+			</fileset>
+			<classpath>
+				<fileset dir="${lib}">
+				    <include name="zen5.jar"/>
+				</fileset>
+			</classpath>
+		</javadoc>
 	</target>
 	
 	<target name="clean">
