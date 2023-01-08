@@ -367,8 +367,8 @@ public class GraphicalUserInterface implements UserInterface {
       }
       for(var j = 0; j < choices.size(); j++) {
         color = Color.BLACK;
-        if(choice != null && j == i) {
-          // enhance choice
+        if(j == i) {
+          // enhance choice 
           color = new Color(193, 86, 78);
           graphics.setColor(color);
           graphics.fill(new Rectangle2D.Double(x - margin, y + 4, 8, fontsize));
