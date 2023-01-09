@@ -67,7 +67,11 @@ public class HumanPlayer implements Player {
   public boolean placePatch(Patch patch) {
     Objects.requireNonNull(patch, "The patch can't be null");
     if(patch instanceof RegularPatch) {
-      buttons -= ((RegularPatch) patch).price();
+    	if (canAdd((RegularPatch) patch)) {
+        buttons -= ((RegularPatch) patch).price();
+    	} else {
+    		return false;
+    	}
     }
     return quilt.add(patch);
   }
