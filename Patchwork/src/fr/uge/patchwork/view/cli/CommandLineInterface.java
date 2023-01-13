@@ -1,6 +1,7 @@
 package fr.uge.patchwork.view.cli;
 
-import java.util.LinkedHashSet;
+import static java.util.Comparator.reverseOrder;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -8,10 +9,17 @@ import java.util.Scanner;
 import java.util.Set;
 
 import fr.uge.patchwork.controller.KeybindedChoice;
-import fr.uge.patchwork.model.component.Coordinates;
-import fr.uge.patchwork.model.component.Patch;
 import fr.uge.patchwork.model.component.QuiltBoard;
-import fr.uge.patchwork.view.Drawable;
+import fr.uge.patchwork.model.component.gameboard.PatchManager;
+import fr.uge.patchwork.model.component.gameboard.TrackBoard;
+import fr.uge.patchwork.model.component.gameboard.event.EventType;
+import fr.uge.patchwork.model.component.patch.Coordinates;
+import fr.uge.patchwork.model.component.patch.Patch;
+import fr.uge.patchwork.model.component.patch.Patch2D;
+import fr.uge.patchwork.model.component.patch.RegularPatch;
+import fr.uge.patchwork.model.component.player.HumanPlayer;
+import fr.uge.patchwork.model.component.player.Player;
+import fr.uge.patchwork.model.component.player.automa.Automa;
 import fr.uge.patchwork.view.UserInterface;
 
 /**
@@ -27,7 +35,6 @@ public final class CommandLineInterface implements UserInterface {
   private static final Scanner scanner = new Scanner(System.in); 
   // It's like the window, we draw our elements on it and we refresh the display
   private final StringBuilder builder = new StringBuilder();
-  private final LinkedHashSet<String> messages = new LinkedHashSet<>();
   
   /**
    * Access the string builder of the command line interface
@@ -38,30 +45,171 @@ public final class CommandLineInterface implements UserInterface {
     return builder;
   }
   
-  public void addMessage(String message) {
-    Objects.requireNonNull(message, "The message can't be null");
-    messages.add(message);
-  }
-  
-  public void clearMessages() {
-    messages.clear();
-  }
-  
-  public void drawMessages() {
-    messages.forEach(message -> {
-      builder
-      .append("\n")
-      .append(message)
-      .append("\n");
-      }); 
+  /**
+   * Close the interface: <br>
+   * 
+   * close scanner on {@link System#in}
+   */
+  @Override
+  public void close() {
+    scanner.close();
   }
   
   @Override
-  public void draw(Drawable drawable) {
-    Objects.requireNonNull("The drawable object can't be null");
-    ((DrawableOnCLI) drawable).drawOnCLI(this);
+  public void init() {}
+
+  @Override
+  public Optional<KeybindedChoice> gameModeMenu(Set<KeybindedChoice> choices) {
+    return simpleMenu("Game mode", choices);
+  }
+
+  @Override
+  public Optional<KeybindedChoice> endGameMenu(Set<KeybindedChoice> choices) {
+    return simpleMenu("", choices);
+  }
+
+  @Override
+  public Optional<KeybindedChoice> turnMenu(Set<KeybindedChoice> choices) {
+    return simpleMenu("", choices);
+  }
+
+  @Override
+  public Optional<KeybindedChoice> manipulatePatch(Set<KeybindedChoice> choices) {
+    return simpleMenu("", choices);
   }
   
+  public void draw(KeybindedChoice choice) {
+    builder()
+    .append("[").append(choice.key()).append("] ")
+    .append(choice.description());
+  }
+  
+  public void draw(Player player) {
+    Objects.requireNonNull(player, "The player can't be null");
+    builder()
+    .append(String.format("%5d|", player.position()))
+    .append(" " + player.name() + " - buttons [" + player.buttons() + "]");
+    if(player.isAutonomous()) {
+      var automa = (Automa) player;
+      builder.append(" | " + automa.patches().size() 
+          + " patch"+ (automa.patches().size() > 1 ? "es" : "")  +" totalling " 
+          + automa.buttonsOnPatches()
+          + " button" + (automa.buttonsOnPatches() > 1 ? "s" : ""));
+    }
+    builder.append(player.specialTile() ? " (SpecialTile) " : "");
+  }
+  
+  public void draw(QuiltBoard quilt) {
+    // top
+    builder.append("┌");
+    for (var i = 0; i < quilt.width(); i++) {
+      builder.append("─");
+    }
+    builder.append("┐\n");
+    // body
+    for (var y = 0; y < quilt.height(); y++) {
+      builder.append("|");
+      for (var x = 0; x < quilt.width(); x++) {
+        if (quilt.occupied(new Coordinates(y, x))) {
+          builder.append(CLIColor.ANSI_CYAN_BACKGROUND).append("x");
+        } else {
+          builder.append(" ");
+        }
+      }
+      builder.append(CLIColor.ANSI_RESET);
+      builder.append("|\n");
+    }
+    // bottom
+    builder.append("└");
+    for (var i = 0; i < quilt.width(); i++) {
+      builder.append("─");
+    }
+    builder.append("┘");
+  }
+  
+  @Override
+  public void draw(TrackBoard trackboard) {
+    Objects.requireNonNull(trackboard, "The track board can't be null");
+    /*User needs to see what are the tiles where the patches income and buttons income
+     *  are so he can prepare a proper strategy.*/
+    var events = trackboard.events();
+    if (!events.isEmpty()) {
+        builder.append("[ ---- (Patch Tiles: ");
+        events.stream()
+          .filter(e -> e.type().equals(EventType.PATCH_INCOME))
+          .forEach(e -> builder.append(e.position()).append(" "));
+        builder.append(") ---- ]\n");
+        builder.append("[ ---- (Button Tiles: ");
+        events.stream()
+          .filter(e -> e.type().equals(EventType.BUTTON_INCOME))
+          .forEach(e -> builder.append(e.position()).append(" "));
+          builder.append(") ---- ]\n");
+    }
+    builder.append("\n");
+    for (var player : trackboard.players()) {
+      if(player.equals(trackboard.latestPlayer())) {
+        builder.append(CLIColor.ANSI_GREEN);
+      }
+      draw(player);
+      builder.append(CLIColor.ANSI_RESET).append("\n");
+    }
+    builder.append("\n");
+  }
+  
+  @Override
+  public void drawScoreBoard(TrackBoard trackboard) {
+    Objects.requireNonNull(trackboard, "The track board can't be null");
+    builder.append(CLIColor.ANSI_ORANGE)
+    .append("[ ---- Scores ---- ] \n")
+    .append(CLIColor.ANSI_RESET);
+    var sortedPlayers = trackboard.players().stream()
+        .sorted(reverseOrder())
+        .peek(p -> builder.append(p.name())
+            .append(" : ")
+            .append(p.score())
+            .append("\n"))
+        .toList();
+    builder.append(CLIColor.ANSI_YELLOW)
+    .append(sortedPlayers.get(0).name())
+    .append(" Wins !\n")
+    .append(CLIColor.ANSI_RESET);
+  }
+
+  @Override
+  public void draw(PatchManager patchmanager) {
+    Objects.requireNonNull(patchmanager, "The patch manager can't be null");
+    var patches = patchmanager.patches(7);
+    var txt = "";
+    var farthest = patches.stream()
+        .mapToInt(p -> {
+          var maxCord = p.form().farthestCoordinates();
+          return Math.max(Math.abs(maxCord.x()), Math.abs(maxCord.y()));
+          })
+        .max().getAsInt();
+    for(var i = -farthest; i <= farthest + 1; i++) {
+      txt += "\n";
+        txt += " ";
+        for(var patch: patches) {
+          var description = "(" + patch.price() + "," + patch.moves() + "," + patch.buttons() + ")";
+          var minx = Math.max(farthest, description.length());
+          for(var j = -minx; j <= minx; j++) {
+            if(i == farthest && j == -minx) {
+             txt += description;
+             txt += " ".repeat((minx *2) + 1 - description.length());
+             break;
+            }else if(patch.meets(new Coordinates(i, j))) {
+              txt += "x";
+            }else {
+              txt += " ";
+            }
+          }
+        }
+    }
+    builder.append("[ Next patches (price, moves, buttons) ] --> \n");
+    builder.append(txt);
+  }
+  
+  @Override
   public void display() {
     System.out.print(builder);
   }
@@ -69,13 +217,48 @@ public final class CommandLineInterface implements UserInterface {
   @Override
   public void clear() {
     System.out.print("\033[H\033[2J");
-//    System.out.flush();
+    // System.out.flush();
     builder.setLength(0);
     drawSplashScreen();
   }
+  
+  public void draw(Patch2D patch) {
+    // We use a conceptual square to deal with absolute coordinates.
+    // While the patch doesn't fit in, we expand the square
+    // and replace the origin of the patch at the center of it
+    var width = 2;
+    var height = 2;
+    while (!patch.fits(width, height)) {
+      patch.absoluteMoveTo(new Coordinates(height / 2, width / 2));
+      width += 1;
+      height += 1;
+    }
+    // draw the patch
+    for (var y = 0; y < height; y++) {
+      builder().append("  ");
+      for (var x = 0; x < width; x++) {
+        if (patch.absoluteCoordinates().contains(new Coordinates(y, x))) {
+          builder().append("x");
+        } else {
+          builder().append(" ");
+        }
+      }
+      builder().append("\n");
+    }
+  }
+  
+  
+  public void draw(RegularPatch patch) {
+    builder().append("[")
+    .append("Price: ").append(patch.price())
+    .append(", Moves: ").append(patch.moves())
+    .append(", Buttons: ").append(patch.buttons())
+    .append("]\n\n");
+    draw(patch.patch2D());
+  }
 
   @Override
-  public Optional<Patch> selectPatch(List<Patch> patches) {
+  public Optional<RegularPatch> selectPatch(List<RegularPatch> patches, PatchManager manager) {
     Objects.requireNonNull(patches);
     if(patches.isEmpty()) {
       throw new IllegalArgumentException("Their should be at least 1 patch in the list");
@@ -87,16 +270,16 @@ public final class CommandLineInterface implements UserInterface {
     for(var patch: patches) {
       i++;
       builder.append(i + ". ");
-      patch.drawOnCLI(this);
+      draw(patch);
       builder.append("\n");
     }
     display();
     // Menu
     var localBuilder = new StringBuilder();
     localBuilder
-    .append(Color.ANSI_ORANGE)
+    .append(CLIColor.ANSI_ORANGE)
     .append("\nChoose : ")
-    .append(Color.ANSI_RESET);
+    .append(CLIColor.ANSI_RESET);
     System.out.print(localBuilder);
     if(scanner.hasNextInt()) {
       var input = scanner.nextInt();
@@ -110,62 +293,84 @@ public final class CommandLineInterface implements UserInterface {
     System.out.println("Wrong choice\n");
     return Optional.empty();
   }
+  
   @Override
-  public void drawDummyQuilt(QuiltBoard quilt, Patch patch) {
-    Objects.requireNonNull(quilt, "the quilt can't be null");
+  public void drawDummyQuilt(HumanPlayer player, Patch patch) {
+    Objects.requireNonNull(player.quilt(), "the quilt can't be null");
     Objects.requireNonNull(patch, "The patch can't be null");
     // top
     builder.append("┌");
-    for(var i = 0; i < quilt.width(); i++) {
+    for(var i = 0; i < player.quilt().width(); i++) {
       builder.append("─");
     }
     builder.append("┐\n");
     // body
-    for(var y = 0; y < quilt.height(); y++) {
+    for(var y = 0; y < player.quilt().height(); y++) {
       builder.append("|");
-      for(var x = 0; x < quilt.width(); x++) {
+      for(var x = 0; x < player.quilt().width(); x++) {
         var isPatchHere = patch.meets(new Coordinates(y, x));
-        if(quilt.occupied(new Coordinates(y, x))) {
+        if(player.quilt().occupied(new Coordinates(y, x))) {
           if(isPatchHere){
-            builder.append(Color.ANSI_RED_BACKGROUND)
+            builder.append(CLIColor.ANSI_RED_BACKGROUND)
             .append("░")
-            .append(Color.ANSI_RESET);
+            .append(CLIColor.ANSI_RESET);
           }else {
-            builder.append(Color.ANSI_CYAN_BACKGROUND)
+            builder.append(CLIColor.ANSI_CYAN_BACKGROUND)
             .append("▒")
-            .append(Color.ANSI_RESET);
+            .append(CLIColor.ANSI_RESET);
           }
         }else {
           if(isPatchHere) {
-            builder.append(Color.ANSI_YELLOW_BACKGROUND)
+            builder.append(CLIColor.ANSI_YELLOW_BACKGROUND)
             .append("▓");
           }else {
             builder.append(" ");
           }
-          builder.append(Color.ANSI_RESET);
+          builder.append(CLIColor.ANSI_RESET);
         }
       }
       builder.append("|\n");
     }
     // bottom
     builder.append("└");
-    for(var i = 0; i < quilt.width(); i++) {
+    for(var i = 0; i < player.quilt().width(); i++) {
       builder.append("─");
     }
     builder.append("┘");
   }
   
+  /**
+   * Draw the splash screen
+   */
+  public void drawSplashScreen() {
+    var splash = CLIColor.ANSI_BOLD + "\n  _____      _       _                       _    \n"
+        + " |  __ \\    | |     | |                     | |   \n"
+        + " | |__) |_ _| |_ ___| |____      _____  _ __| | __\n"
+        + " |  ___/ _` | __/ __| '_ \\ \\ /\\ / / _ \\| '__| |/ /\n"
+        + " | |  | (_| | || (__| | | \\ V  V / (_) | |  |   < \n"
+        + " |_|   \\__,_|\\__\\___|_| |_|\\_/\\_/ \\___/|_|  |_|\\_\\\n"
+        + CLIColor.ANSI_GREEN + "└─────────────────────────────────────────────────┘\n"
+        + CLIColor.ANSI_RESET;
+    builder.append(splash);
+  }
+
   @Override
-  public int getPlayerChoice(Set<KeybindedChoice> choices){
+  public Optional<KeybindedChoice> getInput(Set<KeybindedChoice> choices) {
+    // TODO Auto-generated method stub
+    return Optional.empty();
+  }
+
+  @Override
+  public Optional<KeybindedChoice> simpleMenu(String title, Set<KeybindedChoice> choices) {
     Objects.requireNonNull(choices, "the quilt can't be null");
     if(choices.isEmpty()) {
       throw new IllegalArgumentException("The set of choices can't be empty");
     }
     var localBuilder = new StringBuilder();
     localBuilder
-    .append(Color.ANSI_ORANGE)
-    .append("\n[Choices]\n")
-    .append(Color.ANSI_RESET);
+    .append(CLIColor.ANSI_ORANGE)
+    .append("\n" + title + " ---------\n")
+    .append(CLIColor.ANSI_RESET);
     choices.forEach(option -> 
       localBuilder.append(option).append("\n"));
     localBuilder.append("\nChoice ? : ");
@@ -175,37 +380,12 @@ public final class CommandLineInterface implements UserInterface {
         && (input = scanner.nextLine()).length() == 1) {
       for(var choice: choices) {
         if(choice.key() == input.charAt(0)) {
-          return choice.key();
+          return Optional.of(choice);
         }
       }
     }
     System.out.println("Wrong choice\n");
-    return -1;
+    return Optional.empty();
   }
-  
-  /**
-   * Close the interface: <br>
-   * 
-   * close scanner on {@link System#in}
-   */
-  @Override
-  public void close() {
-    scanner.close();
-  }
-
-  @Override
-  public void drawSplashScreen() {
-    var splash = Color.ANSI_BOLD + "  _____      _       _                       _    \n"
-        + " |  __ \\    | |     | |                     | |   \n"
-        + " | |__) |_ _| |_ ___| |____      _____  _ __| | __\n"
-        + " |  ___/ _` | __/ __| '_ \\ \\ /\\ / / _ \\| '__| |/ /\n"
-        + " | |  | (_| | || (__| | | \\ V  V / (_) | |  |   < \n"
-        + " |_|   \\__,_|\\__\\___|_| |_|\\_/\\_/ \\___/|_|  |_|\\_\\\n"
-        + Color.ANSI_GREEN + "└─────────────────────────────────────────────────┘"
-        + Color.rgb(2, 77, 24) +  "v2.0\n" + Color.ANSI_RESET
-        + "\n"
-        + Color.ANSI_RESET;
-    builder.append(splash);
-  }
-  
+ 
 }

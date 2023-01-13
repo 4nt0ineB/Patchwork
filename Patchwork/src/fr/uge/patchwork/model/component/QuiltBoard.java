@@ -6,15 +6,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import fr.uge.patchwork.util.xml.XMLElement;
-import fr.uge.patchwork.view.cli.Color;
-import fr.uge.patchwork.view.cli.CommandLineInterface;
-import fr.uge.patchwork.view.cli.DrawableOnCLI;
+import fr.uge.patchwork.model.component.patch.Coordinates;
+import fr.uge.patchwork.model.component.patch.Form;
+import fr.uge.patchwork.model.component.patch.Patch;
+import fr.uge.patchwork.model.component.patch.RegularPatch;
 
-public class QuiltBoard implements DrawableOnCLI {
+/**
+ * Implements a quilt board 
+ * 
+ */
+public class QuiltBoard {
   private final int width;
   private final int height;
   private ArrayList<Patch> patches = new ArrayList<>();
+  private int buttons;
+  
   
   public QuiltBoard(int width, int height) {
     if (width < 1 || height < 1) {
@@ -35,6 +41,14 @@ public class QuiltBoard implements DrawableOnCLI {
   public int height() {
     return height;
   }
+  
+  public boolean add(Patch patch) {
+    if(canAdd(patch)) {
+      patches.add(patch);
+      return true;
+    }
+    return false;
+  }
 
   /**
    * Add a patch to the Quilt
@@ -43,10 +57,10 @@ public class QuiltBoard implements DrawableOnCLI {
    * @return false if the given patch exceeds the borders or overlap a patch
    *         already on the Quilt, else true
    */
-  public boolean add(Patch patch) {
+  public boolean add(RegularPatch patch) {
     Objects.requireNonNull(patch, "can't add null obj as a patch");
-    if(canAdd(patch)) {
-      patches.add(patch);
+    if(add((Patch) patch)) {
+      buttons += patch.buttons();
       return true;
     }
     return false;
@@ -66,6 +80,7 @@ public class QuiltBoard implements DrawableOnCLI {
     // Overlap ?
     for (var p : patches()) {
       if (patch.overlap(p)) {
+        
         return false;
       }
     }
@@ -119,38 +134,11 @@ public class QuiltBoard implements DrawableOnCLI {
    * @return
    */
   public int countEmptySpaces() {
-    return (width * height) - patches.stream().mapToInt(patch -> patch.countCells()).sum();
-  }
-
-  @Override
-  public void drawOnCLI(CommandLineInterface ui) {
-    var builder = ui.builder();
-    // top
-    builder.append("┌");
-    for (var i = 0; i < width; i++) {
-      builder.append("─");
-    }
-    builder.append("┐\n");
-    // body
-    for (var y = 0; y < height; y++) {
-      builder.append("|");
-      for (var x = 0; x < width; x++) {
-        if (occupied(new Coordinates(y, x))) {
-          builder.append(Color.ANSI_CYAN_BACKGROUND).append("x");
-        } else {
-          builder.append(" ");
-        }
-      }
-      builder.append(Color.ANSI_RESET);
-      builder.append("|\n");
-    }
-    // bottom
-    builder.append("└");
-    for (var i = 0; i < width; i++) {
-      builder.append("─");
-    }
-    builder.append("┘");
-    System.out.println(builder);
+    return (width * height) - 
+        patches.stream()
+        .map(Patch::form)
+        .mapToInt(Form::countCoordinates)
+        .sum();
   }
   
   /**
@@ -158,13 +146,6 @@ public class QuiltBoard implements DrawableOnCLI {
    * @return the sum
    */
   public int buttons() {
-    return patches.stream().mapToInt(Patch::buttons).sum();
+    return buttons;
   }
-
-  public static QuiltBoard fromXML(XMLElement element) {
-    XMLElement.requireNotEmpty(element);
-    return new QuiltBoard(Integer.parseInt(element.getByTagName("width").content()),
-        Integer.parseInt(element.getByTagName("height").content()));
-  }
-
 }

@@ -15,7 +15,14 @@
 	</target>
 
 	<target name="compile" depends="init">
-		<javac srcdir="${src}" destdir="${classes}"/>
+		<javac srcdir="${src}" destdir="${classes}">
+		<classpath>
+				<fileset dir="${lib}">
+				    <include name="zen5.jar"/>
+				</fileset>
+			</classpath>
+		</javac>
+		
 	</target>
 	
 	<target name="jar" depends="compile">
@@ -23,6 +30,7 @@
 			<manifest>
 				<attribute name="Main-Class" value="${main-class}"/>
 			</manifest>
+			<zipgroupfileset dir="${lib}" includes="**/*.jar"/>
 		</jar>
 	</target>
 	
@@ -32,11 +40,19 @@
     </target>
 	
 	<target name="javadoc">
-		<javadoc 
-		version="true"
-			sourcepath="${src}" 
+		<javadoc
+			version="true"
 			destdir="${doc}"
-			Overview="src/overview.html"/>
+			Overview="src/overview.html">
+			<fileset dir="${src}/fr/uge/patchwork" defaultexcludes="yes">
+				<include name="**/*.java"/>
+			</fileset>
+			<classpath>
+				<fileset dir="${lib}">
+				    <include name="zen5.jar"/>
+				</fileset>
+			</classpath>
+		</javadoc>
 	</target>
 	
 	<target name="clean">

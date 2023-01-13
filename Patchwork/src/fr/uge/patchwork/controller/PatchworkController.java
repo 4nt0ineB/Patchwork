@@ -1,177 +1,192 @@
 package fr.uge.patchwork.controller;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
+
+import java.awt.Color;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.Stack;
+import java.util.TreeMap;
 
 import fr.uge.patchwork.model.Game;
 import fr.uge.patchwork.model.GameMode;
-import fr.uge.patchwork.model.component.Coordinates;
-import fr.uge.patchwork.model.component.gameboard.GameBoard;
+import fr.uge.patchwork.model.component.QuiltBoard;
+import fr.uge.patchwork.model.component.gameboard.event.Event;
+import fr.uge.patchwork.model.component.gameboard.event.EventType;
+import fr.uge.patchwork.model.component.patch.Coordinates;
+import fr.uge.patchwork.model.component.patch.LeatherPatch;
+import fr.uge.patchwork.model.component.patch.Patch;
+import fr.uge.patchwork.model.component.patch.RegularPatch;
+import fr.uge.patchwork.model.component.player.HumanPlayer;
+import fr.uge.patchwork.model.component.player.Player;
+import fr.uge.patchwork.model.component.player.automa.Automa;
+import fr.uge.patchwork.model.component.player.automa.AutomaDifficulty;
+import fr.uge.patchwork.model.component.player.automa.DeckType;
 import fr.uge.patchwork.view.UserInterface;
 import fr.uge.patchwork.view.cli.CommandLineInterface;
+import fr.uge.patchwork.view.gui.GraphicalUserInterface;
+import fr.umlv.zen5.Application;
 
 public class PatchworkController {
   
+  // The current player of the turn
+  private Player player;
+  // the interface to play on
+  private UserInterface ui;
+  // the game data
+  private Game game;
+  // triggered during the turn
+  private Stack<Event> triggeredEvents = new Stack<>();
+  // the specialTile of the board
+  private boolean specialTile = true;
+
+  public PatchworkController(UserInterface ui) {
+    this.ui = Objects.requireNonNull(ui);
+  }
+  
   /**
    * Menu Loop that draw the menu and wait for the user to choose
-   * his game mode 
+   * his game mode.
    *
    * @param ui the user interface
    * @return Choosen game mode
    */
-  public static GameMode menu(UserInterface ui) {
-  	var choices = new LinkedHashSet<KeybindedChoice>();
-  	choices.add(new KeybindedChoice('b', "The basic game"));
-  	choices.add(new KeybindedChoice('f', "The full game"));
-    GameMode mode = null;
+  public Optional<GameMode> choseGameMode() {
+    var choices = new LinkedHashSet<KeybindedChoice>(List.of(
+            new KeybindedChoice('b', "The basic game")
+            , new KeybindedChoice('f', "The full game")
+            , new KeybindedChoice('a', "Automa")
+            , new KeybindedChoice('q', "Quit")));
+    var wantToPlay = true;
+    GameMode gameMode;
     do {
       ui.clear();
-      ui.drawMessages();
-      ui.display();
-      mode = switch(ui.getPlayerChoice(choices)) {
-       case 'b' -> GameMode.PATCHWORK_BASIC;
-       case 'f' -> GameMode.PATCHWORK_FULL;
-       case -1 -> null;
-       default -> throw new AssertionError("there shoulnd't be other possiblities");
-     };
-    }while(mode == null);
-    return mode;
-  }
-    
-  /**
-   * MainLoop that draw the game and make users play the game
-   *
-   * @param ui the user interface
-   * @param board the game board
-   * @return true if ends normally, 
-   * otherwise false, if the player asked to quit during the game
-   */
-  public static boolean run(UserInterface ui, GameBoard board) {
-    Objects.requireNonNull(ui, "The interface can't be null");
-    Objects.requireNonNull(ui, "The game board can't be null");
-    var action = PlayerAction.DEFAULT;
-    while(action != PlayerAction.QUIT && !board.isFinished()) { // -- Game loop
-      if(board.nextTurn()){
-        ui.clearMessages();
-      }    
-      /*board already drawn in this function so it was printing it twice*/
-      action = doActionForTurn(ui, board);
-      while (board.nextPatchToPlay().isPresent()) {
-        switch((PlayerAction) manipulatePatch(ui, board)){
-          case BACK -> board.unselectPatch(); // Abandon this patch
-          case PLACE -> board.playNextPatch(); // Add the patch to the quilt
-          default -> {
-            throw new AssertionError("There shouldn't be other choices");
+      var chose = ui.gameModeMenu(choices);
+      if(!chose.isEmpty()) {
+        gameMode = switch(chose.get().key()) {
+          case 'b' -> GameMode.PATCHWORK_BASIC;
+          case 'f' -> GameMode.PATCHWORK_FULL;
+          case 'a' -> GameMode.PATCHWORK_AUTOMA;
+          case 'q' -> {
+            wantToPlay = false;
+            yield null;
           }
-        }
+          default -> throw new AssertionError("there shoulnd't be other possiblities");
+        };
+        return Optional.ofNullable(gameMode);
       }
-      board.eventQueue().forEach(ui::draw);
-    }
-    return action.equals(PlayerAction.QUIT) ? false : true;
+     ui.display();
+    }while(wantToPlay);
+    return Optional.empty();
   }
   
   /**
-   * Function that do the action the user select
-   *
-   * @param ui the user interface
-   * @param board the game board
-   * @return Action
+   * Loop to chose a difficulty for automa
+   * @return automa difficulty level
    */
-  private static PlayerAction doActionForTurn(UserInterface ui, GameBoard board) {
-    var action = PlayerAction.DEFAULT;
-    var choices = new HashSet<KeybindedChoice>();
-    if(board.playerCanAdvance()) {
-      choices.add(new KeybindedChoice('a', "Advance"));
-    }
-    if(board.playerCanSelectPatch()) {
-      choices.add(new KeybindedChoice('s', "Select a patch"));
-    }
-    if(choices.isEmpty()) {
-      return action;
-    }
-    choices.add(new KeybindedChoice('r', "Ragequit"));
-    ui.clear();
-    ui.draw(board);
-    ui.drawMessages();
-    ui.display();
-    switch (ui.getPlayerChoice(choices)) {
-      case 's' -> {
-        var patch = ui.selectPatch(board.availablePatches());
-        if(patch.isPresent()) {
-          board.selectPatch(patch.get());
-        }
-        return PlayerAction.BACK; 
-      }
-      case 'a' -> board.playerAdvance();
-      case 'r' -> action = PlayerAction.QUIT;
-      case -1 -> {}
-      default -> throw new AssertionError("There shouldn't be other choices");
-    }
-    return action;
-  }
-  
-  /**
-   * Function that allows user to manipulate the given patch
-   * on his quilt. Moving it in direction he wants if possible
-   * Placing it on his quilt or even going back to the previous
-   * Action
-   *
-   * @param ui 
-   * @param board
-   * @return Action
-   */
-  private static PlayerAction manipulatePatch(UserInterface ui, GameBoard board) {
-    var choices = new HashSet<KeybindedChoice>();
-    var basicChoices = Set.of(
-        new KeybindedChoice('b', "back"), 
-        new KeybindedChoice('z', "rotate left"), 
-        new KeybindedChoice('a', "rotate right"));
-    choices.addAll(basicChoices);
-    // We use a dummy quilt to play with the patch
-    var patch = board.nextPatchToPlay().get();
-    var quilt = board.currentPlayer().quilt();
-    patch.absoluteMoveTo(new Coordinates(quilt.width() / 2, quilt.height() / 2));
-    var action = PlayerAction.DEFAULT;
-    do {
+  public AutomaDifficulty choseDifficulty() {
+    var choices = new LinkedHashSet<KeybindedChoice>(List.of(
+            new KeybindedChoice('i', "Intern")
+            , new KeybindedChoice('a', "Apprentice")
+            , new KeybindedChoice('f', "Fellow")
+            , new KeybindedChoice('m', "Master")
+            , new KeybindedChoice('l', "Legend")));
+    AutomaDifficulty difficulty = null;
+    while(difficulty == null) {
       ui.clear();
-      ui.draw(board);
-      ui.drawMessages();
-      ui.drawDummyQuilt(quilt, patch);
-      ui.display();
-      choices.clear();
-      choices.addAll(basicChoices);
-      if (quilt.canAdd(patch) && board.currentPlayer().canBuy(patch)) {
-        choices.add(new KeybindedChoice('p', "Buy and place the patch"));
+      var choice = ui.simpleMenu("Difficulty", choices);
+      if(!choice.isEmpty()) {
+        difficulty = switch(choice.get().key()) {
+          case 'i' -> AutomaDifficulty.INTERN;
+          case 'a' -> AutomaDifficulty.APPRENTICE;
+          case 'f' -> AutomaDifficulty.FELLOW;
+          case 'm' -> AutomaDifficulty.MASTER;
+          case 'l' -> AutomaDifficulty.LEGEND; 
+          default -> throw new AssertionError("there shoulnd't be other possiblities");
+        };
       }
-      if (patch.canMoveUp(quilt)) {
-        choices.add(new KeybindedChoice('s', "up"));
+     ui.display();
+    }
+    return difficulty;
+  }
+  
+  /**
+   * Loop to chose a deck for automa 
+   * @return the deck type
+   */
+  public DeckType choseDeck() {
+    var choices = new LinkedHashSet<KeybindedChoice>(List.of(
+        new KeybindedChoice('n', "Normal")
+        , new KeybindedChoice('t', "Tactical")));
+    DeckType type = null;
+    while(type == null) {
+      ui.clear();
+      var choice = ui.simpleMenu("Deck", choices);
+      if(!choice.isEmpty()) {
+        type = switch(choice.get().key()) {
+          case 'n' -> DeckType.NORMAL;
+          case 't' -> DeckType.TACTICAL;
+          default -> throw new AssertionError("there shoulnd't be other possiblities");
+        };
       }
-      if (patch.canMoveDown(quilt)) {
-        choices.add(new KeybindedChoice('w', "down"));
+     ui.display();
+    }
+    return type;
+  }
+  
+  public Player player() {
+    return player;
+  }
+  
+  /**
+   * Init a game and the parameters for the first turn
+   * @return true if a game could be created, otherwise false
+   * @throws IOException from Game creation during settings files parsing
+   */
+  public boolean init() throws IOException {
+   var gameMode = choseGameMode();
+   if(gameMode.isEmpty()) {
+     return false;
+   }
+   game = switch(gameMode.get()) {
+     case PATCHWORK_BASIC -> Game.basic();
+     case PATCHWORK_FULL -> Game.full();
+     case PATCHWORK_AUTOMA -> Game.automa(choseDifficulty(), choseDeck());
+    };
+    var humanPlayers = game.trackBoard().playersAt(0).stream()
+        .filter(HumanPlayer.class::isInstance).toList();
+    // the first player is always human
+    player = humanPlayers.get(humanPlayers.size() - 1); 
+    return true;
+  }
+  
+  /**
+   * Run the game
+   * @return false if want to quit, otherwise true 
+   * if want to play another game
+   */
+  public boolean run() {
+    do {
+      triggeredEvents.clear();
+      if(player.isAutonomous()) {
+        playAutoma((Automa) player);
+        continue;
+      }else {
+        
       }
-      if (patch.canMoveLeft(quilt)) {
-        choices.add(new KeybindedChoice('q', "left"));
+      if(!playTurn()) { // quit asked
+       return false; 
       }
-      if (patch.canMoveRight(quilt)) {
-        choices.add(new KeybindedChoice('d', "right"));
-      }
-      switch (ui.getPlayerChoice(choices)) {
-        case 's'  -> patch.moveUp();
-        case 'w' -> patch.moveDown();
-        case 'd' -> patch.moveRight();
-        case 'q' -> patch.moveLeft();
-        case 'z' -> patch.rotateLeft();
-        case 'a' -> patch.rotateRight();
-        case 'p' -> { return PlayerAction.PLACE; }
-        case 'b' -> { action = PlayerAction.BACK; }
-        case -1 -> {}
-        default -> { throw new AssertionError("There shouldn't be other choices"); }
-      }
-    } while (!action.equals(PlayerAction.BACK));
-    return action;
+      playEvents();
+    }while((player = game.trackBoard().latestPlayer()) != null   
+        && player.position() != game.trackBoard().spaces());
+    return endGame();
   }
   
   /**
@@ -180,45 +195,369 @@ public class PatchworkController {
    * @param gameBoard
    * @return true if want a new game, otherwise false
    */
-  public static boolean endGame(UserInterface ui, GameBoard gameBoard) {
-    Objects.requireNonNull(ui, "The interface can't be null");
-    Objects.requireNonNull(ui, "The game board can't be null");
+  public boolean endGame() {
     var choices = Set.of(
         new KeybindedChoice('q', "Quit"), 
         new KeybindedChoice('n', "New game"));
-    var choice = -1;
-    ui.clear();
-    ui.draw(gameBoard);
-    ui.drawMessages();
-    ui.display(); 
+    for(;;) {
+      ui.clear();
+      ui.drawScoreBoard(game.trackBoard());
+      ui.display(); 
+      var chose = ui.endGameMenu(choices);
+      if(chose.isPresent()) {
+        switch (chose.get().key()) {
+          case 'q' -> { return false; }
+          case 'n' -> { return true; } 
+          default -> { throw new AssertionError("There shouldn't be other choices"); }
+        }
+      }
+      ui.display();
+    }
+  }
+  
+  /**
+   * Play the triggered events of the player during the turn
+   */
+  private void playEvents() {
+    while(!triggeredEvents.isEmpty()) {
+      ui.clear();
+      var event = triggeredEvents.peek();
+      switch(event.type()) {
+        case BUTTON_INCOME -> {
+          int amount = ((HumanPlayer) player).quilt().buttons();
+          if(amount != 0) {
+            player.addButtons(amount);
+          }
+          triggeredEvents.pop();
+        }
+        case PATCH_INCOME -> {
+          if(manipulatePatch(new LeatherPatch())) {
+            game.trackBoard().removeEvent(event);
+            triggeredEvents.pop();
+          }
+        }
+        default -> {throw new AssertionError(); }
+      }
+      ui.display();
+    }
+    // check 7x7 filled square on the player quilt board
+    if((((HumanPlayer) player).quilt().hasFilledSquare(7))) {
+      receiveSpecialTile();
+    }
+  }
+
+  /**
+   * The current player receive the special tile
+   */
+  public void receiveSpecialTile() {
+    if(specialTile) {
+      player.earnSpecialTile();
+      specialTile = false;
+    }
+  }
+
+  /**
+   * Play a turn for automa
+   * @param automa
+   */
+  private void playAutoma(Automa automa) {
+    var patches = game.patchManager().patches(3);
+    var card = automa.card();
+    var affordablePatches = patches.stream()
+        .filter(p -> p.price() <= card.virtualButtons())
+        .toList();
+    if(affordablePatches.size() == 0) {
+      advancePlayer();
+    }else {
+      var patch = affordablePatches.get(0);
+      if(affordablePatches.size() > 1) {
+        patch = automaPlayCard(automa, patches);
+      }
+      game.trackBoard().movePlayer(player, patch.moves());
+      // update patch manager
+      game.patchManager().moveNeutralToken(patches.indexOf(patch));
+      game.patchManager().removeAtToken();
+      automa.add(patch);
+    }
+    // check events
+    var buttonIncomeEventsCount = triggeredEvents.stream()
+        .filter(e -> e.type().equals(EventType.BUTTON_INCOME)).count();
+    automa.addButtons((int) (card.buttonIncome() * buttonIncomeEventsCount));
+    // Special tile
+    if(automa.position() >= game.trackBoard().spaces() - automa.difficulty().spaces()) {
+      receiveSpecialTile();
+    }
+    automa.discardCard();
+  }
+  
+  /**
+   * Automa choosing patch algorithm
+   * @param automa
+   * @param patches
+   * @return the selected patch
+   */
+  public RegularPatch automaPlayCard(Automa automa, List<RegularPatch> patches) {
+    var card = automa.card();
+    var nextPlayer = game.trackBoard().nextPlayerFrom(automa.position() + 1);
+    var maxPosition = nextPlayer.isPresent() ? 
+        nextPlayer.get().position() - automa.position() 
+        : game.trackBoard().spaces();
+    // tiles
+    var filteredPatches = List.copyOf(patches);
+    var iterator = card.filters().iterator();
+    while(iterator.hasNext()) {
+      var filterType = iterator.next();
+      switch(filterType) {
+        case LARGEST -> {
+          var patchesBySize = patches.stream()
+              .collect(groupingBy(p -> p.form().countCoordinates(), TreeMap::new, toList()));
+          filteredPatches = List.copyOf(patchesBySize.lastEntry().getValue());
+        }
+        case MOST_BUTTONS -> {
+          var patchesByButtons = patches.stream()
+              .collect(groupingBy(RegularPatch::buttons, TreeMap::new, toList()));
+          filteredPatches = List.copyOf(patchesByButtons.lastEntry().getValue());
+        }
+        case NO_OVERTAKE -> { // We must now which player are ahead 
+          var patchesBymoves = patches.stream()
+              .filter(p -> p.moves() <= maxPosition)
+              .collect(groupingBy(RegularPatch::buttons, TreeMap::new, toList()));
+          var patchWithNoOvertake = patchesBymoves.lastEntry();
+          if(patchWithNoOvertake != null) {
+            filteredPatches = List.copyOf(patchWithNoOvertake.getValue());
+          }
+        }
+      }
+    }
+    return filteredPatches.get(filteredPatches.size() - 1);
+  }
+  
+  /**
+   * The loop of the player's turn
+   * @return false is the player want to quit 
+   * the game, otherwise true
+   */
+  boolean playTurn() {
+    for(;;) {
+      ui.clear();
+      ui.draw(game.trackBoard());
+      ui.draw(game.patchManager());
+      ui.display();
+      var chose = ui.turnMenu(availableActions());
+      if(chose.isPresent()) {
+        switch (chose.get().key()) {
+          case 's' -> { 
+            // select a patch
+            var selectedPatch = selectPatch(game.patchManager().patches(3));
+            // try placing it on the quilt
+            if(manipulatePatch(selectedPatch)) { 
+              // placed
+              game.trackBoard().movePlayer(player, selectedPatch.moves());
+              // update patch manager
+              game.patchManager().moveNeutralToken(game.patchManager().patches(3).indexOf(selectedPatch));
+              game.patchManager().removeAtToken();
+              return true;
+            }
+          }
+          case 'a' -> {
+            player.addButtons(advancePlayer());
+            return true;
+          }
+          case 'r' -> {
+            return false; // quit asked
+          }
+          default -> throw new AssertionError("There shouldn't be other choices");
+        }
+      }    
+      ui.display();
+    }
+  }
+  
+  private RegularPatch selectPatch(List<RegularPatch> patches) {
+    for(;;) {
+      ui.clear();
+      ui.draw(game.trackBoard());
+      ui.display();
+      var selectedPatch = ui.selectPatch(patches, game.patchManager());
+      if(selectedPatch.isPresent()) {
+        return selectedPatch.get();
+      }
+      ui.display();
+    }
+  }
+  
+  /**
+   * Advance the current player to the space in front of the next player. This
+   * action lead to button income proportional of number of crossed spaces.
+   * @return the amount of spaces moved
+   */
+  public int advancePlayer() {
+    int moves = 1;
+    var nextPlayer = game.trackBoard().nextPlayerFrom(player.position() + moves);
+    if(nextPlayer.isPresent()) { // player ahead
+      moves = nextPlayer.get().position() + 1 - player.position();
+    }
+    triggeredEvents.addAll(game.trackBoard().movePlayer(player, moves));
+    return moves;
+  }
+  
+  /**
+   * Function that allows user to manipulate the given patch
+   * on a quilt. Moving it in direction he wants if possible
+   * Placing it on his quilt or even going back to the previous
+   * Action
+   *
+   * @param ui 
+   * @param board
+   * @return true if patch is placed, otherwise false
+   */
+  private boolean manipulatePatch(Patch patch) {
+    // We use a dummy quilt to play with the patch
+    var hplayer = (HumanPlayer) player;
+    patch.absoluteMoveTo(new Coordinates(hplayer.quilt().width() / 2, hplayer.quilt().height() / 2));
+    var loop = true;
     do {
-      switch (ui.getPlayerChoice(choices)) {
-        case 'q' -> { return false; }
-        case 'n' -> { return true; } 
-        case -1 -> {}
-        default -> { throw new AssertionError("There shouldn't be other choices"); }
-      };
-    }while(choice == -1);
+      ui.clear();
+      ui.drawDummyQuilt(hplayer, patch);
+      ui.display();
+      var chose = ui.manipulatePatch(availableManipulations(hplayer.quilt(), patch));
+      if(chose.isPresent()) {
+        switch (chose.get().key()) {
+          case 's'  -> patch.moveUp();
+          case 'w' -> patch.moveDown();
+          case 'd' -> patch.moveRight();
+          case 'q' -> patch.moveLeft();
+          case 'z' -> patch.rotateLeft();
+          case 'a' -> patch.rotateRight();
+          case 'f' -> patch.flip();
+          case 'p' -> {
+            return hplayer.placePatch(patch);
+          }
+          case 'b' -> loop = false;
+          default -> { throw new AssertionError("There shouldn't be other choices"); }
+        }
+      }
+      ui.display();
+    } while (loop);
     return false;
   }
   
-
-  public static void main(String[] args) {
-    // chose ui from arg in phase 3
-    var userInterface = new CommandLineInterface();
-    Game game;
-    do {
+  /**
+   * 
+   * @return a set of Key binded choices corresponding 
+   * to the player available actions for the turn
+   */
+  private Set<KeybindedChoice> availableActions(){
+    var choices = new HashSet<KeybindedChoice>();
+    if(game.trackBoard().playerCanAdvance(player)) {
+      choices.add(new KeybindedChoice('a', "Advance"));
+    }
+    var patches = game.patchManager().patches(3);
+    if(!patches.isEmpty() &&
+        patches.stream()
+        .anyMatch(patch -> player.buttons() >= patch.price())) {
+      choices.add(new KeybindedChoice('s', "Select a patch"));
+    }
+    choices.add(new KeybindedChoice('r', "Ragequit"));
+    return choices;
+  }
+  
+  /**
+   * 
+   * @param quilt the of the player
+   * @param patch a patch to test
+   * @return a set of available manipulation 
+   * for the patch on the quilt board
+   */
+  private Set<KeybindedChoice> availableManipulations(QuiltBoard quilt, Patch patch){
+    var choices = new HashSet<KeybindedChoice>();
+    if (quilt.canAdd(patch)) {
+      choices.add(new KeybindedChoice('p', "Place the patch"));
+    }
+    if (patch.canMoveUp(0)) {
+      choices.add(new KeybindedChoice('s', "up"));
+    }
+    if (patch.canMoveDown(quilt.height())) {
+      choices.add(new KeybindedChoice('w', "down"));
+    }
+    if (patch.canMoveLeft(0)) {
+      choices.add(new KeybindedChoice('q', "left"));
+    }
+    if (patch.canMoveRight(quilt.width())) {
+      choices.add(new KeybindedChoice('d', "right"));
+    }
+    var basicChoices = Set.of( 
+        new KeybindedChoice('z', "rotate left"), 
+        new KeybindedChoice('a', "rotate right"),
+        new KeybindedChoice('f', "flip"),
+        new KeybindedChoice('b', "back"));
+    choices.addAll(basicChoices);
+    return choices;
+  }
+  
+  /**
+   * Start the program on the given interface
+   * @param userInterface
+   */
+  public static void startGame(UserInterface userInterface) {
+    var loop = true;
+    while(loop) {
+      var controller = new PatchworkController(userInterface);
       try {
-        game = Game.fromGameMode(menu(userInterface));
+        if(!controller.init()) {
+          break;
+        }
       } catch (IOException e) {
         System.err.println(e.getMessage());
         userInterface.close();
         System.exit(1);
         return;
       }
-    }while(run(userInterface, game.gameBoard())
-        && endGame(userInterface, game.gameBoard()));
+      if(!controller.run()) {
+        break;
+      }
+    }
     userInterface.close();
   }
+  
+  public static void help() {
+    System.out.println("-c for cli -g for gui");
+  }
+  
+  
 
+  public static void main(String[] args) {
+    var cli = true;
+    if(args.length > 0) {
+      if(args.length > 1) {
+        help();
+        return;
+      }
+      switch(args[0]) {
+	case "-c" -> cli = true;
+	case "-g" -> cli = false;
+	default -> {
+          help();
+          return;
+	}
+      }
+    }  
+    if(cli) {
+      startGame(new CommandLineInterface());
+    }else {
+      Application.run(Color.BLACK, (context) -> {
+        var ui = new GraphicalUserInterface(context);
+        try {
+          ui.init();
+        } catch (IOException e) {
+          System.err.println(e.getMessage());
+          ui.close();
+          System.exit(1);
+          return;
+        }
+        startGame(ui);
+      });
+    }
+  }
+  
 }

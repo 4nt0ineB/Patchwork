@@ -14,7 +14,7 @@ doc/*
 .mtj.tmp/
 
 # Package Files #
-*.jar
+Patchwork.jar
 *.war
 *.nar
 *.ear
