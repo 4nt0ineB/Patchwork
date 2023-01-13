@@ -527,7 +527,6 @@ public class PatchworkController {
   
 
   public static void main(String[] args) {
-   
     var cli = true;
     if(args.length > 0) {
       if(args.length > 1) {
@@ -535,12 +534,14 @@ public class PatchworkController {
         return;
       }
       switch(args[0]) {
-	      case "-c" -> cli = true;
-	      case "-g" -> cli = false;
-	      default -> help();
+	case "-c" -> cli = true;
+	case "-g" -> cli = false;
+	default -> {
+          help();
+          return;
+	}
       }
-    }
-    
+    }  
     if(cli) {
       startGame(new CommandLineInterface());
     }else {
