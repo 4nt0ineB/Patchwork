@@ -10,6 +10,11 @@ import fr.uge.patchwork.model.component.patch.Patch;
 import fr.uge.patchwork.model.component.patch.RegularPatch;
 import fr.uge.patchwork.model.component.player.Player;
 
+/**
+ * 
+ * Automa implementation
+ *
+ */
 public class Automa implements Player {
   private final LinkedList<RegularPatch> patches = new LinkedList<>();
   private final List<Card> deck;

@@ -7,13 +7,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-import fr.uge.patchwork.model.component.player.TacticalCard;
-
+/**
+ * 
+ * Enumerates the implemented deck type for Automa
+ *
+ */
 public enum DeckType {
   NORMAL
   , TACTICAL
   ;
 
+  /**
+   * Built a deck of card for the given deck type
+   * @param type
+   * @return a list of card
+   * @throws IOException if an parsing error occur in the setting files
+   */
   public static List<Card> fromType(DeckType type) throws IOException{
     Path path;
     Function<String, Card> builder;

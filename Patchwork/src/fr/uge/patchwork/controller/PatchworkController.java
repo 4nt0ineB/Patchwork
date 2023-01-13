@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TreeMap;
@@ -34,11 +35,15 @@ import fr.umlv.zen5.Application;
 
 public class PatchworkController {
   
+  // The current player of the turn
   private Player player;
+  // the interface to play on
   private UserInterface ui;
+  // the game data
   private Game game;
+  // triggered during the turn
   private Stack<Event> triggeredEvents = new Stack<>();
-  private GameMode gameMode;
+  // the specialTile of the board
   private boolean specialTile = true;
 
   public PatchworkController(UserInterface ui) {
@@ -47,18 +52,19 @@ public class PatchworkController {
   
   /**
    * Menu Loop that draw the menu and wait for the user to choose
-   * his game mode 
+   * his game mode.
    *
    * @param ui the user interface
    * @return Choosen game mode
    */
-  public boolean choseGameMode() {
+  public Optional<GameMode> choseGameMode() {
     var choices = new LinkedHashSet<KeybindedChoice>(List.of(
             new KeybindedChoice('b', "The basic game")
             , new KeybindedChoice('f', "The full game")
             , new KeybindedChoice('a', "Automa")
             , new KeybindedChoice('q', "Quit")));
     var wantToPlay = true;
+    GameMode gameMode;
     do {
       ui.clear();
       var chose = ui.gameModeMenu(choices);
@@ -73,12 +79,17 @@ public class PatchworkController {
           }
           default -> throw new AssertionError("there shoulnd't be other possiblities");
         };
+        return Optional.ofNullable(gameMode);
       }
      ui.display();
-    }while(wantToPlay && gameMode == null);
-    return wantToPlay;
+    }while(wantToPlay);
+    return Optional.empty();
   }
   
+  /**
+   * Loop to chose a difficulty for automa
+   * @return automa difficulty level
+   */
   public AutomaDifficulty choseDifficulty() {
     var choices = new LinkedHashSet<KeybindedChoice>(List.of(
             new KeybindedChoice('i', "Intern")
@@ -105,6 +116,10 @@ public class PatchworkController {
     return difficulty;
   }
   
+  /**
+   * Loop to chose a deck for automa 
+   * @return the deck type
+   */
   public DeckType choseDeck() {
     var choices = new LinkedHashSet<KeybindedChoice>(List.of(
         new KeybindedChoice('n', "Normal")
@@ -129,8 +144,17 @@ public class PatchworkController {
     return player;
   }
   
-  public void init() throws IOException {
-   game = switch(gameMode) {
+  /**
+   * Init a game and the parameters for the first turn
+   * @return true if a game could be created, otherwise false
+   * @throws IOException from Game creation during settings files parsing
+   */
+  public boolean init() throws IOException {
+   var gameMode = choseGameMode();
+   if(gameMode.isEmpty()) {
+     return false;
+   }
+   game = switch(gameMode.get()) {
      case PATCHWORK_BASIC -> Game.basic();
      case PATCHWORK_FULL -> Game.full();
      case PATCHWORK_AUTOMA -> Game.automa(choseDifficulty(), choseDeck());
@@ -139,8 +163,14 @@ public class PatchworkController {
         .filter(HumanPlayer.class::isInstance).toList();
     // the first player is always human
     player = humanPlayers.get(humanPlayers.size() - 1); 
+    return true;
   }
   
+  /**
+   * Run the game
+   * @return false if want to quit, otherwise true 
+   * if want to play another game
+   */
   public boolean run() {
     do {
       triggeredEvents.clear();
@@ -185,6 +215,9 @@ public class PatchworkController {
     }
   }
   
+  /**
+   * Play the triggered events of the player during the turn
+   */
   private void playEvents() {
     while(!triggeredEvents.isEmpty()) {
       ui.clear();
@@ -207,11 +240,15 @@ public class PatchworkController {
       }
       ui.display();
     }
+    // check 7x7 filled square on the player quilt board
     if((((HumanPlayer) player).quilt().hasFilledSquare(7))) {
       receiveSpecialTile();
     }
   }
 
+  /**
+   * The current player receive the special tile
+   */
   public void receiveSpecialTile() {
     if(specialTile) {
       player.earnSpecialTile();
@@ -219,6 +256,10 @@ public class PatchworkController {
     }
   }
 
+  /**
+   * Play a turn for automa
+   * @param automa
+   */
   private void playAutoma(Automa automa) {
     var patches = game.patchManager().patches(3);
     var card = automa.card();
@@ -250,10 +291,10 @@ public class PatchworkController {
   }
   
   /**
-   * Automa chose the right patch
+   * Automa choosing patch algorithm
    * @param automa
    * @param patches
-   * @return
+   * @return the selected patch
    */
   public RegularPatch automaPlayCard(Automa automa, List<RegularPatch> patches) {
     var card = automa.card();
@@ -277,7 +318,7 @@ public class PatchworkController {
               .collect(groupingBy(RegularPatch::buttons, TreeMap::new, toList()));
           filteredPatches = List.copyOf(patchesByButtons.lastEntry().getValue());
         }
-        case NO_OVERTAKE -> {
+        case NO_OVERTAKE -> { // We must now which player are ahead 
           var patchesBymoves = patches.stream()
               .filter(p -> p.moves() <= maxPosition)
               .collect(groupingBy(RegularPatch::buttons, TreeMap::new, toList()));
@@ -291,6 +332,11 @@ public class PatchworkController {
     return filteredPatches.get(filteredPatches.size() - 1);
   }
   
+  /**
+   * The loop of the player's turn
+   * @return false is the player want to quit 
+   * the game, otherwise true
+   */
   boolean playTurn() {
     for(;;) {
       ui.clear();
@@ -396,6 +442,11 @@ public class PatchworkController {
     return false;
   }
   
+  /**
+   * 
+   * @return a set of Key binded choices corresponding 
+   * to the player available actions for the turn
+   */
   private Set<KeybindedChoice> availableActions(){
     var choices = new HashSet<KeybindedChoice>();
     if(game.trackBoard().playerCanAdvance(player)) {
@@ -411,6 +462,13 @@ public class PatchworkController {
     return choices;
   }
   
+  /**
+   * 
+   * @param quilt the of the player
+   * @param patch a patch to test
+   * @return a set of available manipulation 
+   * for the patch on the quilt board
+   */
   private Set<KeybindedChoice> availableManipulations(QuiltBoard quilt, Patch patch){
     var choices = new HashSet<KeybindedChoice>();
     if (quilt.canAdd(patch)) {
@@ -437,15 +495,18 @@ public class PatchworkController {
     return choices;
   }
   
+  /**
+   * Start the program on the given interface
+   * @param userInterface
+   */
   public static void startGame(UserInterface userInterface) {
     var loop = true;
     while(loop) {
       var controller = new PatchworkController(userInterface);
-      if(!controller.choseGameMode()) {
-        break;
-      }
       try {
-        controller.init();
+        if(!controller.init()) {
+          break;
+        }
       } catch (IOException e) {
         System.err.println(e.getMessage());
         userInterface.close();
@@ -459,10 +520,27 @@ public class PatchworkController {
     userInterface.close();
   }
   
- 
-    
+  public static void help() {
+    System.out.println("-c for cli -g for gui");
+  }
+  
+  
+
   public static void main(String[] args) {
+   
     var cli = true;
+    if(args.length > 0) {
+      if(args.length > 1) {
+        help();
+        return;
+      }
+      switch(args[0]) {
+	      case "-c" -> cli = true;
+	      case "-g" -> cli = false;
+	      default -> help();
+      }
+    }
+    
     if(cli) {
       startGame(new CommandLineInterface());
     }else {

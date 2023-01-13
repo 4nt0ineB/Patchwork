@@ -2,6 +2,10 @@ package fr.uge.patchwork.model.component.patch;
 
 import java.util.Set;
 
+/**
+ * A leather patch is 1x1 patch with no attributes
+ * but to be a 1x1 orientable shape
+ */
 public final class LeatherPatch implements Patch {
   
   private final Patch2D patch;

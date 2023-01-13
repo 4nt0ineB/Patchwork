@@ -8,6 +8,11 @@ import java.util.stream.IntStream;
 
 import fr.uge.patchwork.model.component.patch.RegularPatch;
 
+/**
+ * 
+ * Implements the patch management system of a patchwork game
+ *
+ */
 public class PatchManager {
 
   private int neutralToken;

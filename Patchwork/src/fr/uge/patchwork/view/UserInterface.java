@@ -14,6 +14,10 @@ import fr.uge.patchwork.model.component.player.HumanPlayer;
 
 public interface UserInterface {
   
+  /**
+   * Init the interface
+   * @throws IOException
+   */
   void init() throws IOException;
   
   /**
@@ -63,6 +67,13 @@ public interface UserInterface {
    * @return an optional keybindedChoice
    */
   Optional<KeybindedChoice> gameModeMenu(Set<KeybindedChoice> choices);
+  
+  /**
+   * Display a menu with choices and a title
+   * @param title
+   * @param choices
+   * @return
+   */
   Optional<KeybindedChoice> simpleMenu(String title, Set<KeybindedChoice> choices);
   
   /**

@@ -176,6 +176,9 @@ public class GraphicalTrackBoard {
   		.forEach(p -> drawPatch(ui, p));
   }
   
+  /**
+   * Update the spaces data, shape and color
+   */
   private void updateSpaces() { 
     var color = trackStartColor;
     var totalSpaces = board.spaces() + offset;

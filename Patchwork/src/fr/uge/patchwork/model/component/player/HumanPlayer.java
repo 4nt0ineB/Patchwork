@@ -7,6 +7,10 @@ import fr.uge.patchwork.model.component.patch.LeatherPatch;
 import fr.uge.patchwork.model.component.patch.Patch;
 import fr.uge.patchwork.model.component.patch.RegularPatch;
 
+/**
+ * Implements a human player being able 
+ * to consciously place a patch on a quilt board.
+ */
 public class HumanPlayer implements Player {
   
   private final String name;
@@ -63,7 +67,11 @@ public class HumanPlayer implements Player {
   public boolean placePatch(Patch patch) {
     Objects.requireNonNull(patch, "The patch can't be null");
     if(patch instanceof RegularPatch) {
-      buttons -= ((RegularPatch) patch).price();
+    	if (canAdd((RegularPatch) patch)) {
+        buttons -= ((RegularPatch) patch).price();
+    	} else {
+    		return false;
+    	}
     }
     return quilt.add(patch);
   }
@@ -120,6 +128,4 @@ public class HumanPlayer implements Player {
     return false;
   }
 
-
-  
 }

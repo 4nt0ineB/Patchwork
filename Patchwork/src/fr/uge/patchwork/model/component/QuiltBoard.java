@@ -11,6 +11,10 @@ import fr.uge.patchwork.model.component.patch.Form;
 import fr.uge.patchwork.model.component.patch.Patch;
 import fr.uge.patchwork.model.component.patch.RegularPatch;
 
+/**
+ * Implements a quilt board 
+ * 
+ */
 public class QuiltBoard {
   private final int width;
   private final int height;

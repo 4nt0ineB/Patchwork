@@ -14,7 +14,7 @@ public record Event(EventType type, int position) {
    * 
    * @param n start (included)
    * @param m end (included)
-   * @return
+   * @return true if in the interval, otherwise false
    */
   public Boolean isPositionedBetween(int n, int m) {
     return !runEachTurn() && position >= n && position <= m;

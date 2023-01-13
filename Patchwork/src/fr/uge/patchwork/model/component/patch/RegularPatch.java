@@ -161,7 +161,12 @@ public final class RegularPatch implements Patch {
     patch.absoluteMoveTo(coordinates);
   }
    
-  
+  /**
+   * Parse a file with regular patches in it
+   * @param path
+   * @return a list of patches
+   * @throws IOException if a parsing error occur
+   */
   public static List<RegularPatch> fromFile(Path path) throws IOException{
     var patches = new ArrayList<RegularPatch>();
     try (var reader = Files.newBufferedReader(path)) {

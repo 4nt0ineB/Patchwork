@@ -4,6 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * 
+ * Implements a normal card, that differentiate from a tactical card
+ * by not providing information on the virtual buttons on its back
+ *
+ */
 public record NormalCard(int virtualButtons, int buttonIncome, List<CardFilter> filters) implements Card{
   
   public NormalCard {

@@ -2,6 +2,11 @@ package fr.uge.patchwork.model.component.patch;
 
 import java.util.Set;
 
+/**
+ * 
+ * Interface defining the implementation of Patch
+ *
+ */
 public sealed interface Patch permits Patch2D, RegularPatch, LeatherPatch {
   
   Form form();
