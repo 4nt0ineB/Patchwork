@@ -15,7 +15,14 @@
 	</target>
 
 	<target name="compile" depends="init">
-		<javac srcdir="${src}" destdir="${classes}"/>
+		<javac srcdir="${src}" destdir="${classes}">
+		<classpath>
+				<fileset dir="${lib}">
+				    <include name="zen5.jar"/>
+				</fileset>
+			</classpath>
+		</javac>
+		
 	</target>
 	
 	<target name="jar" depends="compile">

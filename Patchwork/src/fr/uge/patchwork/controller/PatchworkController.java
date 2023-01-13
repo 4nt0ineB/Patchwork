@@ -525,18 +525,19 @@ public class PatchworkController {
   }
   
   
+
   public static void main(String[] args) {
+   
     var cli = true;
     if(args.length > 0) {
       if(args.length > 1) {
         help();
         return;
       }
-      if(args[0].equals("-c")) {
-        cli = true;
-      }
-      if(args[0].equals("-g")) {
-        cli = false;
+      switch(args[0]) {
+	      case "-c" -> cli = true;
+	      case "-g" -> cli = false;
+	      default -> help();
       }
     }
     
